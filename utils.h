@@ -59,7 +59,6 @@ struct Configuration
     double cutoff;
     uint64_t samplingfreq;
     uint64_t poles; //must be even
-    uint64_t padding;
 
     //detection parameters
     double threshold;

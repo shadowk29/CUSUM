@@ -228,10 +228,6 @@ void read_config(configuration *config)
         {
             config->poles = strtoull(value,NULL,10);
         }
-        else if (strcmp(name,"filterpadding") == 0)
-        {
-            config->padding = strtoull(value,NULL,10);
-        }
         else if (strcmp(name,"threshold") == 0)
         {
             config->threshold = strtod(value,NULL);
@@ -293,7 +289,6 @@ void read_config(configuration *config)
     }
     if (config->usefilter == 0)
     {
-        config->padding = 0;
         config->poles = 0;
         cutoff = 0;
     }

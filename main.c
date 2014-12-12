@@ -29,7 +29,6 @@ int main()
     uint64_t start;
     uint64_t finish;
     uint64_t readlength;
-    uint64_t padding;
     double binsize;
     double threshold;
     double hysteresis;
@@ -45,7 +44,6 @@ int main()
     start = config->start;
     finish = config->finish;
     readlength = config->readlength;
-    padding = config->padding;
     binsize = config->binsize;
     threshold = config->threshold;
     hysteresis = config->hysteresis;
@@ -56,7 +54,7 @@ int main()
     samplingfreq = config->samplingfreq;
 
     double *signal;
-    if ((signal = (double *) calloc(readlength + 2*padding,sizeof(double)))==NULL)
+    if ((signal = (double *) calloc(readlength,sizeof(double)))==NULL)
     {
         printf("Cannot allocate signal array\n");
         abort();
@@ -88,16 +86,16 @@ int main()
     double baseline;
 
 
-    for (pos = start + padding; pos < finish; pos += read - 2*padding)
+    for (pos = start; pos < finish; pos += read)
     {
         printf("Processing position %" PRIu64"\n",pos);
-        read = read_current(input, signal, pos-padding, intmin(readlength,finish - pos) + 2*padding);
-        if (read < config->readlength + 2*padding || feof(input))
+        read = read_current(input, signal, pos, intmin(readlength,finish - pos));
+        if (read < config->readlength || feof(input))
         {
             endflag = 1;
         }
 
-        baseline = build_histogram(signal, histogram, read, binsize, padding, pos, baseline_max, baseline_min);
+        baseline = build_histogram(signal, histogram, read, binsize, pos, baseline_max, baseline_min);
 
         if (baseline < baseline_min || baseline > baseline_max)
         {
@@ -105,15 +103,15 @@ int main()
         }
         else
         {
-            current_edge = detect_edges(signal, padding, baseline, read, current_edge, threshold, hysteresis, pos-padding, event_direction);
+            current_edge = detect_edges(signal, baseline, read, current_edge, threshold, hysteresis, pos, event_direction);
         }
 
         if (endflag)
         {
-            pos += read - 2*padding;
+            pos += read;
             break;
         }
-        memset(signal,'0',(readlength + 2*padding)*sizeof(double));
+        memset(signal,'0',(readlength)*sizeof(double));
     }
     current_edge = head_edge;
     current_event = head_event;

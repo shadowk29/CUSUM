@@ -207,7 +207,7 @@ event *process_edges(edge *current_edge, event *current_event)
 
 
 
-edge *detect_edges(double *signal, uint64_t padding, double baseline, uint64_t length, edge *current, double threshold, double hysteresis, uint64_t position, int event_direction)
+edge *detect_edges(double *signal, double baseline, uint64_t length, edge *current, double threshold, double hysteresis, uint64_t position, int event_direction)
 {
     uint64_t i = 0;
     double sign;
@@ -218,9 +218,9 @@ edge *detect_edges(double *signal, uint64_t padding, double baseline, uint64_t l
     sign = signum(baseline); //get the sign of the average so that we can properly invert the signal
     baseline *= sign;
 
-    if (length < 2*padding)
+    if (length <=0 )
     {
-        printf("read length < 2*padding, cannot process edges over negative number of samples\n");
+        printf("read length is zero or less, cannot process\n");
         return NULL;
     }
 
@@ -229,7 +229,7 @@ edge *detect_edges(double *signal, uint64_t padding, double baseline, uint64_t l
         down_threshold = baseline*(1 - threshold);//current thresholds for detection of downspikes and upspikes can be different
         up_threshold = baseline*(1 - threshold + hysteresis);
 
-        for (i=padding; i<length-padding; i++)
+        for (i=0; i<length; i++)
         {
             if (signal[i]*sign < down_threshold && state == 0) //if we are open pore state and detect a downspike
             {
@@ -247,7 +247,7 @@ edge *detect_edges(double *signal, uint64_t padding, double baseline, uint64_t l
     {
         up_threshold = baseline*(1 + threshold);
         down_threshold = baseline*(1 + threshold - hysteresis);//current thresholds for detection of downspikes and upspikes can be different
-        for (i=padding; i<length-padding; i++)
+        for (i=0; i<length; i++)
         {
             if (signal[i]*sign > up_threshold && state == 0) //if we are open pore state and detect a downspike
             {
@@ -265,10 +265,10 @@ edge *detect_edges(double *signal, uint64_t padding, double baseline, uint64_t l
 }
 
 
-double build_histogram(double *signal, histostruct *histogram, uint64_t length, double delta, uint64_t padding, uint64_t pos, double baseline_max, double baseline_min)
+double build_histogram(double *signal, histostruct *histogram, uint64_t length, double delta, uint64_t pos, double baseline_max, double baseline_min)
 {
-    double maximum = signal_max(signal, length, padding);
-    double minimum = signal_min(signal, length, padding);
+    double maximum = signal_max(signal, length);
+    double minimum = signal_min(signal, length);
 
     double range = maximum - minimum;
     uint64_t numbins = range / delta;
@@ -307,12 +307,12 @@ double build_histogram(double *signal, histostruct *histogram, uint64_t length, 
 
 
     //populate the current level histogram for the data chunk
-    if (length <= 2*padding)
+    if (length <= 0)
     {
-        printf("Final sample interval contains no points: increase your read length to more than twice your filter padding\n");
+        printf("Final sample interval contains no points\n");
         return 0;
     }
-    for (i=padding; i<length-padding; i++)
+    for (i=0; i<length; i++)
     {
         histogram->histogram[(int) my_min(numbins-1, (int) ((signal[i]-minimum)/delta))][0] += 1;
     }
@@ -374,11 +374,11 @@ double build_histogram(double *signal, histostruct *histogram, uint64_t length, 
     return baseline;
 }
 
-double signal_max(double *signal, uint64_t length, uint64_t padding)
+double signal_max(double *signal, uint64_t length)
 {
     uint64_t i;
-    double maximum = signal[padding];
-    for (i=padding; i<length-padding; i++)
+    double maximum = signal[0];
+    for (i=0; i<length; i++)
     {
         if (signal[i] > maximum)
         {
@@ -388,11 +388,11 @@ double signal_max(double *signal, uint64_t length, uint64_t padding)
     return maximum;
 }
 //get the smallest (most negative) value for the signal
-double signal_min(double *signal, uint64_t length, uint64_t padding)
+double signal_min(double *signal, uint64_t length)
 {
     uint64_t i;
-    double minimum = signal[padding];
-    for (i=padding; i<length-padding; i++)
+    double minimum = signal[0];
+    for (i=0; i<length; i++)
     {
         if (signal[i] < minimum)
         {
