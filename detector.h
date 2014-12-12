@@ -11,8 +11,8 @@
 void detect_subevents(event *current_event, double delta, double threshold);
 uint64_t locate_min(double *signal, uint64_t length);
 
-void assign_cusum_levels(event *current);
-void average_cusum_levels(event *current);
+void assign_cusum_levels(event *current, uint64_t subevent_minpoints);
+void average_cusum_levels(event *current, uint64_t subevent_minpoints);
 void cusum(event *current_event, double delta, double threshold);
 
 

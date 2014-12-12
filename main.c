@@ -35,6 +35,7 @@ int main()
     double baseline_min;
     double baseline_max;
     uint64_t samplingfreq;
+    uint64_t subevent_minpoints;
     double cusum_delta;
     double cusum_threshold;
     int event_direction;
@@ -55,6 +56,7 @@ int main()
     samplingfreq = config->samplingfreq;
     cusum_delta = config->cusum_delta;
     cusum_threshold = config->cusum_threshold;
+    subevent_minpoints = config->subevent_minpoints;
 
     double *signal;
     if ((signal = (double *) calloc(readlength,sizeof(double)))==NULL)
@@ -146,7 +148,7 @@ int main()
     detect_subevents(current_event, cusum_delta, cusum_threshold);
     current_event = head_event;
 
-    assign_cusum_levels(current_event);
+    assign_cusum_levels(current_event, subevent_minpoints);
     current_event = head_event;
 
     print_all_signals(current_event);

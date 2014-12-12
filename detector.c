@@ -8,34 +8,32 @@
 #include<stdlib.h>
 #include<float.h>
 
-void assign_cusum_levels(event *current)
+void assign_cusum_levels(event *current, uint64_t subevent_minpoints)
 {
     while (current)
     {
-        average_cusum_levels(current);
+        average_cusum_levels(current, subevent_minpoints);
         current = current->next;
     }
 }
 
-void average_cusum_levels(event *current)
+void average_cusum_levels(event *current, uint64_t subevent_minpoints)
 {
-    uint64_t numjumps = 0;
     edge *first_edge = current->first_edge;
     edge *current_edge = first_edge;
-    uint64_t i,j;
+    uint64_t j;
     uint64_t numpoints;
     uint64_t anchor = 0;
     double average;
     while (current_edge)
     {
-        numjumps++;
-        current_edge = current_edge->next;
-    }
-    current_edge = first_edge;
-    for (i=0; i<numjumps; i++)
-    {
         numpoints = current_edge->location - anchor;
-        average = signal_average(&current->signal[anchor + numpoints/5], current_edge->location - anchor-numpoints/5);
+        while (numpoints < subevent_minpoints && current_edge)
+        {
+            current_edge = current_edge->next;
+            numpoints = current_edge->location - anchor;
+        }
+        average = signal_average(&current->signal[anchor + intmin(subevent_minpoints, numpoints/4)], current_edge->location - anchor-intmin(subevent_minpoints,numpoints/4));
         for (j=anchor; j<current_edge->location; j++)
         {
             current->filtered_signal[j] = average;
