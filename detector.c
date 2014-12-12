@@ -8,16 +8,16 @@
 #include<stdlib.h>
 #include<float.h>
 
-void assign_cusum_levels(event *current, uint64_t subevent_minpoints)
+void assign_cusum_levels(event *current)
 {
     while (current)
     {
-        average_cusum_levels(current, subevent_minpoints);
+        average_cusum_levels(current);
         current = current->next;
     }
 }
 
-void average_cusum_levels(event *current, uint64_t subevent_minpoints)
+void average_cusum_levels(event *current)
 {
     edge *first_edge = current->first_edge;
     edge *current_edge = first_edge;
@@ -28,12 +28,7 @@ void average_cusum_levels(event *current, uint64_t subevent_minpoints)
     while (current_edge)
     {
         numpoints = current_edge->location - anchor;
-        while (numpoints < subevent_minpoints && current_edge)
-        {
-            current_edge = current_edge->next;
-            numpoints = current_edge->location - anchor;
-        }
-        average = signal_average(&current->signal[anchor + intmin(subevent_minpoints, numpoints/4)], current_edge->location - anchor-intmin(subevent_minpoints,numpoints/4));
+        average = signal_average(&current->signal[anchor + numpoints/5], current_edge->location - anchor - numpoints/5); //FIXME
         for (j=anchor; j<current_edge->location; j++)
         {
             current->filtered_signal[j] = average;
@@ -136,13 +131,13 @@ void cusum(event *current_event, double delta, double threshold)
             if (gpos[k] > threshold)
             {
                 jumppos = anchor + locate_min(&cpos[anchor], k+1-anchor);
-                current_edge = add_edge(current_edge, jumppos, 1);
+                current_edge = add_edge(current_edge, jumppos+1, 1);
                 numjumps++;
             }
             if (gneg[k] > threshold)
             {
                 jumpneg = anchor + locate_min(&cneg[anchor], k+1-anchor);
-                current_edge = add_edge(current_edge, jumpneg, -1);
+                current_edge = add_edge(current_edge, jumpneg+1, -1);
                 numjumps++;
             }
 
