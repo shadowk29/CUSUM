@@ -5,7 +5,6 @@
 #include<math.h>
 #include<stdio.h>
 #include<stdlib.h>
-#define HEAD -1000
 
 int main()
 {

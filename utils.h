@@ -6,6 +6,7 @@
 #include<stdint.h>
 #define EPS 1e-50
 #define STRLENGTH 1024
+#define HEAD -1000
 
 struct Histostruct
 {
