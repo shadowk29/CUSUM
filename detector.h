@@ -6,6 +6,17 @@
 #define FIRST_DERIV 1
 #define SCND_DERIV 2
 
+
+
+void detect_subevents(event *current_event, double delta, double threshold);
+uint64_t locate_min(double *signal, uint64_t length);
+
+void assign_cusum_levels(event *current);
+void average_cusum_levels(event *current);
+void cusum(event *current_event, double delta, double threshold);
+
+
+
 void populate_event_traces(FILE *input, event *current_event, uint64_t order);
 
 

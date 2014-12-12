@@ -247,6 +247,14 @@ void read_config(configuration *config)
         {
             config->binsize = strtod(value,NULL);
         }
+        else if (strcmp(name,"cusum_threshold") == 0)
+        {
+            config->cusum_threshold = strtod(value,NULL);
+        }
+        else if (strcmp(name,"cusum_delta") == 0)
+        {
+            config->cusum_delta = strtod(value,NULL);
+        }
         else if (strcmp(name,"event_minpoints") == 0)
         {
             config->event_minpoints = strtoull(value,NULL,10);

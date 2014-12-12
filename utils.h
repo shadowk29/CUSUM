@@ -31,6 +31,7 @@ struct Event
     double *filtered_signal;
     double binsize;
     uint64_t padding;
+    struct Edge *first_edge;
     struct Event *next;
     struct Event *prev;
 };
@@ -77,6 +78,9 @@ struct Configuration
     double baseline_max;
 
     int event_direction;
+
+    double cusum_threshold;
+    double cusum_delta;
 
 };
 typedef struct Configuration configuration;

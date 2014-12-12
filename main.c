@@ -36,6 +36,8 @@ int main()
     double baseline_min;
     double baseline_max;
     uint64_t samplingfreq;
+    double cusum_delta;
+    double cusum_threshold;
     int event_direction;
     int endflag;
     endflag = 0;
@@ -52,6 +54,8 @@ int main()
     baseline_min = config->baseline_min;
     baseline_max = config->baseline_max;
     samplingfreq = config->samplingfreq;
+    cusum_delta = config->cusum_delta;
+    cusum_threshold = config->cusum_threshold;
 
     double *signal;
     if ((signal = (double *) calloc(readlength,sizeof(double)))==NULL)
@@ -120,7 +124,7 @@ int main()
     {
         printf("No edges found in signal, exiting\n");
         system("pause");
-        return 0;
+        return -1;
     }
     current_event = process_edges(current_edge, current_event);
     current_event = head_event;
@@ -129,7 +133,7 @@ int main()
     {
         printf("No events found in signal, exiting\n");
         system("pause");
-        return 0;
+        return -2;
     }
     populate_event_traces(input, current_event, order);
     current_event = head_event;
@@ -138,6 +142,12 @@ int main()
     current_event = head_event;
 
     assign_event_areas(current_event, 1.0/samplingfreq);
+    current_event = head_event;
+
+    detect_subevents(current_event, cusum_delta, cusum_threshold);
+    current_event = head_event;
+
+    assign_cusum_levels(current_event);
     current_event = head_event;
 
     print_all_signals(current_event);

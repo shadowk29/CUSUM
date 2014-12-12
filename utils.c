@@ -89,6 +89,7 @@ event *initialize_events(void)
     }
     head->type = 0;
     head->index = HEAD;
+    head->first_edge = NULL;
     head->next = NULL;
     head->prev = NULL;
     return head;
@@ -102,6 +103,7 @@ event *add_event(event *current, uint64_t start, uint64_t finish)
         current->start = start;
         current->finish = finish;
         current->length = finish-start;
+        current->first_edge = NULL;
         current->next = NULL;
         current->prev = NULL;
     }
@@ -113,6 +115,7 @@ event *add_event(event *current, uint64_t start, uint64_t finish)
             abort();
         }
         current->next->type = 0;
+        current->next->first_edge = NULL;
         current->next->next = NULL;
         current->next->signal = NULL;
         current->next->prev = current;
@@ -134,6 +137,10 @@ void free_events(event *current)
         free(current->prev->signal);
         free(current->prev->filtered_signal);
         free(current->prev);
+        if (current->prev->first_edge)
+        {
+            free_edges(current->prev->first_edge);
+        }
     }
     free(current);
 }

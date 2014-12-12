@@ -8,6 +8,158 @@
 #include<stdlib.h>
 #include<float.h>
 
+void assign_cusum_levels(event *current)
+{
+    while (current)
+    {
+        average_cusum_levels(current);
+        current = current->next;
+    }
+}
+
+void average_cusum_levels(event *current)
+{
+    uint64_t numjumps = 0;
+    edge *first_edge = current->first_edge;
+    edge *current_edge = first_edge;
+    uint64_t i,j;
+    uint64_t anchor = 0;
+    double average;
+    while (current_edge)
+    {
+        numjumps++;
+        current_edge = current_edge->next;
+    }
+    current_edge = first_edge;
+    for (i=0; i<numjumps; i++)
+    {
+        average = signal_average(&current->signal[anchor], current_edge->location - anchor);
+        for (j=anchor; j<current_edge->location; j++)
+        {
+            current->filtered_signal[j] = average;
+        }
+        anchor = current_edge->location;
+        current_edge = current_edge->next;
+    }
+}
+
+void detect_subevents(event *current_event, double delta, double threshold)
+{
+    while (current_event)
+    {
+        cusum(current_event, delta, threshold);
+        current_event = current_event->next;
+    }
+}
+
+uint64_t locate_min(double *signal, uint64_t length)
+{
+    double minval = signal[0];
+    uint64_t location = 0;
+    uint64_t i;
+    for (i=0; i<length; i++)
+    {
+        if (signal[i] < minval)
+        {
+            minval = signal[i];
+            location = i;
+        }
+    }
+    return location;
+}
+
+void cusum(event *current_event, double delta, double threshold)
+{
+    double *signal = current_event->signal;
+    uint64_t length = current_event->length + 2 * current_event->padding;
+    current_event->first_edge = initialize_edges();
+    edge *first_edge = current_event->first_edge;
+    edge *current_edge = first_edge;
+    uint64_t anchor = 0;//initial position
+    double mean = signal[anchor];//initial mean value guess
+    double variance = 0;//initial variance estimation
+    double logp = 0;//log-likelihood ratio for positive jumps
+    double logn = 0;//log-likelihood ratio for negative jumps
+
+    double *cpos;//cumulative log-likelihood for positive jumps
+    if ((cpos = calloc(length, sizeof(double)))==NULL)
+    {
+        printf("Cannot allocate cpos\n");
+        fflush(stdout);
+        abort();
+    }
+    cpos[0] = 0;
+    double *cneg;//cumulative log-likelihood for negative jumps
+    if ((cneg = calloc(length, sizeof(double)))==NULL)
+    {
+        printf("Cannot allocate cneg\n");
+        fflush(stdout);
+        abort();
+    }
+    cneg[0] = 0;
+    double *gpos;//decision function for positive jumps
+    if ((gpos = calloc(length, sizeof(double)))==NULL)
+    {
+        printf("Cannot allocate gpos\n");
+        fflush(stdout);
+        abort();
+    }
+    gpos[0] = 0;
+    double *gneg;//decision function for negative jumps
+    if ((gneg = calloc(length, sizeof(double)))==NULL)
+    {
+        printf("Cannot allocate gneg\n");
+        fflush(stdout);
+        abort();
+    }
+    gneg[0] = 0;
+
+
+    uint64_t k = 0;//loop index
+    uint64_t numjumps = 0;
+    uint64_t jumppos = 0;
+    uint64_t jumpneg = 0;
+    while (k<length-1)
+    {
+        k++;
+        mean = signal_average(&signal[anchor], k+1-anchor);
+        variance = signal_variance(&signal[anchor], k+1-anchor);
+        logp = delta/variance*(signal[k]-mean-delta/2);
+        logn = -delta/variance*(signal[k]-mean+delta/2);
+        cpos[k] = cpos[k-1] + logp;
+        cneg[k] = cneg[k-1] + logn;
+        gpos[k] = my_max(gpos[k-1] + logp, 0);
+        gneg[k] = my_max(gneg[k-1] + logn, 0);
+        if (gpos[k] > threshold || gneg[k] > threshold)
+        {
+            if (gpos[k] > threshold)
+            {
+                jumppos = anchor + locate_min(&cpos[anchor], k+1-anchor);
+                current_edge = add_edge(current_edge, jumppos, 1);
+                numjumps++;
+            }
+            if (gneg[k] > threshold)
+            {
+                jumpneg = anchor + locate_min(&cneg[anchor], k+1-anchor);
+                current_edge = add_edge(current_edge, jumpneg, -1);
+                numjumps++;
+            }
+            anchor = k;
+            mean = 0;
+            variance = 0;
+            memset(cpos,'0',length*sizeof(double));
+            memset(cneg,'0',length*sizeof(double));
+            memset(gpos,'0',length*sizeof(double));
+            memset(gneg,'0',length*sizeof(double));
+        }
+    }
+    current_edge = add_edge(current_edge, length, 1);
+    free(cpos);
+    free(cneg);
+    free(gpos);
+    free(gneg);
+}
+
 void event_area(event *current_event, double timestep)
 {
     uint64_t i;
@@ -429,6 +581,11 @@ double signal_extreme(double *signal, uint64_t length, double sign)
 
 double signal_variance(double *signal, uint64_t length)
 {
+    if (length < 2)
+    {
+        printf("Cannot calculate variance with less than 2 samples\n");
+        return 0;
+    }
     uint64_t i;
     double variance;
     variance = 0;
