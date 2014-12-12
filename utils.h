@@ -41,7 +41,7 @@ typedef struct Event event;
 struct Edge
 {
     uint64_t location;
-    int type;
+    uint64_t type;
     struct Edge *next;
 };
 typedef struct Edge edge;

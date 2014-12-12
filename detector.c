@@ -23,6 +23,7 @@ void average_cusum_levels(event *current)
     edge *first_edge = current->first_edge;
     edge *current_edge = first_edge;
     uint64_t i,j;
+    uint64_t numpoints;
     uint64_t anchor = 0;
     double average;
     while (current_edge)
@@ -33,7 +34,8 @@ void average_cusum_levels(event *current)
     current_edge = first_edge;
     for (i=0; i<numjumps; i++)
     {
-        average = signal_average(&current->signal[anchor], current_edge->location - anchor);
+        numpoints = current_edge->location - anchor;
+        average = signal_average(&current->signal[anchor + numpoints/5], current_edge->location - anchor-numpoints/5);
         for (j=anchor; j<current_edge->location; j++)
         {
             current->filtered_signal[j] = average;
@@ -144,6 +146,7 @@ void cusum(event *current_event, double delta, double threshold)
                 current_edge = add_edge(current_edge, jumpneg, -1);
                 numjumps++;
             }
+
             anchor = k;
             mean = 0;
             variance = 0;
