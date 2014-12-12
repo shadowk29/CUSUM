@@ -28,6 +28,7 @@ struct Event
     double baseline_before;
     double baseline_after;
     double average_blockage;
+    double max_blockage;
     double *signal;
     double *filtered_signal;
     double binsize;

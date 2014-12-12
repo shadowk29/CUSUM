@@ -21,6 +21,9 @@ void average_cusum_levels(event *current)
 {
     edge *first_edge = current->first_edge;
     edge *current_edge = first_edge;
+    double blockage;
+    double maxblockage = 0;
+    double baseline = 0.5 * (current->baseline_before + current->baseline_after);
     uint64_t j;
     uint64_t numpoints;
     uint64_t anchor = 0;
@@ -29,6 +32,11 @@ void average_cusum_levels(event *current)
     {
         numpoints = current_edge->location - anchor;
         average = signal_average(&current->signal[anchor + numpoints/5], current_edge->location - anchor - numpoints/5); //FIXME
+        blockage = d_abs(average - baseline);
+        if (blockage > maxblockage)
+        {
+            maxblockage = blockage;
+        }
         for (j=anchor; j<current_edge->location; j++)
         {
             current->filtered_signal[j] = average;
@@ -37,6 +45,7 @@ void average_cusum_levels(event *current)
         current_edge = current_edge->next;
     }
     current_edge = first_edge;
+    current->max_blockage = maxblockage;
 }
 
 void detect_subevents(event *current_event, double delta, double threshold)
@@ -177,7 +186,8 @@ void event_area(event *current_event, double timestep)
         {
             area += (signal[i] - baseline) * timestep;
         }
-        current_event->area = area;
+        current_event->area = d_abs(area);
+        current_event->average_blockage = current_event->area/(current_event->length*timestep);
     }
 }
 

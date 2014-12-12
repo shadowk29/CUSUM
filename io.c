@@ -24,13 +24,15 @@ Length (us)\t\
 Baseline Before (pA)\t\
 Baseline After\t\
 Area (pC)\t\
-Average Blockage (pA)\n");
+Average Blockage (pA)\t\
+Max Blockage (pA)\n");
     while (current)
     {
         fprintf(events,"%"PRId64"\t\
                 %d\t%"PRIu64"\t\
                 %"PRIu64"\t\
                 %"PRIu64"\t\
+                %g\t\
                 %g\t\
                 %g\t\
                 %g\t\
@@ -47,7 +49,8 @@ Average Blockage (pA)\n");
                 current->baseline_before, \
                 current->baseline_after, \
                 current->area, \
-                current->area / (intmax(1,current->length) * timestep));
+                current->average_blockage, \
+                current->max_blockage);
         current = current->next;
     }
     fclose(events);
