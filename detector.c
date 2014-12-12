@@ -41,6 +41,7 @@ void average_cusum_levels(event *current, uint64_t subevent_minpoints)
         anchor = current_edge->location;
         current_edge = current_edge->next;
     }
+    current_edge = first_edge;
 }
 
 void detect_subevents(event *current_event, double delta, double threshold)
