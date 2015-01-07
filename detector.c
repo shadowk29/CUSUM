@@ -14,7 +14,7 @@ int count_levels(event *current)
     int numlevels = 0;
     double lastlevel;
     lastlevel = current->filtered_signal[current->padding];
-    for (i=current->padding; i<current->length + current->padding; i++)
+    for (i=0; i<current->length + 2*current->padding; i++)
     {
         if (signum(current->filtered_signal[i]-lastlevel) != 0)
         {

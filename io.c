@@ -10,6 +10,9 @@ void print_events(event *current, double timestep)
 {
     FILE *events;
     int numlevels;
+    double currentlevel;
+    double currenttime;
+    uint64_t i;
     if ((events = fopen("output/events.dat","w"))==NULL)
     {
         printf("Cannot open event summary file\n");
@@ -18,9 +21,7 @@ void print_events(event *current, double timestep)
 
     fprintf(events,"Index\t\
 Type\t\
-Start Sample\t\
-Sample Length\t\
-Padding\t\
+Padding (us)\t\
 Start Time (s)\t\
 Length (us)\t\
 Baseline Before (pA)\t\
@@ -28,14 +29,14 @@ Baseline After\t\
 Area (pC)\t\
 Average Blockage (pA)\t\
 Max Blockage (pA)\t\
-Num Levels\n");
+Num Levels\t\
+Level Current (pA)\t\
+Level Length (us)\n");
     while (current)
     {
         numlevels = count_levels(current);
         fprintf(events,"%"PRId64"\t\
-                %d\t%"PRIu64"\t\
-                %"PRIu64"\t\
-                %"PRIu64"\t\
+                %d\t\
                 %g\t\
                 %g\t\
                 %g\t\
@@ -43,12 +44,11 @@ Num Levels\n");
                 %g\t\
                 %g\t\
                 %g\t\
-                %d\n",\
+                %g\t\
+                %d\t",\
                 current->index, \
                 current->type, \
-                current->start, \
-                current->length, \
-                current->padding, \
+                current->padding * timestep * 1e6, \
                 current->start * timestep, \
                 current->length * timestep * 1e6, \
                 current->baseline_before, \
@@ -57,6 +57,20 @@ Num Levels\n");
                 current->average_blockage, \
                 current->max_blockage, \
                 numlevels);
+
+        currenttime = 0;
+        currentlevel = current->filtered_signal[0];
+        fprintf(events,"%g\t",currentlevel);
+        for (i=0; i<current->length + 2*current->padding; i++)
+        {
+            if (signum(current->filtered_signal[i] - currentlevel) != 0)
+            {
+                currentlevel = current->filtered_signal[i];
+                fprintf(events,"%g\t%g\t",(i-currenttime) * timestep * 1e6, currentlevel);
+                currenttime = i;
+            }
+        }
+        fprintf(events,"%g\n",(i-currenttime) * timestep * 1e6);
         current = current->next;
     }
     fclose(events);
