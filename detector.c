@@ -8,6 +8,23 @@
 #include<stdlib.h>
 #include<float.h>
 
+int count_levels(event *current)
+{
+    uint64_t i;
+    int numlevels = 0;
+    double lastlevel;
+    lastlevel = current->filtered_signal[current->padding];
+    for (i=current->padding; i<current->length + current->padding; i++)
+    {
+        if (signum(current->filtered_signal[i]-lastlevel) != 0)
+        {
+            numlevels++;
+            lastlevel = current->filtered_signal[i];
+        }
+    }
+    return numlevels;
+}
+
 void assign_cusum_levels(event *current)
 {
     while (current)

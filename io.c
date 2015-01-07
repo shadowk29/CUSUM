@@ -9,11 +9,13 @@
 void print_events(event *current, double timestep)
 {
     FILE *events;
+    int numlevels;
     if ((events = fopen("output/events.dat","w"))==NULL)
     {
         printf("Cannot open event summary file\n");
         abort();
     }
+
     fprintf(events,"Index\t\
 Type\t\
 Start Sample\t\
@@ -25,9 +27,11 @@ Baseline Before (pA)\t\
 Baseline After\t\
 Area (pC)\t\
 Average Blockage (pA)\t\
-Max Blockage (pA)\n");
+Max Blockage (pA)\t\
+Num Levels\n");
     while (current)
     {
+        numlevels = count_levels(current);
         fprintf(events,"%"PRId64"\t\
                 %d\t%"PRIu64"\t\
                 %"PRIu64"\t\
@@ -38,7 +42,8 @@ Max Blockage (pA)\n");
                 %g\t\
                 %g\t\
                 %g\t\
-                %g\n",\
+                %g\t\
+                %d\n",\
                 current->index, \
                 current->type, \
                 current->start, \
@@ -50,7 +55,8 @@ Max Blockage (pA)\n");
                 current->baseline_after, \
                 current->area, \
                 current->average_blockage, \
-                current->max_blockage);
+                current->max_blockage, \
+                numlevels);
         current = current->next;
     }
     fclose(events);
@@ -94,7 +100,7 @@ void print_event_signal(int index, event *current, double timestep)
         printf("Cannot locate event with index %d\n",index);
         return;
     }
-    if (current->index != -1)
+    if (current->index != -1 && current->type != -1)
     {
         char eventname[1024];
         sprintf(eventname,"output/event_%05d.dat",index);
