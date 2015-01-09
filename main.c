@@ -88,10 +88,9 @@ int main()
 
     double baseline;
 
-
+    printf("Locating events... ");
     for (pos = start; pos < finish; pos += read)
     {
-        printf("Processing position %" PRIu64"\n",pos);
         read = read_current(input, signal, pos, intmin(readlength,finish - pos));
         if (read < config->readlength || feof(input))
         {
@@ -116,6 +115,8 @@ int main()
         }
         memset(signal,'0',(readlength)*sizeof(double));
     }
+    printf("Finished\n");
+
     current_edge = head_edge;
     current_event = head_event;
 
@@ -125,8 +126,12 @@ int main()
         system("pause");
         return -1;
     }
+
+    printf("Processing event locations... ");
     current_event = process_edges(current_edge, current_event);
     current_event = head_event;
+    printf("Finished\n");
+
 
     if (!current_event || current_event->index == HEAD)
     {
@@ -134,39 +139,63 @@ int main()
         system("pause");
         return -2;
     }
+
+    printf("Populating event traces... ");
     populate_event_traces(input, current_event, order);
     current_event = head_event;
+    printf("Finished\n");
 
+    printf("Assigning event baselines...");
     assign_event_baselines(current_event);
     current_event = head_event;
+    printf("Finished\n");
 
+    printf("Assigning event areas...");
     assign_event_areas(current_event, 1.0/samplingfreq);
     current_event = head_event;
+    printf("Finished\n");
 
+    printf("Detecting subevents...");
     detect_subevents(current_event, cusum_delta, cusum_threshold);
     current_event = head_event;
+    printf("Finished\n");
 
+    printf("Processing subevents...");
     assign_cusum_levels(current_event);
     current_event = head_event;
+    printf("Finished\n");
 
+    printf("Counting subevents...");
+    count_all_levels(current_event);
+    current_event = head_event;
+    printf("Finished\n");
+
+    printf("Printing all signals...");
     print_all_signals(current_event);
     current_event = head_event;
+    printf("Finished\n");
 
+    printf("Printing event summary...");
     print_events(current_event, 1.0/samplingfreq);
     current_event = head_event;
+    printf("Finished\n");
 
-
+    printf("Cleaning up memory usage...\n");
     free_events(head_event);
+    printf("Event list freed...\n");
     free_edges(head_edge);
+    printf("Edge list freed...\n");
     for (i=0; i<histogram->numbins; i++)
     {
         free(histogram->histogram[i]);
     }
     free(histogram->histogram);
+    printf("Signal array freed\n");
     free(histogram);
     fclose(input);
     free(config);
     free(signal);
+    printf("Finished\n");
     system("pause");
     return 0;
 }

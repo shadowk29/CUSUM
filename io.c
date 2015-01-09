@@ -9,7 +9,6 @@
 void print_events(event *current, double timestep)
 {
     FILE *events;
-    int numlevels;
     double currentlevel;
     double currenttime;
     uint64_t i;
@@ -31,10 +30,21 @@ Average Blockage (pA)\t\
 Max Blockage (pA)\t\
 Num Levels\t\
 Level Current (pA)\t\
+Level Length (us)\t\
+Level Current (pA)\t\
+Level Length (us)\t\
+Level Current (pA)\t\
+Level Length (us)\t\
+Level Current (pA)\t\
+Level Length (us)\t\
+Level Current (pA)\t\
+Level Length (us)\t\
+Level Current (pA)\t\
+Level Length (us)\t\
+Level Current (pA)\t\
 Level Length (us)\n");
     while (current)
     {
-        numlevels = count_levels(current);
         fprintf(events,"%"PRId64"\t\
                 %d\t\
                 %g\t\
@@ -56,7 +66,7 @@ Level Length (us)\n");
                 current->area, \
                 current->average_blockage, \
                 current->max_blockage, \
-                numlevels);
+                current->numlevels);
 
         currenttime = 0;
         currentlevel = current->filtered_signal[0];
@@ -120,10 +130,6 @@ void print_event_signal(int index, event *current, double timestep)
         sprintf(eventname,"output/event_%05d.dat",index);
 
         print_signal(current, current->length+2*current->padding, eventname, timestep);
-    }
-    else
-    {
-        printf("No events to print\n");
     }
 }
 

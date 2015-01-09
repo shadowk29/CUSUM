@@ -69,14 +69,17 @@ edge *add_edge(edge *current, uint64_t location, int type)
 
 void free_edges(edge *current)
 {
-    edge *temp;
-    while (current->next)
+    if (current)
     {
-        temp = current;
-        current = current->next;
-        free(temp);
+        edge *temp;
+        while (current->next)
+        {
+            temp = current;
+            current = current->next;
+            free(temp);
+        }
+        free(current);
     }
-    free(current);
 }
 
 event *initialize_events(void)
@@ -125,7 +128,6 @@ event *add_event(event *current, uint64_t start, uint64_t finish)
         current->next->length = finish-start;
         current = current->next;
     }
-    printf("event %" PRId64" has length %" PRIu64"\n",current->index, finish-start);
     return current;
 }
 
@@ -136,11 +138,17 @@ void free_events(event *current)
         current = current->next;
         free(current->prev->signal);
         free(current->prev->filtered_signal);
-        free(current->prev);
         if (current->prev->first_edge)
         {
             free_edges(current->prev->first_edge);
         }
+        free(current->prev);
+    }
+    free(current->signal);
+    free(current->filtered_signal);
+    if (current->prev->first_edge)
+    {
+        free_edges(current->first_edge);
     }
     free(current);
 }

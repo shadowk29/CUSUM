@@ -33,6 +33,7 @@ struct Event
     double *filtered_signal;
     double binsize;
     uint64_t padding;
+    int numlevels;
     struct Edge *first_edge;
     struct Event *next;
     struct Event *prev;

@@ -8,6 +8,18 @@
 #include<stdlib.h>
 #include<float.h>
 
+void count_all_levels(event *current)
+{
+    int numlevels;
+    while (current)
+    {
+        numlevels = count_levels(current);
+        current->numlevels = numlevels;
+        current = current->next;
+    }
+}
+
+
 int count_levels(event *current)
 {
     uint64_t i;
@@ -285,7 +297,6 @@ void generate_trace(FILE *input, event *current, uint64_t order)
     {
         if (padding > current->start)
         {
-            printf("Reducing padding because of proximity to file start\n");
             padding = current->start;
         }
     }
@@ -299,7 +310,6 @@ void generate_trace(FILE *input, event *current, uint64_t order)
         {
             if (padding > current->start - current->prev->finish) //if padding would include some of the previous event, pare it down
             {
-                printf("Reducing padding for event %" PRId64" because of proxmity to previous event\n",current->index);
                 padding = current->start - current->prev->finish;
             }
         }
@@ -309,7 +319,6 @@ void generate_trace(FILE *input, event *current, uint64_t order)
         }
         else if (padding > current->next->start - current->finish) // if padding would include some of the next event, pare it down
         {
-            printf("Reducing padding for event %" PRId64" because of proxmity to next event\n",current->index);
             padding = current->next->start - current->finish;
         }
     }

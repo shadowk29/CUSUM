@@ -6,7 +6,7 @@
 #define FIRST_DERIV 1
 #define SCND_DERIV 2
 
-
+void count_all_levels(event *current);
 int count_levels(event *current);
 void detect_subevents(event *current_event, double delta, double threshold);
 uint64_t locate_min(double *signal, uint64_t length);
