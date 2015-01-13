@@ -136,21 +136,9 @@ void free_events(event *current)
     while (current->next)
     {
         current = current->next;
-        free(current->prev->signal);
-        free(current->prev->filtered_signal);
-        if (current->prev->first_edge)
-        {
-            free_edges(current->prev->first_edge);
-        }
-        free(current->prev);
+        free_single_event(current->prev);
     }
-    free(current->signal);
-    free(current->filtered_signal);
-    if (current->first_edge)
-    {
-        free_edges(current->first_edge);
-    }
-    free(current);
+    free_single_event(current);
 }
 
 void free_single_event(event *current)

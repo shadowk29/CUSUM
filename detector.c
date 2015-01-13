@@ -302,24 +302,19 @@ void generate_trace(FILE *input, event *current, uint64_t order)
     }
     else
     {
-        if (!current->prev) //make sure there is a previous one before we do anything with it
-        {
-            printf("previous struct is null\n");
-        }
-        else
+        if (current->prev)
         {
             if (padding > current->start - current->prev->finish) //if padding would include some of the previous event, pare it down
             {
                 padding = current->start - current->prev->finish;
             }
         }
-        if (!current->next)
+        if (current->next)
         {
-            printf("Next struct is null\n");
-        }
-        else if (padding > current->next->start - current->finish) // if padding would include some of the next event, pare it down
-        {
-            padding = current->next->start - current->finish;
+            if (padding > current->next->start - current->finish)
+            {
+                padding = current->next->start - current->finish;
+            }
         }
     }
     if (padding < order) //padding needs to be at least big enough for the filter to work
