@@ -45,9 +45,9 @@ void count_all_levels(event *current)
 int count_levels(event *current)
 {
     uint64_t i;
-    int numlevels = 0;
+    int numlevels = 1;
     double lastlevel;
-    lastlevel = current->filtered_signal[current->padding];
+    lastlevel = current->filtered_signal[0];
     for (i=0; i<current->length + 2*current->padding; i++)
     {
         if (signum(current->filtered_signal[i]-lastlevel) != 0)
