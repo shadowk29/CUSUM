@@ -3,6 +3,7 @@
 #include<stdlib.h>
 
 
+
 int signum(double num)
 {
     return (EPS<num)-(num<-EPS);
@@ -43,6 +44,52 @@ edge *initialize_edges(void)
     head->location = 0;
     head->type = HEAD;
     return head;
+}
+
+event *delete_bad_events(event *head)
+{
+    event *newhead;
+    event *current;
+    event *tempnext;
+    event *tempprev;
+    event *temp;
+    current = head;
+    newhead = head;
+    while (current)
+    {
+        if (current->type != 0)
+        {
+           tempnext = current->next;
+           tempprev = current->prev;
+           temp = current;
+           current = current->next;
+           free_single_event(temp);
+           if (tempprev && tempnext)
+           {
+               tempprev->next = tempnext;
+               tempnext->prev = tempprev;
+           }
+           else if (!tempprev && tempnext) //head of the list
+           {
+               newhead = tempnext;
+               newhead->index = 0;
+               tempnext->prev = NULL;
+           }
+           else if (tempprev && !tempnext) //end of the list
+           {
+               tempprev->next = NULL;
+           }
+           else if (!tempprev && !tempnext) //singleton list, odd case
+           {
+               newhead = NULL;
+           }
+        }
+        else
+        {
+            current = current->next;
+        }
+    }
+    return newhead;
 }
 
 edge *add_edge(edge *current, uint64_t location, int type)

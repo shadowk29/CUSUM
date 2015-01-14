@@ -5,7 +5,11 @@
 #define HISTOGRAM 0
 #define FIRST_DERIV 1
 #define SCND_DERIV 2
+#define BADBASELINE -1
+#define TOOLONG -2
+#define TOOSHORT -3
 
+void filter_event_length(event *current, uint64_t maxpoints, uint64_t minpoints);
 void count_all_levels(event *current);
 int count_levels(event *current);
 void detect_subevents(event *current_event, double delta, double threshold);

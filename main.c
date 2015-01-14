@@ -37,6 +37,8 @@ int main()
     uint64_t samplingfreq;
     double cusum_delta;
     double cusum_threshold;
+    uint64_t maxpoints;
+    uint64_t minpoints;
     int event_direction;
     int endflag;
     endflag = 0;
@@ -55,6 +57,8 @@ int main()
     samplingfreq = config->samplingfreq;
     cusum_delta = config->cusum_delta;
     cusum_threshold = config->cusum_threshold;
+    maxpoints = config->event_maxpoints;
+    minpoints = config->event_minpoints;
 
     double *signal;
     if ((signal = (double *) calloc(readlength,sizeof(double)))==NULL)
@@ -139,6 +143,12 @@ int main()
         system("pause");
         return -2;
     }
+
+    printf("Filtering on event length... ");
+    filter_event_length(current_event, maxpoints, minpoints);
+    head_event = delete_bad_events(head_event);
+    current_event = head_event;
+    printf("Finished\n");
 
     printf("Populating event traces... ");
     populate_event_traces(input, current_event, order);

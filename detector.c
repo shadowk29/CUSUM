@@ -8,6 +8,28 @@
 #include<stdlib.h>
 #include<float.h>
 
+
+void filter_event_length(event *current, uint64_t maxpoints, uint64_t minpoints)
+{
+    uint64_t toolong = 0;
+    uint64_t tooshort = 0;
+    while (current)
+    {
+        if (current->length > maxpoints)
+        {
+            current->type = TOOLONG;
+            toolong++;
+        }
+        else if (current->length < minpoints)
+        {
+            current->type = TOOSHORT;
+            tooshort++;
+        }
+        current = current->next;
+    }
+    printf("%"PRIu64" events were too long\n%"PRIu64" events were too short\n",toolong,tooshort);
+}
+
 void count_all_levels(event *current)
 {
     int numlevels;
@@ -205,7 +227,7 @@ void event_area(event *current_event, double timestep)
 
     double baseline = 0.5 * (current_event->baseline_before + current_event->baseline_after);
 
-    if (current_event->type == -1)
+    if (current_event->type != 0)
     {
         current_event->area = 0;
     }
@@ -259,7 +281,7 @@ void event_baseline(event *current_event)
     stdev = 0.5 * (sqrt(signal_variance(signal, padding)) + sqrt(signal_variance(&signal[length+padding], padding)));
     if (d_abs(baseline_before - baseline_after) > 3 * stdev)
     {
-        current_event->type = -1;
+        current_event->type = BADBASELINE;
     }
     current_event->baseline_before = baseline_before;
     current_event->baseline_after = baseline_after;
@@ -282,7 +304,7 @@ void generate_trace(FILE *input, event *current, uint64_t order)
     uint64_t position;
     int64_t read;
 
-    if (!current || current->length == 0 || current->index == -1000)
+    if (!current || current->length == 0 || current->index == HEAD)
     {
         return;
     }

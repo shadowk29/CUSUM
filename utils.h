@@ -104,4 +104,5 @@ event *initialize_events(void);
 event *add_event(event *current, uint64_t start, uint64_t finish);
 void free_events(event *current);
 void free_single_event(event *current);
+event *delete_bad_events(event *head);
 #endif // UTILS_H_INCLUDED
