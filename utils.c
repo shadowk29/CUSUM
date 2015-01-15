@@ -50,43 +50,33 @@ event *delete_bad_events(event *head)
 {
     event *newhead;
     event *current;
-    event *tempnext;
-    event *tempprev;
-    event *temp;
     current = head;
     newhead = head;
     while (current)
     {
-        if (current->type != 0)
+        event *temp = current;
+        current = current->next;
+        if (temp->type != 0)
         {
-           tempnext = current->next;
-           tempprev = current->prev;
-           temp = current;
-           current = current->next;
-           free_single_event(temp);
-           if (tempprev && tempnext)
+           if (temp->prev && temp->next)
            {
-               tempprev->next = tempnext;
-               tempnext->prev = tempprev;
+               temp->prev->next = temp->next;
+               temp->next->prev = temp->prev;
            }
-           else if (!tempprev && tempnext) //head of the list
+           else if (!temp->prev && temp->next) //head of the list
            {
-               newhead = tempnext;
-               newhead->index = 0;
-               tempnext->prev = NULL;
+               newhead = temp->next;
+               temp->next->prev = NULL;
            }
-           else if (tempprev && !tempnext) //end of the list
+           else if (temp->prev && temp->next) //end of the list
            {
-               tempprev->next = NULL;
+               temp->prev->next = NULL;
            }
-           else if (!tempprev && !tempnext) //singleton list, odd case
+           else if (!temp->prev && !temp->next) //singleton list, odd case
            {
                newhead = NULL;
            }
-        }
-        else
-        {
-            current = current->next;
+           free_single_event(temp);
         }
     }
     return newhead;

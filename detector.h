@@ -2,6 +2,7 @@
 #define DETECTOR_H_INCLUDED
 #include"utils.h"
 #include"io.h"
+#include"butterworth.h"
 #define HISTOGRAM 0
 #define FIRST_DERIV 1
 #define SCND_DERIV 2
@@ -9,6 +10,7 @@
 #define TOOLONG -2
 #define TOOSHORT -3
 
+void filter_signal(double *signal, double *tempfiltered, double *filtered, double *dcof, int *ccof, double scale, int order, uint64_t length);
 void filter_event_length(event *current, uint64_t maxpoints, uint64_t minpoints);
 void count_all_levels(event *current);
 int count_levels(event *current);

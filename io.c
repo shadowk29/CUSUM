@@ -6,6 +6,7 @@
 #include<stdio.h>
 #include<stdlib.h>
 
+
 void print_events(event *current, double timestep)
 {
     FILE *events;
