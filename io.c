@@ -165,13 +165,13 @@ inline void swapByteOrder(uint64_t *ull)
 }
 
 
-int64_t read_current(FILE *input, double *current, uint64_t position, uint64_t length)
+uint64_t read_current(FILE *input, double *current, uint64_t position, uint64_t length)
 {
     uint64_t test;
     double iv[2];
 
     uint64_t i;
-    int64_t read = 0;
+    uint64_t read = 0;
 
     if (fseeko64(input,(off64_t) position*2*sizeof(double),SEEK_SET))
     {

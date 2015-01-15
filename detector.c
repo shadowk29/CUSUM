@@ -287,22 +287,22 @@ void event_baseline(event *current_event)
     current_event->baseline_after = baseline_after;
 }
 
-void populate_event_traces(FILE *input, event *current_event, uint64_t order)
+void populate_event_traces(FILE *input, event *current_event)
 {
     while (current_event != NULL)
     {
-        generate_trace(input, current_event, order);
+        generate_trace(input, current_event);
         current_event = current_event->next;
     }
 }
 
 
 
-void generate_trace(FILE *input, event *current, uint64_t order)
+void generate_trace(FILE *input, event *current)
 {
     uint64_t padding;
     uint64_t position;
-    int64_t read;
+    uint64_t read;
 
     if (!current || current->length == 0 || current->index == HEAD)
     {
@@ -311,10 +311,6 @@ void generate_trace(FILE *input, event *current, uint64_t order)
 
 
     padding = intmax(current->length/2,100);
-    if (padding < order) //padding needs to be at least big enough for the filter to work
-    {
-        padding = order;
-    }
     if (current->index == 0) //for the first event, we need to make sure we don't overshoot the start of the file
     {
         if (padding > current->start)
@@ -339,14 +335,9 @@ void generate_trace(FILE *input, event *current, uint64_t order)
             }
         }
     }
-    if (padding < order) //padding needs to be at least big enough for the filter to work
-    {
-        printf("Cannot pad event %" PRId64" with enough points to filter\n Reduce the filter order to less than %" PRIu64 " and try again\n", current->index, padding);
-        abort();
-    }
 
     position = current->start - padding;
-    if (position < 0)
+    if (position > current->start)
     {
         printf("Attempting to access negative file index, increase your start time past %" PRIu64 "\n",current->start);
         abort();
@@ -467,7 +458,7 @@ edge *detect_edges(double *signal, double baseline, uint64_t length, edge *curre
 }
 
 
-double build_histogram(double *signal, histostruct *histogram, uint64_t length, double delta, uint64_t pos, double baseline_max, double baseline_min)
+double build_histogram(double *signal, histostruct *histogram, uint64_t length, double delta, double baseline_max, double baseline_min)
 {
     double maximum = signal_max(signal, length);
     double minimum = signal_min(signal, length);

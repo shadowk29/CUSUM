@@ -31,7 +31,7 @@ int main()
     double binsize;
     double threshold;
     double hysteresis;
-    uint64_t order;
+    //uint64_t order;
     double baseline_min;
     double baseline_max;
     uint64_t samplingfreq;
@@ -51,7 +51,7 @@ int main()
     threshold = config->threshold;
     hysteresis = config->hysteresis;
     event_direction = config->event_direction;
-    order = config->poles;
+    //order = config->poles;
     baseline_min = config->baseline_min;
     baseline_max = config->baseline_max;
     samplingfreq = config->samplingfreq;
@@ -101,7 +101,7 @@ int main()
             endflag = 1;
         }
 
-        baseline = build_histogram(signal, histogram, read, binsize, pos, baseline_max, baseline_min);
+        baseline = build_histogram(signal, histogram, read, binsize, baseline_max, baseline_min);
 
         if (baseline < baseline_min || baseline > baseline_max)
         {
@@ -151,7 +151,7 @@ int main()
     printf("Finished\n");
 
     printf("Populating event traces... ");
-    populate_event_traces(input, current_event, order);
+    populate_event_traces(input, current_event);
     current_event = head_event;
     printf("Finished\n");
 
