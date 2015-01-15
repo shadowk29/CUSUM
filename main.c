@@ -1,12 +1,10 @@
 #include"io.h"
 #include"utils.h"
 #include"detector.h"
-#include"butterworth.h"
 #include<string.h>
 #include<math.h>
 #include<stdio.h>
 #include<stdlib.h>
-
 
 int main()
 {
@@ -33,7 +31,7 @@ int main()
     double binsize;
     double threshold;
     double hysteresis;
-    int order;
+    uint64_t order;
     double baseline_min;
     double baseline_max;
     uint64_t samplingfreq;
@@ -43,8 +41,6 @@ int main()
     uint64_t minpoints;
     int event_direction;
     int endflag;
-    double cutoff;
-    int usefilter;
     endflag = 0;
     read = 0;
     pos = 0;
@@ -63,8 +59,6 @@ int main()
     cusum_threshold = config->cusum_threshold;
     maxpoints = config->event_maxpoints;
     minpoints = config->event_minpoints;
-    cutoff = config->cutoff;
-    usefilter = config->usefilter;
 
     double *signal;
     if ((signal = (double *) calloc(readlength,sizeof(double)))==NULL)
@@ -72,24 +66,6 @@ int main()
         printf("Cannot allocate signal array\n");
         abort();
     }
-    double *filtered;
-    if ((filtered = (double *) calloc(readlength,sizeof(double)))==NULL)
-    {
-        printf("Cannot allocate filtered array\n");
-        abort();
-    }
-    double *tempfiltered;
-    if ((tempfiltered = (double *) calloc(readlength,sizeof(double)))==NULL)
-    {
-        printf("Cannot allocate tempfiltered array\n");
-        abort();
-    }
-    double *dcof; //filter coefficients
-    int *ccof; //filter coefficients
-    double scale; //scaling for ccof
-    scale = sf_bwlp(order, cutoff); //set up filter parameters
-    dcof = dcof_bwlp(order, cutoff);
-    ccof = ccof_bwlp(order);
 
     histostruct *histogram;
     if ((histogram = malloc(sizeof(histostruct)))==NULL)
@@ -120,34 +96,20 @@ int main()
     for (pos = start; pos < finish; pos += read)
     {
         read = read_current(input, signal, pos, intmin(readlength,finish - pos));
-        if (usefilter)
-        {
-            filter_signal(signal, tempfiltered, filtered, dcof, ccof, scale, order, read);
-        }
         if (read < config->readlength || feof(input))
         {
             endflag = 1;
         }
 
-        if (usefilter)
+        baseline = build_histogram(signal, histogram, read, binsize, pos, baseline_max, baseline_min);
+
+        if (baseline < baseline_min || baseline > baseline_max)
         {
-            baseline = build_histogram(filtered, histogram, read, binsize, pos, baseline_max, baseline_min);
+            printf("Skipping section with bad baseline: %g\n", baseline);
         }
         else
         {
-            baseline = build_histogram(signal, histogram, read, binsize, pos, baseline_max, baseline_min);
-        }
-
-        if (baseline > baseline_min && baseline < baseline_max)
-        {
-            if (usefilter)
-            {
-                current_edge = detect_edges(filtered, baseline, read, current_edge, threshold, hysteresis, pos, event_direction);
-            }
-            else
-            {
-                current_edge = detect_edges(signal, baseline, read, current_edge, threshold, hysteresis, pos, event_direction);
-            }
+            current_edge = detect_edges(signal, baseline, read, current_edge, threshold, hysteresis, pos, event_direction);
         }
 
         if (endflag)
@@ -156,8 +118,6 @@ int main()
             break;
         }
         memset(signal,'0',(readlength)*sizeof(double));
-        memset(filtered,'0',(readlength)*sizeof(double));
-        memset(tempfiltered,'0',(readlength)*sizeof(double));
     }
     printf("Finished\n");
 
@@ -245,10 +205,6 @@ int main()
     fclose(input);
     free(config);
     free(signal);
-    free(filtered);
-    free(tempfiltered);
-    free(dcof);
-    free(ccof);
     printf("Finished\n");
     system("pause");
     return 0;

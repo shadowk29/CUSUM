@@ -8,50 +8,6 @@
 #include<stdlib.h>
 #include<float.h>
 
-void filter_signal(double *signal, double *tempfiltered, double *filtered, double *dcof, int *ccof, double scale, int order, uint64_t length)
-{
-    int64_t i,p,index;
-    i = 0;
-    p = 0;
-    double startpadding;
-    double endpadding;
-    startpadding = signal[0];
-    for (i=0; i<length; i++)
-    {
-        tempfiltered[i] = ccof[0]*scale*signal[i];
-        for (p=1; p<=order; p++)
-        {
-            index = i-p;
-            if (index < 0)
-            {
-                index = 0;
-                tempfiltered[i] += ccof[p]*scale*signal[index] - dcof[p]*startpadding;
-            }
-            else
-            {
-                tempfiltered[i] += ccof[p]*scale*signal[index] - dcof[p]*tempfiltered[index];
-            }
-        }
-    }
-    endpadding = tempfiltered[length-1];
-    for (i=length-1; i>=0; i--)
-    {
-        filtered[i] = ccof[0]*scale*tempfiltered[i];
-        for (p=1; p<=order; p++)
-        {
-            index = i+p;
-            if (index > length-1)
-            {
-                index = length-1;
-                filtered[i] += ccof[p]*scale*tempfiltered[index] - dcof[p]*endpadding;
-            }
-            else
-            {
-                filtered[i] += ccof[p]*scale*tempfiltered[index] - dcof[p]*filtered[index];
-            }
-        }
-    }
-}
 
 void filter_event_length(event *current, uint64_t maxpoints, uint64_t minpoints)
 {
