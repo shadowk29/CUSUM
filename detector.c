@@ -27,7 +27,7 @@ void filter_event_length(event *current, uint64_t maxpoints, uint64_t minpoints)
         }
         current = current->next;
     }
-    printf("%"PRIu64" events were too long\n%"PRIu64" events were too short\n",toolong,tooshort);
+    printf("\n%"PRIu64" events were too long\n%"PRIu64" events were too short\n",toolong,tooshort);
 }
 
 void count_all_levels(event *current)
@@ -191,13 +191,13 @@ void cusum(event *current_event, double delta, double threshold)
             if (gpos[k] > threshold)
             {
                 jumppos = anchor + locate_min(&cpos[anchor], k+1-anchor);
-                current_edge = add_edge(current_edge, jumppos+1, 1);
+                current_edge = add_edge(current_edge, jumppos, 1);
                 numjumps++;
             }
             if (gneg[k] > threshold)
             {
                 jumpneg = anchor + locate_min(&cneg[anchor], k+1-anchor);
-                current_edge = add_edge(current_edge, jumpneg+1, -1);
+                current_edge = add_edge(current_edge, jumpneg, -1);
                 numjumps++;
             }
 
