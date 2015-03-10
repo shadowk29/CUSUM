@@ -181,7 +181,7 @@ int main()
     printf("Finished\n");
 
     printf("Printing all signals...");
-    print_all_signals(current_event);
+    print_all_signals(current_event, 1.0/samplingfreq*1e6);
     current_event = head_event;
     printf("Finished\n");
 

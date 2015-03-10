@@ -5,7 +5,7 @@
 #include<stdlib.h>
 
 void print_events(event *current, double timestep);
-void print_all_signals(event *current_event);
+void print_all_signals(event *current_event, double timestep);
 void print_histogram(char *filename, histostruct *histogram);
 void read_config(configuration *config);
 void export_trace(double *signal, uint64_t length, char *file, double timestep, double start_time);

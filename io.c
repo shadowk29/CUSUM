@@ -88,11 +88,11 @@ Level Length (us)\n");
 
 
 
-void print_all_signals(event *current_event)
+void print_all_signals(event *current_event, double timestep)
 {
     while (current_event != NULL)
     {
-        print_event_signal(current_event->index, current_event, 4);
+        print_event_signal(current_event->index, current_event, timestep);
         current_event = current_event->next;
     }
 }
