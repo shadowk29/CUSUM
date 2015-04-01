@@ -40,6 +40,7 @@ int main()
     double cusum_max_threshold;
     uint64_t maxpoints;
     uint64_t minpoints;
+    uint64_t subevent_minpoints;
     int event_direction;
     int endflag;
     endflag = 0;
@@ -61,6 +62,7 @@ int main()
     cusum_max_threshold = config->cusum_max_threshold;
     maxpoints = config->event_maxpoints;
     minpoints = config->event_minpoints;
+    subevent_minpoints = config->subevent_minpoints;
 
     double *signal;
     if ((signal = (double *) calloc(readlength,sizeof(double)))==NULL)
@@ -168,12 +170,12 @@ int main()
     printf("Finished\n");
 
     printf("Detecting subevents...");
-    detect_subevents(current_event, cusum_delta, cusum_min_threshold, cusum_max_threshold);
+    detect_subevents(current_event, cusum_delta, cusum_min_threshold, cusum_max_threshold, subevent_minpoints);
     current_event = head_event;
     printf("Finished\n");
 
     printf("Processing subevents...");
-    assign_cusum_levels(current_event);
+    assign_cusum_levels(current_event, subevent_minpoints);
     current_event = head_event;
     printf("Finished\n");
 

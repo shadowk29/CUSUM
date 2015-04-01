@@ -12,12 +12,12 @@
 void filter_event_length(event *current, uint64_t maxpoints, uint64_t minpoints);
 void count_all_levels(event *current);
 int count_levels(event *current);
-void detect_subevents(event *current_event, double delta, double minthreshold, double maxthreshold);
+void detect_subevents(event *current_event, double delta, double minthreshold, double maxthreshold, uint64_t subevent_minpoints);
 uint64_t locate_min(double *signal, uint64_t length);
 
-void assign_cusum_levels(event *current);
-void average_cusum_levels(event *current);
-void cusum(event *current_event, double delta, double minthreshold, double maxthreshold);
+void assign_cusum_levels(event *current, uint64_t subevent_minpoints);
+void average_cusum_levels(event *current, uint64_t subevent_minpoints);
+void cusum(event *current_event, double delta, double minthreshold, double maxthreshold, uint64_t subevent_minpoints);
 double get_cusum_threshold(uint64_t length, double minthreshold, double maxthreshold, double sigma, double mun);
 
 

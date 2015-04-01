@@ -59,16 +59,16 @@ int count_levels(event *current)
     return numlevels;
 }
 
-void assign_cusum_levels(event *current)
+void assign_cusum_levels(event *current, uint64_t subevent_minpoints)
 {
     while (current)
     {
-        average_cusum_levels(current);
+        average_cusum_levels(current, subevent_minpoints);
         current = current->next;
     }
 }
 
-void average_cusum_levels(event *current)
+void average_cusum_levels(event *current, uint64_t subevent_minpoints)
 {
     edge *first_edge = current->first_edge;
     edge *current_edge = first_edge;
@@ -76,13 +76,11 @@ void average_cusum_levels(event *current)
     double maxblockage = 0;
     double baseline = 0.5 * (current->baseline_before + current->baseline_after);
     uint64_t j;
-    uint64_t numpoints;
     uint64_t anchor = 0;
     double average;
     while (current_edge)
     {
-        numpoints = current_edge->location - anchor;
-        average = signal_average(&current->signal[anchor + numpoints/5], current_edge->location - anchor - numpoints/5); //FIXME
+        average = signal_average(&current->signal[anchor + subevent_minpoints], current_edge->location - anchor - subevent_minpoints); //FIXME
         blockage = d_abs(average - baseline);
         if (blockage > maxblockage)
         {
@@ -99,11 +97,11 @@ void average_cusum_levels(event *current)
     current->max_blockage = maxblockage;
 }
 
-void detect_subevents(event *current_event, double delta, double minthreshold, double maxthreshold)
+void detect_subevents(event *current_event, double delta, double minthreshold, double maxthreshold, uint64_t subevent_minpoints)
 {
     while (current_event)
     {
-        cusum(current_event, delta, minthreshold, maxthreshold);
+        cusum(current_event, delta, minthreshold, maxthreshold, subevent_minpoints);
         current_event = current_event->next;
     }
 }
@@ -159,7 +157,7 @@ double get_cusum_threshold(uint64_t length, double minthreshold, double maxthres
 }
 
 
-void cusum(event *current_event, double delta, double minthreshold, double maxthreshold)
+void cusum(event *current_event, double delta, double minthreshold, double maxthreshold, uint64_t subevent_minpoints)
 {
     double *signal = current_event->signal;
     uint64_t length = current_event->length + 2 * current_event->padding;
@@ -235,16 +233,21 @@ void cusum(event *current_event, double delta, double minthreshold, double maxth
             if (gpos[k] > threshold)
             {
                 jumppos = anchor + locate_min(&cpos[anchor], k+1-anchor);
-                current_edge = add_edge(current_edge, jumppos, 1);
-                numjumps++;
+                if (jumppos - current_edge->location > subevent_minpoints)
+                {
+                    current_edge = add_edge(current_edge, jumppos, 1);
+                    numjumps++;
+                }
             }
             if (gneg[k] > threshold)
             {
                 jumpneg = anchor + locate_min(&cneg[anchor], k+1-anchor);
-                current_edge = add_edge(current_edge, jumpneg, -1);
-                numjumps++;
+                if (jumpneg - current_edge->location > subevent_minpoints)
+                {
+                    current_edge = add_edge(current_edge, jumpneg, -1);
+                    numjumps++;
+                }
             }
-
             anchor = k;
             mean = 0;
             variance = 0;
