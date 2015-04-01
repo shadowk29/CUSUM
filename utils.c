@@ -1,6 +1,7 @@
 #include"utils.h"
 #include<stdio.h>
 #include<stdlib.h>
+#include<math.h>
 
 
 
@@ -201,3 +202,9 @@ void free_single_event(event *current)
         free(current);
     }
 }
+
+double ARL(uint64_t length, double sigma, double mun, double h)
+{
+    return (exp(-2.0*mun*(h/sigma+1.166))-1.0+2.0*mun*(h/sigma+1.166))/(2.0*mun*mun)-(double) length;
+}
+

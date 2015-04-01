@@ -36,7 +36,8 @@ int main()
     double baseline_max;
     uint64_t samplingfreq;
     double cusum_delta;
-    double cusum_threshold;
+    double cusum_min_threshold;
+    double cusum_max_threshold;
     uint64_t maxpoints;
     uint64_t minpoints;
     int event_direction;
@@ -56,7 +57,8 @@ int main()
     baseline_max = config->baseline_max;
     samplingfreq = config->samplingfreq;
     cusum_delta = config->cusum_delta;
-    cusum_threshold = config->cusum_threshold;
+    cusum_min_threshold = config->cusum_min_threshold;
+    cusum_max_threshold = config->cusum_max_threshold;
     maxpoints = config->event_maxpoints;
     minpoints = config->event_minpoints;
 
@@ -166,7 +168,7 @@ int main()
     printf("Finished\n");
 
     printf("Detecting subevents...");
-    detect_subevents(current_event, cusum_delta, cusum_threshold);
+    detect_subevents(current_event, cusum_delta, cusum_min_threshold, cusum_max_threshold);
     current_event = head_event;
     printf("Finished\n");
 

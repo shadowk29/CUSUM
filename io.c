@@ -23,6 +23,7 @@ Type\t\
 Padding (us)\t\
 Start Time (s)\t\
 Length (us)\t\
+Threshold \t\
 Baseline Before (pA)\t\
 Baseline After\t\
 Area (pC)\t\
@@ -55,12 +56,14 @@ Level Length (us)\n");
                 %g\t\
                 %g\t\
                 %g\t\
+                %g\t\
                 %d\t",\
                 current->index, \
                 current->type, \
                 current->padding * timestep * 1e6, \
                 current->start * timestep, \
                 current->length * timestep * 1e6, \
+                current->threshold, \
                 current->baseline_before, \
                 current->baseline_after, \
                 current->area, \
@@ -276,9 +279,13 @@ void read_config(configuration *config)
         {
             config->binsize = strtod(value,NULL);
         }
-        else if (strcmp(name,"cusum_threshold") == 0)
+        else if (strcmp(name,"cusum_min_threshold") == 0)
         {
-            config->cusum_threshold = strtod(value,NULL);
+            config->cusum_min_threshold = strtod(value,NULL);
+        }
+        else if (strcmp(name,"cusum_max_threshold") == 0)
+        {
+            config->cusum_max_threshold = strtod(value,NULL);
         }
         else if (strcmp(name,"cusum_delta") == 0)
         {

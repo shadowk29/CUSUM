@@ -99,11 +99,11 @@ void average_cusum_levels(event *current)
     current->max_blockage = maxblockage;
 }
 
-void detect_subevents(event *current_event, double delta, double threshold)
+void detect_subevents(event *current_event, double delta, double minthreshold, double maxthreshold)
 {
     while (current_event)
     {
-        cusum(current_event, delta, threshold);
+        cusum(current_event, delta, minthreshold, maxthreshold);
         current_event = current_event->next;
     }
 }
@@ -124,18 +124,59 @@ uint64_t locate_min(double *signal, uint64_t length)
     return location;
 }
 
-void cusum(event *current_event, double delta, double threshold)
+
+
+double get_cusum_threshold(uint64_t length, double minthreshold, double maxthreshold, double sigma, double mun)
+{
+    length *= 2;
+    double arlmin;
+    double mindif;
+    double h;
+    int sign;
+    int oldsign;
+    double arl;
+    double threshold = minthreshold;
+    arlmin = ARL(length, sigma, mun, minthreshold);
+    oldsign = signum(arlmin);
+    mindif = d_abs(arlmin);
+
+    for (h = minthreshold; h<maxthreshold; h += 0.5)
+    {
+        arl = ARL(length, sigma, mun, h);
+        sign = signum(arl);
+        if (sign != oldsign)
+        {
+            threshold = h;
+            break;
+        }
+        else if (d_abs(arl) < mindif)
+        {
+            mindif = d_abs(arl);
+            threshold = h;
+        }
+    }
+    return threshold;
+}
+
+
+void cusum(event *current_event, double delta, double minthreshold, double maxthreshold)
 {
     double *signal = current_event->signal;
     uint64_t length = current_event->length + 2 * current_event->padding;
     current_event->first_edge = initialize_edges();
     edge *first_edge = current_event->first_edge;
     edge *current_edge = first_edge;
+    double threshold = minthreshold;
     uint64_t anchor = 0;//initial position
     double mean = signal[anchor];//initial mean value guess
     double variance = 0;//initial variance estimation
     double logp = 0;//log-likelihood ratio for positive jumps
     double logn = 0;//log-likelihood ratio for negative jumps
+    double stdev = sqrt(signal_variance(signal, current_event->padding));
+    double jumpsizestdev = delta/stdev;
+
+    threshold = get_cusum_threshold(length, minthreshold, maxthreshold, jumpsizestdev, -1.0*jumpsizestdev/2.0);
+    current_event->threshold = threshold;
 
     double *cpos;//cumulative log-likelihood for positive jumps
     if ((cpos = calloc(length, sizeof(double)))==NULL)
@@ -175,6 +216,9 @@ void cusum(event *current_event, double delta, double threshold)
     uint64_t numjumps = 0;
     uint64_t jumppos = 0;
     uint64_t jumpneg = 0;
+
+    //threshold = get_cusum_threshold(minthreshold, maxthreshold, length)
+
     while (k<length-1)
     {
         k++;

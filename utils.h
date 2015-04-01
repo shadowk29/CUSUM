@@ -34,6 +34,7 @@ struct Event
     double binsize;
     uint64_t padding;
     int numlevels;
+    double threshold;
     struct Edge *first_edge;
     struct Event *next;
     struct Event *prev;
@@ -82,7 +83,8 @@ struct Configuration
 
     int event_direction;
 
-    double cusum_threshold;
+    double cusum_min_threshold;
+    double cusum_max_threshold;
     double cusum_delta;
 
 };
@@ -95,6 +97,9 @@ double my_max(double a, double b);
 int64_t intmin(int64_t a, int64_t b);
 int64_t intmax(int64_t a, int64_t b);
 double d_abs(double num); //absolute value of a number
+
+double ARL(uint64_t length, double sigma, double mun, double h);
+
 
 edge *initialize_edges(void);
 edge *add_edge(edge *current, uint64_t location, int type);
