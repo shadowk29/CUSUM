@@ -193,11 +193,14 @@ void free_single_event(event *current)
 {
     if (current)
     {
-        free(current->signal);
-        free(current->filtered_signal);
-        if (current->first_edge)
+        if (current->type == 0)
         {
-            free(current->first_edge);
+            free(current->signal);
+            free(current->filtered_signal);
+            if (current->first_edge)
+            {
+                free(current->first_edge);
+            }
         }
         free(current);
     }

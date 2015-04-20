@@ -150,7 +150,7 @@ int main()
 
     printf("Filtering on event length... ");
     filter_event_length(current_event, maxpoints, minpoints);
-    head_event = delete_bad_events(head_event);
+    //head_event = delete_bad_events(head_event);
     current_event = head_event;
     printf("Finished\n");
 

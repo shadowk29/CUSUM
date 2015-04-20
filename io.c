@@ -46,44 +46,47 @@ Level Current (pA)\t\
 Level Length (us)\n");
     while (current)
     {
-        fprintf(events,"%"PRId64"\t\
-                %d\t\
-                %g\t\
-                %g\t\
-                %g\t\
-                %g\t\
-                %g\t\
-                %g\t\
-                %g\t\
-                %g\t\
-                %g\t\
-                %d\t",\
-                current->index, \
-                current->type, \
-                current->padding * timestep * 1e6, \
-                current->start * timestep, \
-                current->length * timestep * 1e6, \
-                current->threshold, \
-                current->baseline_before, \
-                current->baseline_after, \
-                current->area, \
-                current->average_blockage, \
-                current->max_blockage, \
-                current->numlevels);
-
-        currenttime = 0;
-        currentlevel = current->filtered_signal[0];
-        fprintf(events,"%g\t",currentlevel);
-        for (i=0; i<current->length + 2*current->padding; i++)
+        if (current->type == 0)
         {
-            if (signum(current->filtered_signal[i] - currentlevel) != 0)
+            fprintf(events,"%"PRId64"\t\
+                    %d\t\
+                    %g\t\
+                    %g\t\
+                    %g\t\
+                    %g\t\
+                    %g\t\
+                    %g\t\
+                    %g\t\
+                    %g\t\
+                    %g\t\
+                    %d\t",\
+                    current->index, \
+                    current->type, \
+                    current->padding * timestep * 1e6, \
+                    current->start * timestep, \
+                    current->length * timestep * 1e6, \
+                    current->threshold, \
+                    current->baseline_before, \
+                    current->baseline_after, \
+                    current->area, \
+                    current->average_blockage, \
+                    current->max_blockage, \
+                    current->numlevels);
+
+            currenttime = 0;
+            currentlevel = current->filtered_signal[0];
+            fprintf(events,"%g\t",currentlevel);
+            for (i=0; i<current->length + 2*current->padding; i++)
             {
-                currentlevel = current->filtered_signal[i];
-                fprintf(events,"%g\t%g\t",(i-currenttime) * timestep * 1e6, currentlevel);
-                currenttime = i;
+                if (signum(current->filtered_signal[i] - currentlevel) != 0)
+                {
+                    currentlevel = current->filtered_signal[i];
+                    fprintf(events,"%g\t%g\t",(i-currenttime) * timestep * 1e6, currentlevel);
+                    currenttime = i;
+                }
             }
+            fprintf(events,"%g\n",(i-currenttime) * timestep * 1e6);
         }
-        fprintf(events,"%g\n",(i-currenttime) * timestep * 1e6);
         current = current->next;
     }
     fclose(events);
@@ -95,7 +98,10 @@ void print_all_signals(event *current_event, double timestep)
 {
     while (current_event != NULL)
     {
-        print_event_signal(current_event->index, current_event, timestep);
+        if (current_event->type == 0)
+        {
+            print_event_signal(current_event->index, current_event, timestep);
+        }
         current_event = current_event->next;
     }
 }

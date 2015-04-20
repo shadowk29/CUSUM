@@ -35,8 +35,12 @@ void count_all_levels(event *current)
     int numlevels;
     while (current)
     {
-        numlevels = count_levels(current);
-        current->numlevels = numlevels;
+        if (current->type == 0)
+        {
+            numlevels = count_levels(current);
+            current->numlevels = numlevels;
+        }
+
         current = current->next;
     }
 }
@@ -63,7 +67,10 @@ void assign_cusum_levels(event *current, uint64_t subevent_minpoints)
 {
     while (current)
     {
-        average_cusum_levels(current, subevent_minpoints);
+        if (current->type == 0)
+        {
+            average_cusum_levels(current, subevent_minpoints);
+        }
         current = current->next;
     }
 }
@@ -80,28 +87,45 @@ void average_cusum_levels(event *current, uint64_t subevent_minpoints)
     double average;
     while (current_edge)
     {
-        average = signal_average(&current->signal[anchor + subevent_minpoints], current_edge->location - anchor - subevent_minpoints); //FIXME
+        printf("anchor = %"PRIu64"\n subevent_minpoints = %"PRIu64"\n location=%"PRIu64"\n",anchor, subevent_minpoints, current_edge->location);
+        fflush(stdout);
+        average = signal_average(&current->signal[anchor + subevent_minpoints], current_edge->location - anchor - subevent_minpoints);
+        printf("2\n");
+        fflush(stdout);
         blockage = d_abs(average - baseline);
         if (blockage > maxblockage)
         {
             maxblockage = blockage;
         }
+        printf("3\n");
+        fflush(stdout);
         for (j=anchor; j<current_edge->location; j++)
         {
             current->filtered_signal[j] = average;
         }
+        printf("4\n");
+        fflush(stdout);
         anchor = current_edge->location;
+        printf("5\n");
+        fflush(stdout);
         current_edge = current_edge->next;
+        printf("6\n");
+        fflush(stdout);
     }
     current_edge = first_edge;
     current->max_blockage = maxblockage;
+    current->baseline_before = current->filtered_signal[0];
+    current->baseline_after  = current->filtered_signal[current->length + 2 * current->padding - 1];
 }
 
 void detect_subevents(event *current_event, double delta, double minthreshold, double maxthreshold, uint64_t subevent_minpoints)
 {
     while (current_event)
     {
-        cusum(current_event, delta, minthreshold, maxthreshold, subevent_minpoints);
+        if (current_event->type == 0)
+        {
+            cusum(current_event, delta, minthreshold, maxthreshold, subevent_minpoints);
+        }
         current_event = current_event->next;
     }
 }
@@ -215,8 +239,6 @@ void cusum(event *current_event, double delta, double minthreshold, double maxth
     uint64_t jumppos = 0;
     uint64_t jumpneg = 0;
 
-    //threshold = get_cusum_threshold(minthreshold, maxthreshold, length)
-
     while (k<length-1)
     {
         k++;
@@ -233,7 +255,7 @@ void cusum(event *current_event, double delta, double minthreshold, double maxth
             if (gpos[k] > threshold)
             {
                 jumppos = anchor + locate_min(&cpos[anchor], k+1-anchor);
-                if (jumppos - current_edge->location > subevent_minpoints)
+                if (jumppos - current_edge->location > subevent_minpoints && length - jumppos > subevent_minpoints)
                 {
                     current_edge = add_edge(current_edge, jumppos, 1);
                     numjumps++;
@@ -242,7 +264,7 @@ void cusum(event *current_event, double delta, double minthreshold, double maxth
             if (gneg[k] > threshold)
             {
                 jumpneg = anchor + locate_min(&cneg[anchor], k+1-anchor);
-                if (jumpneg - current_edge->location > subevent_minpoints)
+                if (jumpneg - current_edge->location > subevent_minpoints && length - jumpneg > subevent_minpoints)
                 {
                     current_edge = add_edge(current_edge, jumpneg, -1);
                     numjumps++;
@@ -293,7 +315,10 @@ void assign_event_areas(event *current_event, double timestep)
 {
     while (current_event != NULL)
     {
-        event_area(current_event, timestep);
+        if (current_event->type == 0)
+        {
+            event_area(current_event, timestep);
+        }
         current_event = current_event->next;
     }
 }
@@ -302,7 +327,10 @@ void assign_event_baselines(event *current_event)
 {
     while (current_event != NULL)
     {
-        event_baseline(current_event);
+        if (current_event->type == 0)
+        {
+            event_baseline(current_event);
+        }
         current_event = current_event->next;
     }
 }
@@ -338,7 +366,10 @@ void populate_event_traces(FILE *input, event *current_event)
 {
     while (current_event != NULL)
     {
-        generate_trace(input, current_event);
+        if (current_event->type == 0)
+        {
+            generate_trace(input, current_event);
+        }
         current_event = current_event->next;
     }
 }
