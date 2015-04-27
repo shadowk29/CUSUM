@@ -87,29 +87,23 @@ void average_cusum_levels(event *current, uint64_t subevent_minpoints)
     double average;
     while (current_edge)
     {
-        printf("anchor = %"PRIu64"\n subevent_minpoints = %"PRIu64"\n location=%"PRIu64"\n",anchor, subevent_minpoints, current_edge->location);
         fflush(stdout);
         average = signal_average(&current->signal[anchor + subevent_minpoints], current_edge->location - anchor - subevent_minpoints);
-        printf("2\n");
         fflush(stdout);
         blockage = d_abs(average - baseline);
         if (blockage > maxblockage)
         {
             maxblockage = blockage;
         }
-        printf("3\n");
         fflush(stdout);
         for (j=anchor; j<current_edge->location; j++)
         {
             current->filtered_signal[j] = average;
         }
-        printf("4\n");
         fflush(stdout);
         anchor = current_edge->location;
-        printf("5\n");
         fflush(stdout);
         current_edge = current_edge->next;
-        printf("6\n");
         fflush(stdout);
     }
     current_edge = first_edge;
@@ -196,6 +190,13 @@ void cusum(event *current_event, double delta, double minthreshold, double maxth
     double logn = 0;//log-likelihood ratio for negative jumps
     double stdev = sqrt(signal_variance(signal, current_event->padding));
     double jumpsizestdev = delta/stdev;
+    uint64_t k = 0;//loop index
+    uint64_t numjumps = 0;
+    uint64_t jumppos = 0;
+    uint64_t jumpneg = 0;
+    double varM = signal[0];
+    double varS = 0;
+    double oldVarM;
 
     threshold = get_cusum_threshold(length, minthreshold, maxthreshold, jumpsizestdev, -1.0*jumpsizestdev/2.0);
     current_event->threshold = threshold;
@@ -234,16 +235,16 @@ void cusum(event *current_event, double delta, double minthreshold, double maxth
     gneg[0] = 0;
 
 
-    uint64_t k = 0;//loop index
-    uint64_t numjumps = 0;
-    uint64_t jumppos = 0;
-    uint64_t jumpneg = 0;
+
 
     while (k<length-1)
     {
         k++;
-        mean = signal_average(&signal[anchor], k+1-anchor);
-        variance = signal_variance(&signal[anchor], k+1-anchor);
+        mean = ((k-anchor) * mean + signal[k])/(double) (k+1-anchor);  //mean = signal_average(&signal[anchor], k+1-anchor);
+        oldVarM = varM;
+        varM = varM + (signal[k] - varM) / (double) (k+1-anchor); //variance = signal_variance(&signal[anchor], k+1-anchor);
+        varS = varS + (signal[k] - oldVarM) * (signal[k] - varM);
+        variance = varS / (double) (k - anchor);
         logp = delta/variance*(signal[k]-mean-delta/2);
         logn = -delta/variance*(signal[k]-mean+delta/2);
         cpos[k] = cpos[k-1] + logp;
@@ -277,6 +278,9 @@ void cusum(event *current_event, double delta, double minthreshold, double maxth
             memset(cneg,'0',length*sizeof(double));
             memset(gpos,'0',length*sizeof(double));
             memset(gneg,'0',length*sizeof(double));
+            mean = signal[anchor];
+            varM = signal[anchor];
+            varS = 0;
         }
     }
     current_edge = add_edge(current_edge, length, 1);
