@@ -366,13 +366,13 @@ void event_baseline(event *current_event)
     current_event->baseline_after = baseline_after;
 }
 
-void populate_event_traces(FILE *input, event *current_event)
+void populate_event_traces(FILE *input, event *current_event, int datatype)
 {
     while (current_event != NULL)
     {
         if (current_event->type == 0)
         {
-            generate_trace(input, current_event);
+            generate_trace(input, current_event, datatype);
         }
         current_event = current_event->next;
     }
@@ -380,7 +380,7 @@ void populate_event_traces(FILE *input, event *current_event)
 
 
 
-void generate_trace(FILE *input, event *current)
+void generate_trace(FILE *input, event *current, int datatype)
 {
     uint64_t padding;
     uint64_t position;
@@ -445,7 +445,19 @@ void generate_trace(FILE *input, event *current)
         return;
     }
 
-    read = read_current(input, current->signal, position, current->length + 2*padding);
+    if (datatype==64)
+    {
+        read = read_current(input, current->signal, position, current->length + 2*padding);
+    }
+    else if (datatype==16)
+    {
+        read = read_current_int16(input, current->signal, position, current->length + 2*padding);
+    }
+    else
+    {
+        printf("Invalid data type\n");
+        abort();
+    }
     if (read != current->length + 2*padding)
     {
         printf("Unable to read %" PRIu64 " samples for event %" PRId64 ": obtained %" PRId64 "\n",current->length + 2*padding,current->index,read);

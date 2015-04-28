@@ -66,6 +66,12 @@ int main()
     subevent_minpoints = config->subevent_minpoints;
     datatype = config->datatype;
 
+    if (datatype != 16 && datatype != 64)
+    {
+        printf("datatype currently can only be 16 or 64\n");
+        abort();
+    }
+
     double *signal;
     if ((signal = (double *) calloc(readlength,sizeof(double)))==NULL)
     {
@@ -165,7 +171,7 @@ int main()
     printf("Finished\n");
 
     printf("Populating event traces... ");
-    populate_event_traces(input, current_event);
+    populate_event_traces(input, current_event, datatype);
     current_event = head_event;
     printf("Finished\n");
 
