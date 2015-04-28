@@ -87,6 +87,8 @@ struct Configuration
     double cusum_max_threshold;
     double cusum_delta;
 
+    int datatype;
+
 };
 typedef struct Configuration configuration;
 

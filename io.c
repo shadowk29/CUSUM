@@ -6,6 +6,48 @@
 #include<stdio.h>
 #include<stdlib.h>
 
+
+inline void swapByteOrder_int16(uint16_t *ull)
+{
+    *ull = (*ull>>8)|(*ull<<8);
+}
+
+
+uint64_t read_current_int16(FILE *input, double *current, uint64_t position, uint64_t length)
+{
+    uint64_t test;
+    int16_t iv[2];
+
+    uint64_t i;
+    uint64_t read = 0;
+
+    if (fseeko64(input,(off64_t) position*2*sizeof(int16_t),SEEK_SET))
+    {
+        return 0;
+    }
+
+
+    for (i = 0; i < length; i++)
+    {
+        test = fread(iv, sizeof(int16_t), 2, input);
+        if (test == 2)
+        {
+            read++;
+            swapByteOrder_int16((uint16_t *) &iv[0]);
+            current[i] = (double) iv[0];
+        }
+        else
+        {
+            perror("End of file reached: ");
+            printf("Final iteration read %" PRId64 " of %" PRIu64 " samples\n",read,length);
+            break;
+        }
+
+    }
+    return read;
+}
+
+
 void print_events(event *current, double timestep)
 {
     FILE *events;
@@ -334,6 +376,10 @@ void read_config(configuration *config)
         else if (strcmp(name,"export_trace_end") == 0)
         {
             config->export_trace_end = strtoull(value,NULL,10);
+        }
+        else if (strcmp(name,"datatype") == 0)
+        {
+            config->datatype = strtol(value,NULL,10);
         }
 
     }
