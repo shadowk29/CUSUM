@@ -41,6 +41,7 @@ int main()
     uint64_t maxpoints;
     uint64_t minpoints;
     uint64_t subevent_minpoints;
+    int datatype;
     int event_direction;
     int endflag;
     endflag = 0;
@@ -63,6 +64,7 @@ int main()
     maxpoints = config->event_maxpoints;
     minpoints = config->event_minpoints;
     subevent_minpoints = config->subevent_minpoints;
+    datatype = config->datatype;
 
     double *signal;
     if ((signal = (double *) calloc(readlength,sizeof(double)))==NULL)
@@ -99,7 +101,15 @@ int main()
     printf("Locating events... ");
     for (pos = start; pos < finish; pos += read)
     {
-        read = read_current(input, signal, pos, intmin(readlength,finish - pos));
+        if (datatype == 64)
+        {
+            read = read_current(input, signal, pos, intmin(readlength,finish - pos));
+        }
+        else if (datatype == 16)
+        {
+            read = read_current_int16(input, signal, pos, intmin(readlength,finish - pos));
+        }
+
         if (read < config->readlength || feof(input))
         {
             endflag = 1;
