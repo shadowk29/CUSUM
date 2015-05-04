@@ -87,24 +87,18 @@ void average_cusum_levels(event *current, uint64_t subevent_minpoints)
     double average;
     while (current_edge)
     {
-        fflush(stdout);
         average = signal_average(&current->signal[anchor + subevent_minpoints], current_edge->location - anchor - subevent_minpoints);
-        fflush(stdout);
         blockage = d_abs(average - baseline);
         if (blockage > maxblockage)
         {
             maxblockage = blockage;
         }
-        fflush(stdout);
         for (j=anchor; j<current_edge->location; j++)
         {
             current->filtered_signal[j] = average;
         }
-        fflush(stdout);
         anchor = current_edge->location;
-        fflush(stdout);
         current_edge = current_edge->next;
-        fflush(stdout);
     }
     current_edge = first_edge;
     current->max_blockage = maxblockage;
