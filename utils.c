@@ -130,6 +130,7 @@ void free_edges(edge *current)
     }
 }
 
+
 event *initialize_events(void)
 {
     event *head;

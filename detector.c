@@ -63,31 +63,42 @@ int count_levels(event *current)
     return numlevels;
 }
 
-void assign_cusum_levels(event *current, uint64_t subevent_minpoints)
+void assign_cusum_levels(event *current, uint64_t subevent_minpoints, double cusum_minstep)
 {
     while (current)
     {
         if (current->type == 0)
         {
-            average_cusum_levels(current, subevent_minpoints);
+            average_cusum_levels(current, subevent_minpoints, cusum_minstep);
         }
         current = current->next;
     }
 }
 
-void average_cusum_levels(event *current, uint64_t subevent_minpoints)
+void average_cusum_levels(event *current, uint64_t subevent_minpoints, double cusum_minstep)
 {
     edge *first_edge = current->first_edge;
     edge *current_edge = first_edge;
     double blockage;
     double maxblockage = 0;
     double baseline = 0.5 * (current->baseline_before + current->baseline_after);
+    double lastlevel = baseline;
     uint64_t j;
+    int passflag = 1;
     uint64_t anchor = 0;
+    uint64_t prev_anchor = anchor;
     double average;
     while (current_edge)
     {
         average = signal_average(&current->signal[anchor + subevent_minpoints], current_edge->location - anchor - subevent_minpoints);
+        if (d_abs(average - lastlevel) < cusum_minstep && passflag == 0)
+        {
+            anchor = prev_anchor;
+            passflag = 1;
+            continue;
+        }
+        passflag = 0;
+        lastlevel = average;
         blockage = d_abs(average - baseline);
         if (blockage > maxblockage)
         {
@@ -97,6 +108,7 @@ void average_cusum_levels(event *current, uint64_t subevent_minpoints)
         {
             current->filtered_signal[j] = average;
         }
+        prev_anchor = anchor;
         anchor = current_edge->location;
         current_edge = current_edge->next;
     }
