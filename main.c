@@ -105,7 +105,8 @@ int main()
     current_event = head_event;
 
     double baseline;
-
+    double badbaseline = 0;
+    double goodbaseline = 0;
     printf("Locating events... ");
     for (pos = start; pos < finish; pos += read)
     {
@@ -127,10 +128,11 @@ int main()
 
         if (baseline < baseline_min || baseline > baseline_max)
         {
-            printf("Skipping section with bad baseline: %g\n", baseline);
+            badbaseline += read;
         }
         else
         {
+            goodbaseline += read;
             current_edge = detect_edges(signal, baseline, read, current_edge, threshold, hysteresis, pos, event_direction);
         }
 
@@ -141,6 +143,7 @@ int main()
         }
         memset(signal,'0',(readlength)*sizeof(double));
     }
+    printf("Read %g s of good baseline\n Read %g seconds of bad baseline\n", goodbaseline/(double) samplingfreq, badbaseline / (double) samplingfreq);
     printf("Finished\n");
 
     current_edge = head_edge;

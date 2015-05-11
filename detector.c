@@ -663,7 +663,6 @@ double build_histogram(double *signal, histostruct *histogram, uint64_t length, 
     sprintf(filename, "output/histo_%" PRIu64".dat",pos);
     print_histogram(filename, histogram);*/
 
-    printf("Baseline detected was %g\n",baseline);
     return baseline;
 }
 
