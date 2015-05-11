@@ -265,7 +265,7 @@ void export_trace(double *signal, uint64_t length, char *file, double timestep, 
     fclose(output);
 }
 
-void read_config(configuration *config)
+void read_config(configuration *config, FILE *logfile)
 {
     char configline[STRLENGTH];
     char *name;
@@ -277,9 +277,10 @@ void read_config(configuration *config)
         printf("Cannot find config file: \"config.dat\"!");
         abort();
     }
-
+    fprintf(logfile, "<----CONFIGURATION BEGINS---->\n\n");
     while ((fgets(configline, STRLENGTH, configfile)) != NULL)
     {
+        fprintf(logfile, "%s", configline);
         name = strtok(configline,"=");
         value = strtok(NULL,"=\n");
         if (strcmp(name,"readlength") == 0)
@@ -385,6 +386,7 @@ void read_config(configuration *config)
         }
 
     }
+    fprintf(logfile, "<----CONFIGURATION ENDS---->\n\n");
     if (config->usefilter == 0)
     {
         config->poles = 0;

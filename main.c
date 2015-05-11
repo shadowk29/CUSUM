@@ -14,7 +14,17 @@ int main()
         printf("Cannot allocate config structure\n");
         abort();
     }
-    read_config(config);
+
+    FILE *logfile;
+    if ((logfile = fopen64("output/summary.txt","w"))==NULL)
+    {
+        printf("Cannot open summary file\n");
+        abort();
+    }
+
+
+    read_config(config, logfile);
+
 
     FILE *input;
     if ((input = fopen64(config->filepath,"rb"))==NULL)
@@ -22,6 +32,8 @@ int main()
         printf("Cannot open input file\n");
         abort();
     }
+
+
 
     uint64_t read;
     uint64_t pos;
@@ -107,7 +119,10 @@ int main()
     double baseline;
     double badbaseline = 0;
     double goodbaseline = 0;
+
+    fprintf(logfile, "<----RUN LOG BEGINS---->\n\n");
     printf("Locating events... ");
+    fprintf(logfile, "Locating events...\n ");
     for (pos = start; pos < finish; pos += read)
     {
         if (datatype == 64)
@@ -145,6 +160,8 @@ int main()
     }
     printf("Read %g seconds of good baseline\nRead %g seconds of bad baseline\n", goodbaseline/(double) samplingfreq, badbaseline / (double) samplingfreq);
     printf("Finished\n\n");
+    fprintf(logfile, "Read %g seconds of good baseline\nRead %g seconds of bad baseline\n", goodbaseline/(double) samplingfreq, badbaseline / (double) samplingfreq);
+    fprintf(logfile, "Finished\n\n");
 
     current_edge = head_edge;
     current_event = head_event;
@@ -152,85 +169,114 @@ int main()
     if (!current_edge || current_edge->type == HEAD)
     {
         printf("No edges found in signal, exiting\n");
+        fprintf(logfile, "No edges found in signal, exiting\n");
         system("pause");
         return -1;
     }
 
     printf("Processing event locations... ");
+    fprintf(logfile, "Processing event locations... ");
     current_event = process_edges(current_edge, current_event);
     current_event = head_event;
     printf("Finished\n\n");
+    fprintf(logfile, "Finished\n\n");
 
 
     if (!current_event || current_event->index == HEAD)
     {
         printf("No events found in signal, exiting\n");
+        fprintf(logfile, "No events found in signal, exiting\n");
         system("pause");
         return -2;
     }
 
     printf("Filtering on event length... ");
+    fprintf(logfile, "Filtering on event length... ");
     filter_event_length(current_event, maxpoints, minpoints);
     //head_event = delete_bad_events(head_event);
     current_event = head_event;
     printf("Finished\n\n");
+    fprintf(logfile, "Finished\n\n");
 
     printf("Populating event traces... ");
+    fprintf(logfile, "Populating event traces... ");
     populate_event_traces(input, current_event, datatype);
     current_event = head_event;
     printf("Finished\n\n");
+    fprintf(logfile, "Finished\n\n");
 
     printf("Assigning event baselines...");
+    fprintf(logfile, "Assigning event baselines...");
     assign_event_baselines(current_event);
     current_event = head_event;
     printf("Finished\n\n");
+    fprintf(logfile, "Finished\n\n");
 
     printf("Assigning event areas...");
+    fprintf(logfile, "Assigning event areas...");
     assign_event_areas(current_event, 1.0/samplingfreq);
     current_event = head_event;
     printf("Finished\n\n");
+    fprintf(logfile, "Finished\n\n");
 
     printf("Detecting subevents...");
+    fprintf(logfile, "Detecting subevents...");
     detect_subevents(current_event, cusum_delta, cusum_min_threshold, cusum_max_threshold, subevent_minpoints);
     current_event = head_event;
     printf("Finished\n\n");
+    fprintf(logfile, "Finished\n\n");
 
     printf("Processing subevents...");
+    fprintf(logfile, "Processing subevents...");
     assign_cusum_levels(current_event, subevent_minpoints, cusum_minstep);
     current_event = head_event;
     printf("Finished\n\n");
+    fprintf(logfile, "Finished\n\n");
 
     printf("Counting subevents...");
+    fprintf(logfile, "Counting subevents...");
     count_all_levels(current_event);
     current_event = head_event;
     printf("Finished\n\n");
+    fprintf(logfile, "Finished\n\n");
 
     printf("Printing all signals...");
+    fprintf(logfile, "Printing all signals...");
     print_all_signals(current_event, 1.0/samplingfreq*1e6);
     current_event = head_event;
     printf("Finished\n\n");
+    fprintf(logfile, "Finished\n\n");
 
     printf("Printing event summary...");
+    fprintf(logfile, "Printing event summary...");
     print_events(current_event, 1.0/samplingfreq);
     current_event = head_event;
     printf("Finished\n\n");
+    fprintf(logfile, "Finished\n\n");
 
     printf("Cleaning up memory usage...\n");
+    fprintf(logfile, "Cleaning up memory usage...\n");
     free_events(head_event);
     printf("Event list freed...\n");
+    fprintf(logfile, "Event list freed...\n");
     free_edges(head_edge);
     printf("Edge list freed...\n");
+    fprintf(logfile, "Edge list freed...\n");
     for (i=0; i<histogram->numbins; i++)
     {
         free(histogram->histogram[i]);
     }
     free(histogram->histogram);
     printf("Signal array freed\n");
+    fprintf(logfile, "Signal array freed\n");
     free(histogram);
     fclose(input);
     free(config);
     free(signal);
     printf("Finished\n\n");
+    fprintf(logfile, "Finished\n\n");
+    fprintf(logfile, "<----RUN LOG ENDS---->\n\n");
+    fclose(logfile);
     system("pause");
     return 0;
 }
