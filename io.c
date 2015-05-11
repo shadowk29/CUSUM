@@ -38,8 +38,7 @@ uint64_t read_current_int16(FILE *input, double *current, uint64_t position, uin
         }
         else
         {
-            perror("End of file reached: ");
-            printf("Final iteration read %" PRId64 " of %" PRIu64 " samples\n",read,length);
+            perror("End of file reached");
             break;
         }
 

@@ -143,8 +143,8 @@ int main()
         }
         memset(signal,'0',(readlength)*sizeof(double));
     }
-    printf("Read %g s of good baseline\n Read %g seconds of bad baseline\n", goodbaseline/(double) samplingfreq, badbaseline / (double) samplingfreq);
-    printf("Finished\n");
+    printf("Read %g seconds of good baseline\nRead %g seconds of bad baseline\n", goodbaseline/(double) samplingfreq, badbaseline / (double) samplingfreq);
+    printf("Finished\n\n");
 
     current_edge = head_edge;
     current_event = head_event;
@@ -159,7 +159,7 @@ int main()
     printf("Processing event locations... ");
     current_event = process_edges(current_edge, current_event);
     current_event = head_event;
-    printf("Finished\n");
+    printf("Finished\n\n");
 
 
     if (!current_event || current_event->index == HEAD)
@@ -173,47 +173,47 @@ int main()
     filter_event_length(current_event, maxpoints, minpoints);
     //head_event = delete_bad_events(head_event);
     current_event = head_event;
-    printf("Finished\n");
+    printf("Finished\n\n");
 
     printf("Populating event traces... ");
     populate_event_traces(input, current_event, datatype);
     current_event = head_event;
-    printf("Finished\n");
+    printf("Finished\n\n");
 
     printf("Assigning event baselines...");
     assign_event_baselines(current_event);
     current_event = head_event;
-    printf("Finished\n");
+    printf("Finished\n\n");
 
     printf("Assigning event areas...");
     assign_event_areas(current_event, 1.0/samplingfreq);
     current_event = head_event;
-    printf("Finished\n");
+    printf("Finished\n\n");
 
     printf("Detecting subevents...");
     detect_subevents(current_event, cusum_delta, cusum_min_threshold, cusum_max_threshold, subevent_minpoints);
     current_event = head_event;
-    printf("Finished\n");
+    printf("Finished\n\n");
 
     printf("Processing subevents...");
     assign_cusum_levels(current_event, subevent_minpoints, cusum_minstep);
     current_event = head_event;
-    printf("Finished\n");
+    printf("Finished\n\n");
 
     printf("Counting subevents...");
     count_all_levels(current_event);
     current_event = head_event;
-    printf("Finished\n");
+    printf("Finished\n\n");
 
     printf("Printing all signals...");
     print_all_signals(current_event, 1.0/samplingfreq*1e6);
     current_event = head_event;
-    printf("Finished\n");
+    printf("Finished\n\n");
 
     printf("Printing event summary...");
     print_events(current_event, 1.0/samplingfreq);
     current_event = head_event;
-    printf("Finished\n");
+    printf("Finished\n\n");
 
     printf("Cleaning up memory usage...\n");
     free_events(head_event);
@@ -230,7 +230,7 @@ int main()
     fclose(input);
     free(config);
     free(signal);
-    printf("Finished\n");
+    printf("Finished\n\n");
     system("pause");
     return 0;
 }
