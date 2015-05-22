@@ -9,7 +9,7 @@
 #include<float.h>
 
 
-void filter_event_length(event *current, uint64_t maxpoints, uint64_t minpoints)
+void filter_event_length(event *current, uint64_t maxpoints, uint64_t minpoints, FILE *logfile)
 {
     uint64_t toolong = 0;
     uint64_t tooshort = 0;
@@ -28,21 +28,28 @@ void filter_event_length(event *current, uint64_t maxpoints, uint64_t minpoints)
         current = current->next;
     }
     printf("\n%"PRIu64" events were too long\n%"PRIu64" events were too short\n",toolong,tooshort);
+    fprintf(logfile,"\n%"PRIu64" events were too long\n%"PRIu64" events were too short\n",toolong,tooshort);
 }
 
-void count_all_levels(event *current)
+void count_all_levels(event *current, FILE *logfile)
 {
     int numlevels;
+    uint64_t badlevels = 0;
     while (current)
     {
         if (current->type == 0)
         {
             numlevels = count_levels(current);
+            if (numlevels < 3)
+            {
+                badlevels++;
+            }
             current->numlevels = numlevels;
         }
-
         current = current->next;
     }
+    printf("\n%"PRIu64" events had less than three levels and were discarded\n",badlevels);
+    fprintf(logfile,"\n%"PRIu64" events had less than three levels and were discarded\n",badlevels);
 }
 
 
@@ -59,6 +66,10 @@ int count_levels(event *current)
             numlevels++;
             lastlevel = current->filtered_signal[i];
         }
+    }
+    if (numlevels < 3)
+    {
+        current->type = BADLEVELS;
     }
     return numlevels;
 }
@@ -333,16 +344,23 @@ void assign_event_areas(event *current_event, double timestep)
     }
 }
 
-void assign_event_baselines(event *current_event)
+void assign_event_baselines(event *current_event, FILE *logfile)
 {
+    uint64_t badbaseline = 0;
     while (current_event != NULL)
     {
         if (current_event->type == 0)
         {
             event_baseline(current_event);
+            if (current_event->type == BADBASELINE)
+            {
+                badbaseline++;
+            }
         }
         current_event = current_event->next;
     }
+    printf("\n%"PRIu64" events had bad baseline and were discarded\n",badbaseline);
+    fprintf(logfile,"\n%"PRIu64" events had bad baseline and were discarded\n",badbaseline);
 }
 
 void event_baseline(event *current_event)
@@ -364,7 +382,7 @@ void event_baseline(event *current_event)
     baseline_after = baseline_after / padding;
 
     stdev = 0.5 * (sqrt(signal_variance(signal, padding)) + sqrt(signal_variance(&signal[length+padding], padding)));
-    if (d_abs(baseline_before - baseline_after) > 3 * stdev)
+    if (d_abs(baseline_before - baseline_after) > 1.5 * stdev)
     {
         current_event->type = BADBASELINE;
     }
@@ -372,13 +390,13 @@ void event_baseline(event *current_event)
     current_event->baseline_after = baseline_after;
 }
 
-void populate_event_traces(FILE *input, event *current_event, int datatype)
+void populate_event_traces(FILE *input, event *current_event, int datatype, FILE *logfile)
 {
     while (current_event != NULL)
     {
         if (current_event->type == 0)
         {
-            generate_trace(input, current_event, datatype);
+            generate_trace(input, current_event, datatype, logfile);
         }
         current_event = current_event->next;
     }
@@ -386,7 +404,7 @@ void populate_event_traces(FILE *input, event *current_event, int datatype)
 
 
 
-void generate_trace(FILE *input, event *current, int datatype)
+void generate_trace(FILE *input, event *current, int datatype, FILE *logfile)
 {
     uint64_t padding;
     uint64_t position;
@@ -428,6 +446,8 @@ void generate_trace(FILE *input, event *current, int datatype)
     if (position > current->start)
     {
         printf("Attempting to access negative file index, increase your start time past %" PRIu64 "\n",current->start);
+        fprintf(logfile,"Attempting to access negative file index, increase your start time past %" PRIu64 "\n",current->start);
+        fflush(logfile);
         abort();
     }
     current->padding = padding;
@@ -436,18 +456,24 @@ void generate_trace(FILE *input, event *current, int datatype)
     if ((current->signal = calloc(current->length + 2*padding,sizeof(double)))==NULL)
     {
         printf("Cannot allocate trace array\n");
+        fprintf(logfile,"Cannot allocate trace array\n");
+        fflush(logfile);
         return;
     }
     if ((current->filtered_signal = calloc(current->length + 2*padding,sizeof(double)))==NULL)
     {
         printf("Cannot allocate filtered trace array\n");
+        fprintf(logfile,"Cannot allocate filtered trace array\n");
+        fflush(logfile);
         return;
     }
 
 
     if (fseeko64(input,(off64_t) position*2*sizeof(double),SEEK_SET))
     {
-        printf("Cannot location file position at sample %" PRIu64 "\n",position);
+        printf("Cannot locate file position at sample %" PRIu64 "\n",position);
+        fprintf(logfile,"Cannot locate file position at sample %" PRIu64 "\n",position);
+        fflush(logfile);
         return;
     }
 
@@ -462,12 +488,16 @@ void generate_trace(FILE *input, event *current, int datatype)
     else
     {
         printf("Invalid data type\n");
+        fprintf(logfile,"Invalid data type\n");
+        fflush(logfile);
         abort();
     }
     if (read != current->length + 2*padding)
     {
         printf("Unable to read %" PRIu64 " samples for event %" PRId64 ": obtained %" PRId64 "\n",current->length + 2*padding,current->index,read);
-        current->type = -2;
+        fprintf(logfile,"Unable to read %" PRIu64 " samples for event %" PRId64 ": obtained %" PRId64 "\n",current->length + 2*padding,current->index,read);
+        fflush(logfile);
+        current->type = BADTRACE;
     }
 }
 

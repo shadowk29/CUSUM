@@ -192,25 +192,27 @@ int main()
 
     printf("Filtering on event length... ");
     fprintf(logfile, "Filtering on event length... ");
-    filter_event_length(current_event, maxpoints, minpoints);
-    //head_event = delete_bad_events(head_event);
+    filter_event_length(current_event, maxpoints, minpoints, logfile);
     current_event = head_event;
     printf("Finished\n\n");
     fprintf(logfile, "Finished\n\n");
+    fflush(logfile);
 
     printf("Populating event traces... ");
     fprintf(logfile, "Populating event traces... ");
-    populate_event_traces(input, current_event, datatype);
+    populate_event_traces(input, current_event, datatype, logfile);
     current_event = head_event;
     printf("Finished\n\n");
     fprintf(logfile, "Finished\n\n");
+    fflush(logfile);
 
     printf("Assigning event baselines...");
     fprintf(logfile, "Assigning event baselines...");
-    assign_event_baselines(current_event);
+    assign_event_baselines(current_event, logfile);
     current_event = head_event;
     printf("Finished\n\n");
     fprintf(logfile, "Finished\n\n");
+    fflush(logfile);
 
     printf("Assigning event areas...");
     fprintf(logfile, "Assigning event areas...");
@@ -218,6 +220,7 @@ int main()
     current_event = head_event;
     printf("Finished\n\n");
     fprintf(logfile, "Finished\n\n");
+    fflush(logfile);
 
     printf("Detecting subevents...");
     fprintf(logfile, "Detecting subevents...");
@@ -225,6 +228,7 @@ int main()
     current_event = head_event;
     printf("Finished\n\n");
     fprintf(logfile, "Finished\n\n");
+    fflush(logfile);
 
     printf("Processing subevents...");
     fprintf(logfile, "Processing subevents...");
@@ -232,13 +236,15 @@ int main()
     current_event = head_event;
     printf("Finished\n\n");
     fprintf(logfile, "Finished\n\n");
+    fflush(logfile);
 
     printf("Counting subevents...");
     fprintf(logfile, "Counting subevents...");
-    count_all_levels(current_event);
+    count_all_levels(current_event, logfile);
     current_event = head_event;
     printf("Finished\n\n");
     fprintf(logfile, "Finished\n\n");
+    fflush(logfile);
 
     printf("Printing all signals...");
     fprintf(logfile, "Printing all signals...");
@@ -246,6 +252,7 @@ int main()
     current_event = head_event;
     printf("Finished\n\n");
     fprintf(logfile, "Finished\n\n");
+    fflush(logfile);
 
     printf("Printing event summary...");
     fprintf(logfile, "Printing event summary...");
@@ -253,6 +260,7 @@ int main()
     current_event = head_event;
     printf("Finished\n\n");
     fprintf(logfile, "Finished\n\n");
+    fflush(logfile);
 
     printf("Cleaning up memory usage...\n");
     fprintf(logfile, "Cleaning up memory usage...\n");
