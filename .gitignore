@@ -51,3 +51,4 @@ Temporary Items
 *.layout
 output
 Test Data
+*cscope*
