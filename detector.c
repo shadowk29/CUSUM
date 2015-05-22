@@ -344,14 +344,14 @@ void assign_event_areas(event *current_event, double timestep)
     }
 }
 
-void assign_event_baselines(event *current_event, FILE *logfile)
+void assign_event_baselines(event *current_event, FILE *logfile, double baseline_min, double baseline_max)
 {
     uint64_t badbaseline = 0;
     while (current_event != NULL)
     {
         if (current_event->type == 0)
         {
-            event_baseline(current_event);
+            event_baseline(current_event, baseline_min, baseline_max);
             if (current_event->type == BADBASELINE)
             {
                 badbaseline++;
@@ -363,7 +363,7 @@ void assign_event_baselines(event *current_event, FILE *logfile)
     fprintf(logfile,"\n%"PRIu64" events had bad baseline and were discarded\n",badbaseline);
 }
 
-void event_baseline(event *current_event)
+void event_baseline(event *current_event, double baseline_min, double baseline_max)
 {
     uint64_t i;
     double baseline_before = 0;
@@ -382,7 +382,7 @@ void event_baseline(event *current_event)
     baseline_after = baseline_after / padding;
 
     stdev = 0.5 * (sqrt(signal_variance(signal, padding)) + sqrt(signal_variance(&signal[length+padding], padding)));
-    if (d_abs(baseline_before - baseline_after) > 1.5 * stdev)
+    if (d_abs(baseline_before - baseline_after) > 1.5 * stdev || baseline_before > baseline_max || baseline_after > baseline_max || baseline_before < baseline_min || baseline_after < baseline_min)
     {
         current_event->type = BADBASELINE;
     }

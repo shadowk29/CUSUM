@@ -208,7 +208,7 @@ int main()
 
     printf("Assigning event baselines...");
     fprintf(logfile, "Assigning event baselines...");
-    assign_event_baselines(current_event, logfile);
+    assign_event_baselines(current_event, logfile, baseline_min, baseline_max);
     current_event = head_event;
     printf("Finished\n\n");
     fprintf(logfile, "Finished\n\n");

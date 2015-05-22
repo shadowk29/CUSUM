@@ -42,8 +42,8 @@ double signal_average(double *signal, uint64_t length);
 double signal_extreme(double *signal, uint64_t length, double sign);
 double signal_variance(double *signal, uint64_t length);
 
-void event_baseline(event *current_event);
-void assign_event_baselines(event *current_event, FILE *logfile);
+void event_baseline(event *current_event, double baseline_min, double baseline_max);
+void assign_event_baselines(event *current_event, FILE *logfile, double baseline_min, double baseline_max);
 void event_area(event *current_event, double timestep);
 void assign_event_areas(event *current_event, double timestep);
 #endif // DETECTOR_H_INCLUDED
