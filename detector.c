@@ -600,7 +600,6 @@ double build_histogram(double *signal, histostruct *histogram, uint64_t length, 
         numbins = (uint64_t) sqrt(length);
     }
 
-    printf("numbins is %"PRIu64"\n",numbins);
     double baseline = 0;
     uint64_t i,j;
     int sign;
