@@ -57,6 +57,7 @@ int main()
     int datatype;
     int event_direction;
     int endflag;
+    int refine_estimates;
     endflag = 0;
     read = 0;
     pos = 0;
@@ -79,6 +80,7 @@ int main()
     minpoints = config->event_minpoints;
     subevent_minpoints = config->subevent_minpoints;
     datatype = config->datatype;
+    refine_estimates = config->refine_estimates;
 
     if (datatype != 16 && datatype != 64)
     {
@@ -212,14 +214,6 @@ int main()
     fprintf(logfile, "Finished\n\n");
     fflush(logfile);
 
-    printf("Assigning event areas...");
-    fprintf(logfile, "Assigning event areas...");
-    assign_event_areas(current_event, 1.0/samplingfreq);
-    current_event = head_event;
-    printf("Finished\n\n");
-    fprintf(logfile, "Finished\n\n");
-    fflush(logfile);
-
     printf("Detecting subevents...");
     fprintf(logfile, "Detecting subevents...");
     detect_subevents(current_event, cusum_delta, cusum_min_threshold, cusum_max_threshold, subevent_minpoints);
@@ -244,13 +238,25 @@ int main()
     fprintf(logfile, "Finished\n\n");
     fflush(logfile);
 
-    printf("Refining subevent estimates...");
-    fprintf(logfile, "Refining subevent estimates...");
-    refine_all_estimates(current_event);
+    if (refine_estimates)
+    {
+        printf("Refining subevent estimates...");
+        fprintf(logfile, "Refining subevent estimates...");
+        refine_all_estimates(current_event);
+        current_event = head_event;
+        printf("Finished\n\n");
+        fprintf(logfile, "Finished\n\n");
+        fflush(logfile);
+    }
+
+    printf("Assigning event areas...");
+    fprintf(logfile, "Assigning event areas...");
+    assign_event_areas(current_event, 1.0/samplingfreq);
     current_event = head_event;
     printf("Finished\n\n");
     fprintf(logfile, "Finished\n\n");
     fflush(logfile);
+
 
     printf("Printing all signals...");
     fprintf(logfile, "Printing all signals...");

@@ -87,6 +87,7 @@ struct Configuration
     double cusum_max_threshold;
     double cusum_delta;
     double cusum_minstep;
+    int refine_estimates;
 
     int datatype;
 

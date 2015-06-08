@@ -384,6 +384,10 @@ void read_config(configuration *config, FILE *logfile)
         {
             config->datatype = strtol(value,NULL,10);
         }
+        else if (strcmp(name,"refine_estimates") == 0)
+        {
+            config->refine_estimates = strtol(value,NULL,10);
+        }
 
     }
     fprintf(logfile, "<----CONFIGURATION ENDS---->\n\n");
