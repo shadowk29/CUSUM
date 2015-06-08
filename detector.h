@@ -22,7 +22,8 @@ void average_cusum_levels(event *current, uint64_t subevent_minpoints, double cu
 void cusum(event *current_event, double delta, double minthreshold, double maxthreshold, uint64_t subevent_minpoints);
 double get_cusum_threshold(uint64_t length, double minthreshold, double maxthreshold, double sigma, double mun);
 
-
+void refine_all_estimates(event *current);
+void refine_event_estimates(event *current);
 
 
 void populate_event_traces(FILE *input, event *current_event, int datatype, FILE *logfile);

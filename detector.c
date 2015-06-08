@@ -125,8 +125,49 @@ void average_cusum_levels(event *current, uint64_t subevent_minpoints, double cu
     }
     current_edge = first_edge;
     current->max_blockage = maxblockage;
+}
+
+void refine_all_estimates(event *current)
+{
+    while (current)
+    {
+        if (current->type == 0)
+        {
+            refine_event_estimates(current);
+        }
+        current = current->next;
+    }
+}
+
+void refine_event_estimates(event *current)
+{
     current->baseline_before = current->filtered_signal[0];
     current->baseline_after  = current->filtered_signal[current->length + 2 * current->padding - 1];
+    uint64_t i = 0;
+    uint64_t newstart = current->start;
+    uint64_t newfinish = current->finish;
+    uint64_t totallength = current->length + 2*current->padding;
+    double firstsample = current->filtered_signal[0];
+    double lastsample = current->filtered_signal[totallength - 1];
+    for (i=0; i<totallength; i++)
+    {
+        if (signum(current->filtered_signal[i]-firstsample) != 0)
+        {
+            newstart = current->start -  current->padding + i;
+            break;
+        }
+    }
+    for (i=0; i<totallength; i++)
+    {
+        if (signum(current->filtered_signal[totallength - 1 - i] - lastsample) != 0)
+        {
+            newfinish = current->finish + current->padding - i;
+            break;
+        }
+    }
+    current->start = newstart;
+    current->finish = newfinish;
+    current->length = newfinish - newstart;
 }
 
 void detect_subevents(event *current_event, double delta, double minthreshold, double maxthreshold, uint64_t subevent_minpoints)
@@ -416,7 +457,7 @@ void generate_trace(FILE *input, event *current, int datatype, FILE *logfile)
     }
 
 
-    padding = intmax(current->length/2,100);
+    padding = 100;//intmax(current->length/2,100);
     if (current->index == 0) //for the first event, we need to make sure we don't overshoot the start of the file
     {
         if (padding > current->start)

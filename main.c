@@ -244,6 +244,14 @@ int main()
     fprintf(logfile, "Finished\n\n");
     fflush(logfile);
 
+    printf("Refining subevent estimates...");
+    fprintf(logfile, "Refining subevent estimates...");
+    refine_all_estimates(current_event);
+    current_event = head_event;
+    printf("Finished\n\n");
+    fprintf(logfile, "Finished\n\n");
+    fflush(logfile);
+
     printf("Printing all signals...");
     fprintf(logfile, "Printing all signals...");
     print_all_signals(current_event, 1.0/samplingfreq*1e6);
