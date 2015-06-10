@@ -67,9 +67,10 @@ Length (us)\t\
 Threshold \t\
 Baseline Before (pA)\t\
 Baseline After\t\
+Effective Baseline\t\
 Area (pC)\t\
 Average Blockage (pA)\t\
-Relative Average Blockage (pA) \
+Relative Average Blockage (pA) \t\
 Max Blockage (pA)\t\
 Relative Max Blockage \t\
 Num Levels\t\
@@ -104,6 +105,7 @@ Level Length (us)\n");
                     %g\t\
                     %g\t\
                     %g\t\
+                    %g\t\
                     %d\t",\
                     current->index, \
                     current->type, \
@@ -113,6 +115,7 @@ Level Length (us)\n");
                     current->threshold, \
                     current->baseline_before, \
                     current->baseline_after, \
+                    0.5 * (current->baseline_after + current->baseline_before),\
                     current->area, \
                     current->average_blockage, \
                     d_abs(current->average_blockage / (0.5 * (current->baseline_before + current->baseline_after))), \
