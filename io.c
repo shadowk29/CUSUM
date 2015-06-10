@@ -69,6 +69,7 @@ Baseline Before (pA)\t\
 Baseline After\t\
 Area (pC)\t\
 Average Blockage (pA)\t\
+Relative Average Blockage (pA) \
 Max Blockage (pA)\t\
 Num Levels\t\
 Level Current (pA)\t\
@@ -100,6 +101,7 @@ Level Length (us)\n");
                     %g\t\
                     %g\t\
                     %g\t\
+                    %g\t\
                     %d\t",\
                     current->index, \
                     current->type, \
@@ -111,6 +113,7 @@ Level Length (us)\n");
                     current->baseline_after, \
                     current->area, \
                     current->average_blockage, \
+                    d_abs(current->average_blockage / (0.5 * (current->baseline_before + current->baseline_after))), \
                     current->max_blockage, \
                     current->numlevels);
 
