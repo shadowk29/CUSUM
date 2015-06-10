@@ -71,6 +71,7 @@ Area (pC)\t\
 Average Blockage (pA)\t\
 Relative Average Blockage (pA) \
 Max Blockage (pA)\t\
+Relative Max Blockage \t\
 Num Levels\t\
 Level Current (pA)\t\
 Level Length (us)\t\
@@ -102,6 +103,7 @@ Level Length (us)\n");
                     %g\t\
                     %g\t\
                     %g\t\
+                    %g\t\
                     %d\t",\
                     current->index, \
                     current->type, \
@@ -115,6 +117,7 @@ Level Length (us)\n");
                     current->average_blockage, \
                     d_abs(current->average_blockage / (0.5 * (current->baseline_before + current->baseline_after))), \
                     current->max_blockage, \
+                    d_abs(current->max_blockage / (0.5 * (current->baseline_before + current->baseline_after))), \
                     current->numlevels);
 
             currenttime = 0;
