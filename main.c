@@ -220,7 +220,7 @@ int main()
     fprintf(logfile, "Finished\n\n");
     fflush(logfile);
 
-    printf("Detecting subevents...");
+    printf("Detecting subevents...\n");
     fprintf(logfile, "Detecting subevents...");
     detect_subevents(current_event, cusum_delta, cusum_min_threshold, cusum_max_threshold, subevent_minpoints);
     current_event = head_event;

@@ -172,8 +172,17 @@ void refine_event_estimates(event *current)
 
 void detect_subevents(event *current_event, double delta, double minthreshold, double maxthreshold, uint64_t subevent_minpoints)
 {
+    event *head_event = current_event;
+    uint64_t numevents = 0;
     while (current_event)
     {
+        numevents++;
+        current_event = current_event->next;
+    }
+    current_event = head_event;
+    while (current_event)
+    {
+        progressbar(current_event->index, numevents);
         if (current_event->type == 0)
         {
             cusum(current_event, delta, minthreshold, maxthreshold, subevent_minpoints);
