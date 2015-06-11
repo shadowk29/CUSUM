@@ -3,6 +3,37 @@
 #include<stdlib.h>
 #include<math.h>
 
+inline void progressbar(uint64_t pos, uint64_t finish)
+{
+    // Calculuate the ratio of complete-to-incomplete.
+    double ratio = pos/(double)finish;
+    int   c     = (int) (ratio * 20);
+
+    // Show the percentage complete.
+    printf("%3d%% [", (int)(ratio*100) );
+
+    // Show the load bar.
+    int i;
+    for (i=0; i<c; i++)
+       printf("=");
+
+    for (i=c; i<20; i++)
+       printf(" ");
+
+    // ANSI Control codes to go back to the
+    // previous line and clear it.
+    printf("]\r");
+    fflush(stdout);
+}
+
+uint64_t get_filesize(FILE *input, int datatype)
+{
+    uint64_t length;
+    fseeko64(input, 0, SEEK_END);
+    length = ftello64(input);
+    fseeko64(input, 0, SEEK_SET);
+    return length / (datatype / 8 * 2);
+}
 
 
 int signum(double num)

@@ -82,6 +82,9 @@ int main()
     datatype = config->datatype;
     refine_estimates = config->refine_estimates;
 
+
+
+
     if (datatype != 16 && datatype != 64)
     {
         printf("datatype currently can only be 16 or 64\n");
@@ -104,6 +107,8 @@ int main()
     histogram->histogram = NULL;
     histogram->numbins = 0;
 
+    uint64_t filesize = get_filesize(input, datatype);
+    finish = filesize < finish ? filesize : finish;
 
     uint64_t i;
     i = 0;
@@ -123,10 +128,11 @@ int main()
     double goodbaseline = 0;
 
     fprintf(logfile, "<----RUN LOG BEGINS---->\n\n");
-    printf("Locating events... ");
+    printf("Locating events... \n");
     fprintf(logfile, "Locating events...\n ");
     for (pos = start; pos < finish; pos += read)
     {
+        progressbar(pos,finish);
         if (datatype == 64)
         {
             read = read_current(input, signal, pos, intmin(readlength,finish - pos));

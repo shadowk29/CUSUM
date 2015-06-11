@@ -114,4 +114,8 @@ event *add_event(event *current, uint64_t start, uint64_t finish);
 void free_events(event *current);
 void free_single_event(event *current);
 event *delete_bad_events(event *head);
+
+
+uint64_t get_filesize(FILE *input, int datatype);
+inline void progressbar(uint64_t pos, uint64_t finish);
 #endif // UTILS_H_INCLUDED
