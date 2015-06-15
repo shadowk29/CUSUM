@@ -7,17 +7,17 @@ inline void progressbar(uint64_t pos, uint64_t finish)
 {
     // Calculuate the ratio of complete-to-incomplete.
     double ratio = pos/(double)finish;
-    int   c     = (int) (ratio * 50);
+    int   c     = (int) (ratio * 40)+1;
 
     // Show the percentage complete.
-    printf("%3d%% [", (int)(ratio*100) );
+    printf("%3d%% [", (int)(ratio*100+1) );
 
     // Show the load bar.
     int i;
     for (i=0; i<c; i++)
        printf("=");
 
-    for (i=c; i<50; i++)
+    for (i=c; i<40; i++)
        printf(" ");
 
     // ANSI Control codes to go back to the

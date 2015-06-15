@@ -164,9 +164,9 @@ int main()
         }
         memset(signal,'0',(readlength)*sizeof(double));
     }
-    printf("Read %g seconds of good baseline\nRead %g seconds of bad baseline\n", goodbaseline/(double) samplingfreq, badbaseline / (double) samplingfreq);
+    printf("\nRead %g seconds of good baseline\nRead %g seconds of bad baseline\n", goodbaseline/(double) samplingfreq, badbaseline / (double) samplingfreq);
     printf("Finished\n\n");
-    fprintf(logfile, "Read %g seconds of good baseline\nRead %g seconds of bad baseline\n", goodbaseline/(double) samplingfreq, badbaseline / (double) samplingfreq);
+    fprintf(logfile, "\nRead %g seconds of good baseline\nRead %g seconds of bad baseline\n", goodbaseline/(double) samplingfreq, badbaseline / (double) samplingfreq);
     fprintf(logfile, "Finished\n\n");
 
     current_edge = head_edge;
@@ -224,8 +224,8 @@ int main()
     fprintf(logfile, "Detecting subevents...");
     detect_subevents(current_event, cusum_delta, cusum_min_threshold, cusum_max_threshold, subevent_minpoints);
     current_event = head_event;
-    printf("Finished\n\n");
-    fprintf(logfile, "Finished\n\n");
+    printf("\nFinished\n\n");
+    fprintf(logfile, "\nFinished\n\n");
     fflush(logfile);
 
     printf("Processing subevents...");
