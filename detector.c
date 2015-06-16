@@ -7,7 +7,61 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<float.h>
-
+void print_error_summary(event *current, FILE *logfile)
+{
+    uint64_t good = 0;
+    uint64_t total = 0;
+    uint64_t bad = 0;
+    uint64_t badbaseline = 0;
+    uint64_t tooshort = 0;
+    uint64_t toolong = 0;
+    uint64_t badlevels = 0;
+    uint64_t badtrace = 0;
+    while (current)
+    {
+        total++;
+        switch (current->type)
+        {
+            case 0:
+                good++;
+                break;
+            case BADBASELINE:
+                badbaseline++;
+                bad++;
+                break;
+            case TOOSHORT:
+                tooshort++;
+                bad++;
+                break;
+            case TOOLONG:
+                toolong++;
+                bad++;
+                break;
+            case BADTRACE:
+                badtrace++;
+                bad++;
+                break;
+        }
+        current = current->next;
+    }
+    printf("\n\nError summary:\n%"PRIu64" (%.2f%%) good events and %"PRIu64" (%.2f%%) bad events\n",good, (100.0 * (double) good)/total, bad, (100.0 * (double) bad)/total);
+    printf("%"PRIu64" (%.2f%%) were discarded for being too short\n",tooshort, (100.0 * (double) tooshort)/total);
+    printf("If this is too high, you might have set your threshold too low and are picking up noise. Try increasing threshold or reducing event_minpoints\n");
+    printf("%"PRIu64" (%.2f%%) were discarded for being too long\n",toolong, (100.0 * (double) toolong)/total);
+    printf("If this is too high, try reducing event_maxpoints\n");
+    printf("%"PRIu64" (%.2f%%) were discarded for having too few levels\n",badlevels, (100.0 * (double) badlevels)/total);
+    printf("If this is too high, try reduce cusum_delta, reducing cusum_minsteap, or reducing subevent_minpoints.\n");
+    printf("%"PRIu64" (%.2f%%) were discarded because the current trace could not be populated\n",badtrace, (100.0 * (double) badtrace)/total);
+    printf("If this number is nonzero, you've managed to break the code. Congratulations.\n");
+    printf("%"PRIu64" (%.2f%%) were discarded because the event did return to baseline\n",badbaseline, (100.0 * (double) badbaseline)/total);
+    printf("If this is too high, ask your friendly neighbourhood code developer to increase the padding length\n");
+    fprintf(logfile,"\nError summary:\n%"PRIu64" (%.2f%%) good events and %"PRIu64"(%.2f%%) bad events\n",good, (100.0 * (double) good)/total, bad, (100.0 * (double) bad)/total);
+    fprintf(logfile,"%"PRIu64" (%.2f%%) were discarded for being too short\n",tooshort, (100.0 * (double) tooshort)/total);
+    fprintf(logfile,"%"PRIu64" (%.2f%%) were discarded for being too long\n",toolong, (100.0 * (double) toolong)/total);
+    fprintf(logfile,"%"PRIu64" (%.2f%%) were discarded for having too few levels\n",badlevels, (100.0 * (double) badlevels)/total);
+    fprintf(logfile,"%"PRIu64" (%.2f%%) were discarded because the current trace could not be populated\n",badtrace, (100.0 * (double) badtrace)/total);
+    fprintf(logfile,"%"PRIu64" (%.2f%%) were discarded because the event did not return to baseline\n\n",badbaseline, (100.0 * (double) badbaseline)/total);
+}
 
 void filter_event_length(event *current, uint64_t maxpoints, uint64_t minpoints, FILE *logfile)
 {

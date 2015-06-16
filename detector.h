@@ -11,6 +11,8 @@
 #define BADLEVELS -4
 #define BADTRACE -5
 
+void print_error_summary(event *current, FILE *logfile);
+
 void filter_event_length(event *current, uint64_t maxpoints, uint64_t minpoints, FILE *logfile);
 void count_all_levels(event *current, FILE *logfile);
 int count_levels(event *current);

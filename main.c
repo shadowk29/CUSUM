@@ -280,6 +280,9 @@ int main()
     fprintf(logfile, "Finished\n\n");
     fflush(logfile);
 
+    print_error_summary(current_event, logfile);
+    current_event = head_event;
+
     printf("Cleaning up memory usage...\n");
     fprintf(logfile, "Cleaning up memory usage...\n");
     free_events(head_event);
