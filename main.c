@@ -1,7 +1,6 @@
 #include"io.h"
 #include"utils.h"
 #include"detector.h"
-#include"sqlite3.h"
 #include<string.h>
 #include<math.h>
 #include<stdio.h>

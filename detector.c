@@ -1,4 +1,5 @@
 #include"detector.h"
+#include"io.h"
 #include<inttypes.h>
 #include<stdint.h>
 #include<string.h>
