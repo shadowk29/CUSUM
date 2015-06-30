@@ -59,6 +59,13 @@ void print_events(event *current, double timestep)
         abort();
     }
 
+    FILE *cusumlevels;
+    if ((cusumlevels = fopen("output/levels.dat","w"))==NULL)
+    {
+        printf("Cannot open levels file\n");
+        abort();
+    }
+
     fprintf(events,"Index\t\
 Type\t\
 Padding (us)\t\
@@ -132,6 +139,7 @@ Level Length (us)\n");
                 {
                     currentlevel = current->filtered_signal[i];
                     fprintf(events,"%g\t%g\t",(i-currenttime) * timestep * 1e6, currentlevel);
+                    fprintf(cusumlevels,"%g\n",currentlevel);
                     currenttime = i;
                 }
             }
@@ -140,6 +148,7 @@ Level Length (us)\n");
         current = current->next;
     }
     fclose(events);
+    fclose(cusumlevels);
 }
 
 
