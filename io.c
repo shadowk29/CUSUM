@@ -53,67 +53,67 @@ void print_events(event *current, double timestep)
     double currentlevel;
     double currenttime;
     uint64_t i;
-    if ((events = fopen("output/events.dat","w"))==NULL)
+    if ((events = fopen("output/events.csv","w"))==NULL)
     {
         printf("Cannot open event summary file\n");
         abort();
     }
 
     FILE *cusumlevels;
-    if ((cusumlevels = fopen("output/levels.dat","w"))==NULL)
+    if ((cusumlevels = fopen("output/levels.csv","w"))==NULL)
     {
         printf("Cannot open levels file\n");
         abort();
     }
 
-    fprintf(events,"Index\t\
-Type\t\
-Padding (us)\t\
-Start Time (s)\t\
-Length (us)\t\
-Threshold \t\
-Baseline Before (pA)\t\
-Baseline After\t\
-Effective Baseline\t\
-Area (pC)\t\
-Average Blockage (pA)\t\
-Relative Average Blockage (pA) \t\
-Max Blockage (pA)\t\
-Relative Max Blockage \t\
-Num Levels\t\
-Level Current (pA)\t\
-Level Length (us)\t\
-Level Current (pA)\t\
-Level Length (us)\t\
-Level Current (pA)\t\
-Level Length (us)\t\
-Level Current (pA)\t\
-Level Length (us)\t\
-Level Current (pA)\t\
-Level Length (us)\t\
-Level Current (pA)\t\
-Level Length (us)\t\
-Level Current (pA)\t\
+    fprintf(events,"Index,\
+Type,\
+Padding (us),\
+Start Time (s),\
+Length (us),\
+Threshold ,\
+Baseline Before (pA),\
+Baseline After,\
+Effective Baseline,\
+Area (pC),\
+Average Blockage (pA),\
+Relative Average Blockage (pA) ,\
+Max Blockage (pA),\
+Relative Max Blockage ,\
+Num Levels,\
+Level Current (pA),\
+Level Length (us),\
+Level Current (pA),\
+Level Length (us),\
+Level Current (pA),\
+Level Length (us),\
+Level Current (pA),\
+Level Length (us),\
+Level Current (pA),\
+Level Length (us),\
+Level Current (pA),\
+Level Length (us),\
+Level Current (pA),\
 Level Length (us)\n");
     while (current)
     {
         if (current->type == 0)
         {
-            fprintf(events,"%"PRId64"\t\
-                    %d\t\
-                    %g\t\
-                    %g\t\
-                    %g\t\
-                    %g\t\
-                    %g\t\
-                    %g\t\
-                    %g\t\
-                    %g\t\
-                    %g\t\
-                    %g\t\
-                    %g\t\
-                    %g\t\
-                    %d\t",\
+            fprintf(events,"%"PRId64",\
+                    %d,\
+                    %g,\
+                    %g,\
+                    %g,\
+                    %g,\
+                    %g,\
+                    %g,\
+                    %g,\
+                    %g,\
+                    %g,\
+                    %g,\
+                    %g,\
+                    %g,\
+                    %d,",\
                     current->index, \
                     current->type, \
                     current->padding * timestep * 1e6, \
@@ -132,13 +132,13 @@ Level Length (us)\n");
 
             currenttime = 0;
             currentlevel = current->filtered_signal[0];
-            fprintf(events,"%g\t",currentlevel);
+            fprintf(events,"%g,",currentlevel);
             for (i=0; i<current->length + 2*current->padding; i++)
             {
                 if (signum(current->filtered_signal[i] - currentlevel) != 0)
                 {
                     currentlevel = current->filtered_signal[i];
-                    fprintf(events,"%g\t%g\t",(i-currenttime) * timestep * 1e6, currentlevel);
+                    fprintf(events,"%g,%g,",(i-currenttime) * timestep * 1e6, currentlevel);
                     fprintf(cusumlevels,"%g\n",currentlevel);
                     currenttime = i;
                 }
@@ -176,7 +176,7 @@ void print_signal(event *current, int length, char *filename, double timestep)
     int i;
     for (i=0; i<length; i++)
     {
-        fprintf(output,"%g\t%g\t%g\n",i*timestep,current->signal[i], current->filtered_signal[i]);
+        fprintf(output,"%g,%g,%g\n",i*timestep,current->signal[i], current->filtered_signal[i]);
     }
     fclose(output);
 }
@@ -195,7 +195,7 @@ void print_event_signal(int index, event *current, double timestep)
     if (current->index != -1 && current->type != -1)
     {
         char eventname[1024];
-        sprintf(eventname,"output/event_%05d.dat",index);
+        sprintf(eventname,"output/event_%05d.csv",index);
 
         print_signal(current, current->length+2*current->padding, eventname, timestep);
     }
@@ -214,7 +214,7 @@ void print_histogram(char *filename, histostruct *histogram)
     }
     for (i=0; i<histogram->numbins; i++)
     {
-        fprintf(output,"%g\t%g\t%g\t%g\n",(i+0.5)*histogram->delta+histogram->offset, histogram->histogram[i][0], histogram->histogram[i][1], histogram->histogram[i][2]);
+        fprintf(output,"%g,%g,%g,%g\n",(i+0.5)*histogram->delta+histogram->offset, histogram->histogram[i][0], histogram->histogram[i][1], histogram->histogram[i][2]);
     }
     fclose(output);
 }
@@ -278,7 +278,7 @@ void export_trace(double *signal, uint64_t length, char *file, double timestep, 
 
     for (i=0; i<length; i++)
     {
-        fprintf(output,"%lf\t%lf\n",start_time + i * timestep, signal[i]);
+        fprintf(output,"%lf,%lf\n",start_time + i * timestep, signal[i]);
     }
     fclose(output);
 }
@@ -292,7 +292,7 @@ void read_config(configuration *config, FILE *logfile)
     FILE *configfile;
     if ((configfile = fopen("config.txt","r"))==NULL)
     {
-        printf("Cannot find config file: \"config.dat\"!");
+        printf("Cannot find config file: \"config.txt\"!");
         abort();
     }
     fprintf(logfile, "<----CONFIGURATION BEGINS---->\n\n");

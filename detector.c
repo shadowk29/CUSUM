@@ -850,7 +850,7 @@ double build_histogram(double *signal, histostruct *histogram, uint64_t length, 
     histogram->delta = delta;
 
     /*char filename[1024];
-    sprintf(filename, "output/histo_%" PRIu64".dat",pos);
+    sprintf(filename, "output/histo_%" PRIu64".csv",pos);
     print_histogram(filename, histogram);*/
 
     return baseline;
