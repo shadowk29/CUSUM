@@ -155,8 +155,17 @@ Level Length (us)\n");
 
 void print_all_signals(event *current_event, double timestep)
 {
+    event *head_event = current_event;
+    uint64_t numevents = 0;
+    while (current_event)
+    {
+        numevents++;
+        current_event = current_event->next;
+    }
+    current_event = head_event;
     while (current_event != NULL)
     {
+        progressbar(current_event->index, numevents);
         if (current_event->type == 0)
         {
             print_event_signal(current_event->index, current_event, timestep);

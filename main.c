@@ -264,7 +264,7 @@ int main()
     fflush(logfile);
 
 
-    printf("Printing all signals...");
+    printf("Printing all signals...\n");
     fprintf(logfile, "Printing all signals...");
     print_all_signals(current_event, 1.0/samplingfreq*1e6);
     current_event = head_event;
