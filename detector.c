@@ -197,7 +197,7 @@ void average_cusum_levels(event *current, uint64_t subevent_minpoints, double cu
     edge *current_edge = first_edge;
     double blockage;
     double maxblockage = 0;
-    double baseline = signal_average(current->signal, current->padding);//0.5 * (current->baseline_before + current->baseline_after);
+    double baseline = signal_average(current->signal, current->padding);
     double lastlevel = baseline;
     uint64_t j;
     int passflag = 1;

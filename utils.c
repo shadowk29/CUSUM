@@ -148,16 +148,23 @@ edge *add_edge(edge *current, uint64_t location, int type)
 
 void free_edges(edge *current)
 {
-    if (current)
+    edge *temp;
+    while (current)
     {
-        edge *temp;
-        while (current->next)
-        {
-            temp = current;
-            current = current->next;
-            free(temp);
-        }
+        temp = current->next;
         free(current);
+        current = temp;
+    }
+}
+
+void free_levels(cusumlevel *current)
+{
+    cusumlevel *temp;
+    while (current)
+    {
+        temp = current->next;
+        free(current);
+        current = temp;
     }
 }
 
@@ -229,10 +236,6 @@ void free_events(event *current)
 
 void free_single_event(event *current)
 {
-    edge *tempedge = current->first_edge;
-    edge *tempedge_next;
-    cusumlevel *templevel = current->first_level;
-    cusumlevel *templevel_next;
     if (current)
     {
         if (current->signal)
@@ -243,20 +246,40 @@ void free_single_event(event *current)
         {
             free(current->filtered_signal);
         }
-        while (tempedge)
-        {
-            tempedge_next = tempedge->next;
-            free(tempedge);
-            tempedge = tempedge_next;
-        }
-        while (templevel)
-        {
-            templevel_next = templevel->next;
-            free(templevel);
-            templevel = templevel_next;
-        }
+        free_edges(current->first_edge);
+        free_levels(current->first_level);
     }
     free(current);
+}
+
+cusumlevel *add_cusum_level(cusumlevel *lastlevel, double current, uint64_t length)
+{
+    cusumlevel *temp;
+    if (lastlevel)
+    {
+        if ((lastlevel->next=malloc(sizeof(cusumlevel)))==NULL)
+        {
+            printf("Cannot allocate level node\n");
+            abort();
+        }
+        lastlevel->next->current = current;
+        lastlevel->next->length = length;
+        lastlevel->next->next = NULL;
+        temp = lastlevel->next;
+    }
+    else
+    {
+        if ((lastlevel=malloc(sizeof(cusumlevel)))==NULL)
+        {
+            printf("Cannot allocate level head node\n");
+            abort();
+        }
+        lastlevel->current = current;
+        lastlevel->length = length;
+        lastlevel->next = NULL;
+        temp = lastlevel;
+    }
+    return temp;
 }
 
 
