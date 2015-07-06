@@ -132,6 +132,7 @@ Level Length (us)\n");
             while (level)
             {
                 fprintf(events,",%g,%g",level->current, level->length * timestep * 1e6);
+                fprintf(cusumlevels,"%g\n",level->current);
                 level = level->next;
             }
             fprintf(events,"\n");
