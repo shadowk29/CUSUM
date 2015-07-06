@@ -41,6 +41,10 @@ void print_error_summary(event *current, FILE *logfile)
                 badtrace++;
                 bad++;
                 break;
+            case BADLEVELS:
+                badlevels++;
+                bad++;
+                break;
         }
         current = current->next;
     }
@@ -136,49 +140,6 @@ void filter_event_length(event *current, uint64_t maxpoints, uint64_t minpoints,
     fprintf(logfile,"\n%"PRIu64" events were too long\n%"PRIu64" events were too short\n",toolong,tooshort);
 }
 
-void count_all_levels(event *current, FILE *logfile)
-{
-    int numlevels;
-    uint64_t badlevels = 0;
-    while (current)
-    {
-        if (current->type == 0)
-        {
-            numlevels = count_levels(current);
-            if (numlevels < 3)
-            {
-                badlevels++;
-            }
-            current->numlevels = numlevels;
-        }
-        current = current->next;
-    }
-    printf("\n%"PRIu64" events had less than three levels and were discarded\n",badlevels);
-    fprintf(logfile,"\n%"PRIu64" events had less than three levels and were discarded\n",badlevels);
-}
-
-
-int count_levels(event *current)
-{
-    uint64_t i;
-    int numlevels = 1;
-    double lastlevel;
-    lastlevel = current->filtered_signal[0];
-    for (i=0; i<current->length + 2*current->padding; i++)
-    {
-        if (signum(current->filtered_signal[i]-lastlevel) != 0)
-        {
-            numlevels++;
-            lastlevel = current->filtered_signal[i];
-        }
-    }
-    if (numlevels < 3)
-    {
-        current->type = BADLEVELS;
-    }
-    return numlevels;
-}
-
 void assign_cusum_levels(event *current, uint64_t subevent_minpoints, double cusum_minstep)
 {
     while (current)
@@ -195,8 +156,6 @@ void average_cusum_levels(event *current, uint64_t subevent_minpoints, double cu
 {
     edge *first_edge = current->first_edge;
     edge *current_edge = first_edge;
-    double blockage;
-    double maxblockage = 0;
     double baseline = signal_average(current->signal, current->padding);
     double lastlevel = baseline;
     uint64_t j;
@@ -215,11 +174,6 @@ void average_cusum_levels(event *current, uint64_t subevent_minpoints, double cu
         }
         passflag = 0;
         lastlevel = average;
-        blockage = d_abs(average - baseline);
-        if (blockage > maxblockage)
-        {
-            maxblockage = blockage;
-        }
         for (j=anchor; j<current_edge->location; j++)
         {
             current->filtered_signal[j] = average;
@@ -229,6 +183,81 @@ void average_cusum_levels(event *current, uint64_t subevent_minpoints, double cu
         current_edge = current_edge->next;
     }
     current_edge = first_edge;
+}
+
+void populate_all_levels(event *current)
+{
+    while (current)
+    {
+        if (current->type == 0)
+        {
+            populate_event_levels(current);
+        }
+        current = current->next;
+    }
+}
+
+
+void populate_event_levels(event *current)
+{
+    uint64_t i;
+    uint64_t eventlength = current->length;
+    uint64_t padding = current->padding;
+    double *filtered_signal = current->filtered_signal;
+    double lastlevel = filtered_signal[0];
+    uint64_t anchor = 0;
+    uint64_t numlevels = 0;
+    current->first_level = initialize_levels();
+    cusumlevel *current_level = current->first_level;
+
+
+    for (i=0; i<eventlength + 2*padding; i++)
+    {
+        if (signum(lastlevel - filtered_signal[i]) != 0)
+        {
+            current_level = add_cusum_level(current_level, lastlevel, i-anchor);
+            anchor = i;
+            lastlevel = filtered_signal[i];
+            numlevels++;
+        }
+    }
+    current_level = add_cusum_level(current_level, lastlevel, i-anchor);
+    numlevels++;
+    current->numlevels = numlevels;
+
+    if (numlevels < 3)
+    {
+        current->type = BADLEVELS;
+    }
+}
+
+void find_max_blockages(event *current)
+{
+    while (current)
+    {
+        if (current->type == 0)
+        {
+            event_max_blockage(current);
+        }
+        current = current->next;
+    }
+}
+
+void event_max_blockage(event *current)
+{
+    cusumlevel *current_level = current->first_level;
+    double baseline = 0.5*(current->baseline_before + current->baseline_after);
+    double blockage;
+    double maxblockage = 0;
+    while (current_level)
+    {
+        blockage = d_abs(baseline - current_level->current);
+        if (blockage > maxblockage)
+        {
+            maxblockage = blockage;
+        }
+        current_level = current_level->next;
+    }
     current->max_blockage = maxblockage;
 }
 
@@ -246,8 +275,6 @@ void refine_all_estimates(event *current)
 
 void refine_event_estimates(event *current)
 {
-    current->baseline_before = current->filtered_signal[0];
-    current->baseline_after  = current->filtered_signal[current->length + 2 * current->padding - 1];
     uint64_t i = 0;
     uint64_t newstart = current->start;
     uint64_t newfinish = current->finish;
@@ -520,23 +547,24 @@ void assign_event_baselines(event *current_event, FILE *logfile, double baseline
 
 void event_baseline(event *current_event, double baseline_min, double baseline_max)
 {
-    uint64_t i;
-    double baseline_before = 0;
-    double baseline_after = 0;
-    uint64_t padding = current_event->padding;
-    uint64_t length = current_event->length;
-    double *signal = current_event->signal;
     double stdev;
+    double baseline_before = 0;
+    uint64_t baseline_before_length = 0;
+    double baseline_after = 0;
+    double *signal = current_event->signal;
+    cusumlevel *current_level = current_event->first_level;
 
-    for (i=0; i<padding; i++)
+
+    baseline_before = current_level->current;
+    baseline_before_length = current_level->length;
+    while (current_level->next)
     {
-        baseline_before += signal[i];
-        baseline_after += signal[i+length+padding];
+        current_level = current_level->next;
     }
-    baseline_before = baseline_before / padding;
-    baseline_after = baseline_after / padding;
+    baseline_after = current_level->current;
 
-    stdev = 0.5 * (sqrt(signal_variance(signal, padding)) + sqrt(signal_variance(&signal[length+padding], padding)));
+
+    stdev = sqrt(signal_variance(signal, baseline_before_length));
     if (d_abs(baseline_before - baseline_after) > 1.5 * stdev || baseline_before > baseline_max || baseline_after > baseline_max || baseline_before < baseline_min || baseline_after < baseline_min)
     {
         current_event->type = BADBASELINE;

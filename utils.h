@@ -124,6 +124,10 @@ void free_events(event *current);
 void free_single_event(event *current);
 event *delete_bad_events(event *head);
 
+cusumlevel *add_cusum_level(cusumlevel *lastlevel, double current, uint64_t length);
+void free_levels(cusumlevel *current);
+cusumlevel *initialize_levels(void);
+
 
 uint64_t get_filesize(FILE *input, int datatype);
 inline void progressbar(uint64_t pos, uint64_t finish);

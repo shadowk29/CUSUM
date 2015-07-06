@@ -50,9 +50,6 @@ uint64_t read_current_int16(FILE *input, double *current, uint64_t position, uin
 void print_events(event *current, double timestep)
 {
     FILE *events;
-    double currentlevel;
-    double currenttime;
-    uint64_t i;
     if ((events = fopen("output/events.csv","w"))==NULL)
     {
         printf("Cannot open event summary file\n");
@@ -99,6 +96,7 @@ Level Length (us)\n");
     {
         if (current->type == 0)
         {
+            cusumlevel *level = current->first_level;
             fprintf(events,"%"PRId64",\
                     %d,\
                     %g,\
@@ -113,7 +111,7 @@ Level Length (us)\n");
                     %g,\
                     %g,\
                     %g,\
-                    %d,",\
+                    %d",\
                     current->index, \
                     current->type, \
                     current->padding * timestep * 1e6, \
@@ -130,20 +128,13 @@ Level Length (us)\n");
                     d_abs(current->max_blockage / (0.5 * (current->baseline_before + current->baseline_after))), \
                     current->numlevels);
 
-            currenttime = 0;
-            currentlevel = current->filtered_signal[0];
-            fprintf(events,"%g,",currentlevel);
-            for (i=0; i<current->length + 2*current->padding; i++)
+
+            while (level)
             {
-                if (signum(current->filtered_signal[i] - currentlevel) != 0)
-                {
-                    currentlevel = current->filtered_signal[i];
-                    fprintf(events,"%g,%g,",(i-currenttime) * timestep * 1e6, currentlevel);
-                    fprintf(cusumlevels,"%g\n",currentlevel);
-                    currenttime = i;
-                }
+                fprintf(events,",%g,%g",level->current, level->length * timestep * 1e6);
+                level = level->next;
             }
-            fprintf(events,"%g\n",(i-currenttime) * timestep * 1e6);
+            fprintf(events,"\n");
         }
         current = current->next;
     }

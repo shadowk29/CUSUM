@@ -11,11 +11,14 @@
 #define BADLEVELS -4
 #define BADTRACE -5
 
+
+void populate_all_levels(event *current);
+void populate_event_levels(event *current);
+
+
 void print_error_summary(event *current, FILE *logfile);
 
 void filter_event_length(event *current, uint64_t maxpoints, uint64_t minpoints, FILE *logfile);
-void count_all_levels(event *current, FILE *logfile);
-int count_levels(event *current);
 void detect_subevents(event *current_event, double delta, double minthreshold, double maxthreshold, uint64_t subevent_minpoints);
 uint64_t locate_min(double *signal, uint64_t length);
 
@@ -27,6 +30,8 @@ double get_cusum_threshold(uint64_t length, double minthreshold, double maxthres
 void refine_all_estimates(event *current);
 void refine_event_estimates(event *current);
 
+void find_max_blockages(event *current);
+void event_max_blockage(event *current);
 
 void populate_event_traces(FILE *input, event *current_event, int datatype, FILE *logfile);
 

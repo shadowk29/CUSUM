@@ -212,14 +212,6 @@ int main()
     fprintf(logfile, "Finished\n\n");
     fflush(logfile);
 
-    printf("Assigning event baselines...");
-    fprintf(logfile, "Assigning event baselines...");
-    assign_event_baselines(current_event, logfile, baseline_min, baseline_max);
-    current_event = head_event;
-    printf("Finished\n\n");
-    fprintf(logfile, "Finished\n\n");
-    fflush(logfile);
-
     printf("Detecting subevents...\n");
     fprintf(logfile, "Detecting subevents...");
     detect_subevents(current_event, cusum_delta, cusum_min_threshold, cusum_max_threshold, subevent_minpoints);
@@ -236,13 +228,14 @@ int main()
     fprintf(logfile, "Finished\n\n");
     fflush(logfile);
 
-    printf("Counting subevents...");
-    fprintf(logfile, "Counting subevents...");
-    count_all_levels(current_event, logfile);
+    printf("Assigning subevents...");
+    fprintf(logfile, "Assigning subevents...");
+    populate_all_levels(current_event);
     current_event = head_event;
     printf("Finished\n\n");
     fprintf(logfile, "Finished\n\n");
     fflush(logfile);
+
 
     if (refine_estimates)
     {
@@ -254,6 +247,22 @@ int main()
         fprintf(logfile, "Finished\n\n");
         fflush(logfile);
     }
+
+    printf("Assigning event baselines...");
+    fprintf(logfile, "Assigning event baselines...");
+    assign_event_baselines(current_event, logfile, baseline_min, baseline_max);
+    current_event = head_event;
+    printf("Finished\n\n");
+    fprintf(logfile, "Finished\n\n");
+    fflush(logfile);
+
+    printf("Assigning max blockage...");
+    fprintf(logfile, "Assigning max blockage...");
+    find_max_blockages(current_event);
+    current_event = head_event;
+    printf("Finished\n\n");
+    fprintf(logfile, "Finished\n\n");
+    fflush(logfile);
 
     printf("Assigning event areas...");
     fprintf(logfile, "Assigning event areas...");

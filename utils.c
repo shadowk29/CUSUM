@@ -252,10 +252,25 @@ void free_single_event(event *current)
     free(current);
 }
 
+
+cusumlevel *initialize_levels(void)
+{
+    cusumlevel *head;
+    if ((head=malloc(sizeof(cusumlevel)))==NULL)
+    {
+        printf("Cannot allocate head level node\n");
+        abort();
+    }
+    head->current = 0;
+    head->length = 0;
+    head->next = NULL;
+    return head;
+}
+
 cusumlevel *add_cusum_level(cusumlevel *lastlevel, double current, uint64_t length)
 {
     cusumlevel *temp;
-    if (lastlevel)
+    if (lastlevel && lastlevel->length > 0)
     {
         if ((lastlevel->next=malloc(sizeof(cusumlevel)))==NULL)
         {
@@ -269,11 +284,6 @@ cusumlevel *add_cusum_level(cusumlevel *lastlevel, double current, uint64_t leng
     }
     else
     {
-        if ((lastlevel=malloc(sizeof(cusumlevel)))==NULL)
-        {
-            printf("Cannot allocate level head node\n");
-            abort();
-        }
         lastlevel->current = current;
         lastlevel->length = length;
         lastlevel->next = NULL;
