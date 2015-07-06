@@ -172,7 +172,10 @@ event *initialize_events(void)
     }
     head->type = 0;
     head->index = HEAD;
+    head->signal = NULL;
+    head->filtered_signal = NULL;
     head->first_edge = NULL;
+    head->first_level = NULL;
     head->next = NULL;
     head->prev = NULL;
     return head;
@@ -187,6 +190,7 @@ event *add_event(event *current, uint64_t start, uint64_t finish)
         current->finish = finish;
         current->length = finish-start;
         current->first_edge = NULL;
+        current->first_level = NULL;
         current->next = NULL;
         current->prev = NULL;
     }
@@ -199,8 +203,10 @@ event *add_event(event *current, uint64_t start, uint64_t finish)
         }
         current->next->type = 0;
         current->next->first_edge = NULL;
+        current->next->first_level = NULL;
         current->next->next = NULL;
         current->next->signal = NULL;
+        current->filtered_signal = NULL;
         current->next->prev = current;
         current->next->index = current->index + 1;
         current->next->start = start;
@@ -223,20 +229,36 @@ void free_events(event *current)
 
 void free_single_event(event *current)
 {
+    edge *tempedge = current->first_edge;
+    edge *tempedge_next;
+    cusumlevel *templevel = current->first_level;
+    cusumlevel *templevel_next;
     if (current)
     {
-        if (current->type == 0)
+        if (current->signal)
         {
             free(current->signal);
-            free(current->filtered_signal);
-            if (current->first_edge)
-            {
-                free(current->first_edge);
-            }
         }
-        free(current);
+        if (current->filtered_signal)
+        {
+            free(current->filtered_signal);
+        }
+        while (tempedge)
+        {
+            tempedge_next = tempedge->next;
+            free(tempedge);
+            tempedge = tempedge_next;
+        }
+        while (templevel)
+        {
+            templevel_next = templevel->next;
+            free(templevel);
+            templevel = templevel_next;
+        }
     }
+    free(current);
 }
+
 
 double ARL(uint64_t length, double sigma, double mun, double h)
 {

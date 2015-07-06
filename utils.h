@@ -8,6 +8,14 @@
 #define STRLENGTH 1024
 #define HEAD -1000
 
+struct Cusumlevel
+{
+    double current;
+    uint64_t length;
+    struct Cusumlevel *next;
+};
+typedef struct Cusumlevel cusumlevel;
+
 struct Histostruct
 {
     double **histogram;
@@ -36,6 +44,7 @@ struct Event
     int numlevels;
     double threshold;
     struct Edge *first_edge;
+    struct Cusumlevel *first_level;
     struct Event *next;
     struct Event *prev;
 };
