@@ -37,6 +37,7 @@ struct Event
     double baseline_after;
     double average_blockage;
     double max_blockage;
+    uint64_t max_length;
     double *signal;
     double *filtered_signal;
     double binsize;

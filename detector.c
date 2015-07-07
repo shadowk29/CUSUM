@@ -249,16 +249,19 @@ void event_max_blockage(event *current)
     double baseline = 0.5*(current->baseline_before + current->baseline_after);
     double blockage;
     double maxblockage = 0;
+    uint64_t maxsamples = 0;
     while (current_level)
     {
         blockage = d_abs(baseline - current_level->current);
         if (blockage > maxblockage)
         {
             maxblockage = blockage;
+            maxsamples = current_level->length;
         }
         current_level = current_level->next;
     }
     current->max_blockage = maxblockage;
+    current->max_length = maxsamples;
 }
 
 void refine_all_estimates(event *current)

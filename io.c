@@ -76,7 +76,8 @@ Area (pC),\
 Average Blockage (pA),\
 Relative Average Blockage (pA) ,\
 Max Blockage (pA),\
-Relative Max Blockage ,\
+Relative Max Blockage,\
+Max Blockage Length (us),\
 Num Levels,\
 Level Current (pA),\
 Level Length (us)\n");
@@ -87,6 +88,7 @@ Level Length (us)\n");
             cusumlevel *level = current->first_level;
             fprintf(events,"%"PRId64",\
                     %d,\
+                    %g,\
                     %g,\
                     %g,\
                     %g,\
@@ -114,6 +116,7 @@ Level Length (us)\n");
                     d_abs(current->average_blockage / (0.5 * (current->baseline_before + current->baseline_after))), \
                     current->max_blockage, \
                     d_abs(current->max_blockage / (0.5 * (current->baseline_before + current->baseline_after))), \
+                    current->max_length * timestep * 1e6, \
                     current->numlevels);
 
             while (level)
