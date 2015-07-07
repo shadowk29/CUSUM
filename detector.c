@@ -278,28 +278,20 @@ void refine_all_estimates(event *current)
 
 void refine_event_estimates(event *current)
 {
-    uint64_t i = 0;
-    uint64_t newstart = current->start;
-    uint64_t newfinish = current->finish;
-    uint64_t totallength = current->length + 2*current->padding;
-    double firstsample = current->filtered_signal[0];
-    double lastsample = current->filtered_signal[totallength - 1];
-    for (i=0; i<totallength; i++)
+    cusumlevel *level = current->first_level;
+    uint64_t newstart = current->start + level->length - current->padding;
+    while (level)
     {
-        if (signum(current->filtered_signal[i]-firstsample) != 0)
+        if (level->next)
         {
-            newstart = current->start -  current->padding + i;
+            level = level->next;
+        }
+        else
+        {
             break;
         }
     }
-    for (i=0; i<totallength; i++)
-    {
-        if (signum(current->filtered_signal[totallength - 1 - i] - lastsample) != 0)
-        {
-            newfinish = current->finish + current->padding - i;
-            break;
-        }
-    }
+    uint64_t newfinish = current->finish - level->length + current->padding;
     current->start = newstart;
     current->finish = newfinish;
     current->length = newfinish - newstart;
