@@ -778,8 +778,16 @@ double baseline_averaging(double *signal, uint64_t length, double baseline_min, 
             numsamples++;
         }
     }
-    baseline /= (double) numsamples;
-    return baseline;
+    if (numsamples > 0)
+    {
+        baseline /= (double) numsamples;
+        return baseline;
+    }
+    else
+    {
+        return 0;
+    }
+
 }
 
 
