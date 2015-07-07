@@ -40,7 +40,7 @@ int main()
     uint64_t start;
     uint64_t finish;
     uint64_t readlength;
-    double binsize;
+    //double binsize;
     double threshold;
     double hysteresis;
     //uint64_t order;
@@ -64,7 +64,7 @@ int main()
     start = config->start;
     finish = config->finish;
     readlength = config->readlength;
-    binsize = config->binsize;
+    //binsize = config->binsize;
     threshold = config->threshold;
     hysteresis = config->hysteresis;
     event_direction = config->event_direction;
