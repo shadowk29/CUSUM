@@ -79,18 +79,6 @@ Max Blockage (pA),\
 Relative Max Blockage ,\
 Num Levels,\
 Level Current (pA),\
-Level Length (us),\
-Level Current (pA),\
-Level Length (us),\
-Level Current (pA),\
-Level Length (us),\
-Level Current (pA),\
-Level Length (us),\
-Level Current (pA),\
-Level Length (us),\
-Level Current (pA),\
-Level Length (us),\
-Level Current (pA),\
 Level Length (us)\n");
     while (current)
     {
@@ -111,7 +99,7 @@ Level Length (us)\n");
                     %g,\
                     %g,\
                     %g,\
-                    %d",\
+                    %d,",\
                     current->index, \
                     current->type, \
                     current->padding * timestep * 1e6, \
@@ -128,11 +116,25 @@ Level Length (us)\n");
                     d_abs(current->max_blockage / (0.5 * (current->baseline_before + current->baseline_after))), \
                     current->numlevels);
 
-
             while (level)
             {
-                fprintf(events,",%g,%g",level->current, level->length * timestep * 1e6);
+                fprintf(events,"%g",level->current);
+                if (level->next)
+                {
+                    fprintf(events,";");
+                }
                 fprintf(cusumlevels,"%g\n",level->current);
+                level = level->next;
+            }
+            fprintf(events,",");
+            level = current->first_level;
+            while (level)
+            {
+                fprintf(events,"%g",level->length * timestep * 1e6);
+                if (level->next)
+                {
+                    fprintf(events,";");
+                }
                 level = level->next;
             }
             fprintf(events,"\n");
