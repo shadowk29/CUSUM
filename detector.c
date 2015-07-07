@@ -765,13 +765,30 @@ edge *detect_edges(double *signal, double baseline, uint64_t length, edge *curre
     return current;
 }
 
+double baseline_averaging(double *signal, uint64_t length, double baseline_min, double baseline_max)
+{
+    uint64_t i;
+    uint64_t numsamples = 0;
+    double baseline = 0;
+    for (i=0; i<length; i++)
+    {
+        if (signal[i] < baseline_max && signal[i] > baseline_min)
+        {
+            baseline += signal[i];
+            numsamples++;
+        }
+    }
+    baseline /= (double) numsamples;
+    return baseline;
+}
+
 
 double build_histogram(double *signal, histostruct *histogram, uint64_t length, double delta, double baseline_max, double baseline_min)
 {
     double maximum = signal_max(signal, length);
     double minimum = signal_min(signal, length);
 
-    double range = maximum - minimum;
+    double range = maximum - minimum + delta;
     uint64_t numbins = range / delta;
     if (numbins == 0)
     {
@@ -820,7 +837,7 @@ double build_histogram(double *signal, histostruct *histogram, uint64_t length, 
     }
     for (i=0; i<length; i++)
     {
-        histogram->histogram[(int) my_min(numbins-1, (int) ((signal[i]-minimum)/delta))][0] += 1;
+        histogram->histogram[(int) ((signal[i]-minimum)/delta)][0] += 1;
     }
 
 

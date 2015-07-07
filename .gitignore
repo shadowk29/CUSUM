@@ -48,6 +48,7 @@ Temporary Items
 *.cbp
 *.depend
 *.xml
+*.out
 *.layout
 output
 Test Data

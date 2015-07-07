@@ -36,30 +36,30 @@ uint64_t get_filesize(FILE *input, int datatype)
 }
 
 
-int signum(double num)
+inline int signum(double num)
 {
     return (EPS<num)-(num<-EPS);
 }
-double my_min(double a, double b)
+inline double my_min(double a, double b)
 {
     return a < b ? a : b;
 }
 
-double my_max(double a, double b)
+inline double my_max(double a, double b)
 {
     return a > b ? a : b;
 }
 
-double d_abs(double num)
+inline double d_abs(double num)
 {
     return num > 0 ? num : -num;
 }
 
-int64_t intmin(int64_t a, int64_t b)
+inline int64_t intmin(int64_t a, int64_t b)
 {
     return a < b ? a : b;
 }
-int64_t intmax(int64_t a, int64_t b)
+inline int64_t intmax(int64_t a, int64_t b)
 {
     return a > b ? a : b;
 }

@@ -39,7 +39,7 @@ void populate_event_traces(FILE *input, event *current_event, int datatype, FILE
 event *process_edges(edge *current_edge, event *current_event);
 edge *detect_edges(double *signal, double baseline, uint64_t length, edge *current, double threshold, double hysteresis, uint64_t position, int event_direction);
 double build_histogram(double *signal, histostruct *histogram, uint64_t length, double delta, double baseline_max, double baseline_min);
-
+double baseline_averaging(double *signal, uint64_t length, double baseline_min, double baseline_max);
 void generate_trace(FILE *input, event *current, int datatype, FILE *logfile);
 
 

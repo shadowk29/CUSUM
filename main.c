@@ -146,7 +146,9 @@ int main()
         {
             endflag = 1;
         }
-        baseline = build_histogram(signal, histogram, read, binsize, baseline_max, baseline_min);
+
+        //baseline = build_histogram(signal, histogram, read, binsize, baseline_max, baseline_min);
+        baseline = baseline_averaging(signal, read, baseline_min, baseline_max);
         if (baseline < baseline_min || baseline > baseline_max)
         {
             badbaseline += read;

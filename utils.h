@@ -105,12 +105,12 @@ struct Configuration
 typedef struct Configuration configuration;
 
 
-int signum(double num);
-double my_min(double a, double b);
-double my_max(double a, double b);
-int64_t intmin(int64_t a, int64_t b);
-int64_t intmax(int64_t a, int64_t b);
-double d_abs(double num); //absolute value of a number
+inline int signum(double num);
+inline double my_min(double a, double b);
+inline double my_max(double a, double b);
+inline int64_t intmin(int64_t a, int64_t b);
+inline int64_t intmax(int64_t a, int64_t b);
+inline double d_abs(double num); //absolute value of a number
 
 double ARL(uint64_t length, double sigma, double mun, double h);
 
