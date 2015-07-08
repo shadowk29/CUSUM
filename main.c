@@ -215,13 +215,6 @@ int main()
     fflush(logfile);
 
 
-    if (check_signals(current_event)==1)
-    {
-        printf("Error here\n");
-    }
-    current_event = head_event;
-
-
     printf("Detecting subevents...\n");
     fprintf(logfile, "Detecting subevents...");
     detect_subevents(current_event, cusum_delta, cusum_min_threshold, cusum_max_threshold, subevent_minpoints);
@@ -244,11 +237,6 @@ int main()
     fprintf(logfile, "Finished\n\n");
     fflush(logfile);
 
-    if (check_signals(current_event)==1)
-    {
-        printf("Error here\n");
-    }
-    current_event = head_event;
 
     printf("Assigning subevents...");
     fprintf(logfile, "Assigning subevents...");
@@ -258,11 +246,7 @@ int main()
     fprintf(logfile, "Finished\n\n");
     fflush(logfile);
 
-    if (check_signals(current_event)==1)
-    {
-        printf("Error here\n");
-    }
-    current_event = head_event;
+
 
 
     if (refine_estimates)
@@ -275,11 +259,6 @@ int main()
         fprintf(logfile, "Finished\n\n");
         fflush(logfile);
 
-        if (check_signals(current_event)==1)
-        {
-            printf("Error here\n");
-        }
-        current_event = head_event;
 
         printf("Filtering on refined event length... ");
         fprintf(logfile, "Filtering on refined event length... ");
@@ -288,12 +267,6 @@ int main()
         printf("Finished\n\n");
         fprintf(logfile, "Finished\n\n");
         fflush(logfile);
-
-        if (check_signals(current_event)==1)
-        {
-            printf("Error here\n");
-        }
-        current_event = head_event;
     }
 
     printf("Assigning event baselines...");
@@ -318,12 +291,6 @@ int main()
     fprintf(logfile, "Finished\n\n");
     fflush(logfile);
 
-    if (check_signals(current_event)==1)
-    {
-        printf("Error here\n");
-    }
-    current_event = head_event;
-
     printf("Assigning event areas...");
     fprintf(logfile, "Assigning event areas...");
     assign_event_areas(current_event, 1.0/samplingfreq);
@@ -331,12 +298,6 @@ int main()
     printf("Finished\n\n");
     fprintf(logfile, "Finished\n\n");
     fflush(logfile);
-
-    if (check_signals(current_event)==1)
-    {
-        printf("Error here\n");
-    }
-    current_event = head_event;
 
 
     printf("Printing all signals...\n");
@@ -347,11 +308,6 @@ int main()
     fprintf(logfile, "Finished\n\n");
     fflush(logfile);
 
-    if (check_signals(current_event)==1)
-    {
-        printf("Error here\n");
-    }
-    current_event = head_event;
 
     printf("Printing event summary...");
     fprintf(logfile, "Printing event summary...");
