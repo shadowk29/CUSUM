@@ -10,32 +10,12 @@
 
 
 
-void filter_signal(double *signal, double *filtered, double *dcof, int *ccof, double scale, uint64_t order, uint64_t length)
+void filter_signal(double *signal, double *filtered, double *paddedsignal, double *temp, double *tempback, double *dcof, int *ccof, double scale, uint64_t order, uint64_t length)
 {
     uint64_t i;
     uint64_t p;
-
-    double *paddedsignal;
-    double *temp;
-    double *tempback;
-
-    if ((paddedsignal = calloc(length+2*order, sizeof(double)))==NULL)
-    {
-        printf("Cannot allocate tempforward array\n");
-        abort();
-    }
-
-    if ((temp = calloc(length+2*order, sizeof(double)))==NULL)
-    {
-        printf("Cannot allocate tempforward array\n");
-        abort();
-    }
-    if ((tempback = calloc(length+2*order, sizeof(double)))==NULL)
-    {
-        printf("Cannot allocate tempback array\n");
-        abort();
-    }
-
+    uint64_t end;
+    end = length+2*order-1;
 
     memcpy(&paddedsignal[order],signal,length*sizeof(double));
     for (i=0; i<order; i++)
@@ -45,7 +25,7 @@ void filter_signal(double *signal, double *filtered, double *dcof, int *ccof, do
     }
 
 
-    for (i=order; i<length+2*order; i++)
+    for (i=order; i<end; i++)
     {
         temp[i] = ccof[0]*scale*paddedsignal[i];
         for (p=1; p<=order; p++)
@@ -53,22 +33,21 @@ void filter_signal(double *signal, double *filtered, double *dcof, int *ccof, do
             temp[i] += ccof[p]*scale*paddedsignal[i-p] - dcof[p]*temp[i-p];
         }
     }
+
+
     for (i=0; i<order; i++)
     {
-        tempback[length+2*order-1-i] = temp[length+2*order-1];
+        tempback[end-1-i] = temp[end-1];
     }
-    for (i=order; i<length+2*order; i++)
+    for (i=order; i<end; i++)
     {
-        tempback[length+2*order-1-i] = ccof[0]*scale*temp[length+2*order-1-i];
+        tempback[end-1-i] = ccof[0]*scale*temp[end-1-i];
         for (p=1; p<=order; p++)
         {
-            tempback[length+2*order-1-i] += ccof[p]*scale*temp[length+2*order-1-i+p] - dcof[p]*tempback[length+2*order-1-i+p];
+            tempback[end-1-i] += ccof[p]*scale*temp[end-1-i+p] - dcof[p]*tempback[end-1-i+p];
         }
     }
     memcpy(filtered,&tempback[order],length*sizeof(double));
-    free(temp);
-    free(tempback);
-    free(paddedsignal);
 }
 
 

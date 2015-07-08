@@ -2,7 +2,6 @@
 #include"utils.h"
 #include"detector.h"
 #include"butterworth.h"
-#include"filter.h"
 #include<string.h>
 #include<math.h>
 #include<stdio.h>
@@ -88,18 +87,44 @@ int main()
     datatype = config->datatype;
     refine_estimates = config->refine_estimates;
 
-
     double scale;
-    double *dcof;
-    int *ccof;
-    dcof = dcof_bwlp(order, cutoff);
-    ccof = ccof_bwlp(order);
-    scale = sf_bwlp(order,cutoff);
+    double *dcof = NULL;
+    int *ccof = NULL;
+    double *filtered = NULL;
+    double *temp = NULL;
+    double *tempback = NULL;
+    double *paddedsignal = NULL;
 
-    if (datatype != 16 && datatype != 64)
+    if (usefilter)
     {
-        printf("datatype currently can only be 16 or 64\n");
-        abort();
+        dcof = dcof_bwlp(order, cutoff);
+        ccof = ccof_bwlp(order);
+        scale = sf_bwlp(order,cutoff);
+
+        if ((filtered = (double *) calloc(readlength,sizeof(double)))==NULL)
+        {
+            printf("Cannot allocate filtered array\n");
+            abort();
+        }
+
+        if ((temp = calloc(readlength+2*order, sizeof(double)))==NULL)
+        {
+            printf("Cannot allocate tempforward array\n");
+            abort();
+        }
+
+        if ((tempback = calloc(readlength+2*order, sizeof(double)))==NULL)
+        {
+            printf("Cannot allocate tempforward array\n");
+            abort();
+        }
+
+        if ((paddedsignal = (double *) calloc(readlength + 2*order,sizeof(double)))==NULL)
+        {
+            printf("Cannot allocate padded signal\n");
+            abort();
+        }
+
     }
 
     double *signal;
@@ -109,12 +134,13 @@ int main()
         abort();
     }
 
-    double *filtered;
-    if ((filtered = (double *) calloc(readlength,sizeof(double)))==NULL)
+    if (datatype != 16 && datatype != 64)
     {
-        printf("Cannot allocate filtered array\n");
+        printf("datatype currently can only be 16 or 64\n");
         abort();
     }
+
+
 
     histostruct *histogram;
     if ((histogram = malloc(sizeof(histostruct)))==NULL)
@@ -170,24 +196,43 @@ int main()
 
         if (usefilter)
         {
-            filter_signal(signal, filtered, dcof, ccof, scale, order, read);
-        }
+            filter_signal(signal, filtered, paddedsignal, temp, tempback, dcof, ccof, scale, order, read);
+            baseline = baseline_averaging(filtered, read, baseline_min, baseline_max);
+            if (baseline < baseline_min || baseline > baseline_max)
+            {
+                badbaseline += read;
+            }
+            else
+            {
+                goodbaseline += read;
+                current_edge = detect_edges(filtered, baseline, read, current_edge, threshold, hysteresis, pos, event_direction);
+            }
 
-        baseline = baseline_averaging(signal, read, baseline_min, baseline_max);
-        if (baseline < baseline_min || baseline > baseline_max)
-        {
-            badbaseline += read;
+            if (endflag)
+            {
+                pos += read;
+                break;
+            }
+            memset(filtered,'0',(readlength)*sizeof(double));
         }
         else
         {
-            goodbaseline += read;
-            current_edge = detect_edges(signal, baseline, read, current_edge, threshold, hysteresis, pos, event_direction);
-        }
+            baseline = baseline_averaging(signal, read, baseline_min, baseline_max);
+            if (baseline < baseline_min || baseline > baseline_max)
+            {
+                badbaseline += read;
+            }
+            else
+            {
+                goodbaseline += read;
+                current_edge = detect_edges(signal, baseline, read, current_edge, threshold, hysteresis, pos, event_direction);
+            }
 
-        if (endflag)
-        {
-            pos += read;
-            break;
+            if (endflag)
+            {
+                pos += read;
+                break;
+            }
         }
         memset(signal,'0',(readlength)*sizeof(double));
     }
@@ -368,8 +413,14 @@ int main()
     fprintf(logfile, "Finished\n\n");
     fprintf(logfile, "<----RUN LOG ENDS---->\n\n");
     fclose(logfile);
-    free(dcof);
-    free(ccof);
+    if (usefilter)
+    {
+        free(dcof);
+        free(ccof);
+        free(filtered);
+        free(temp);
+        free(tempback);
+    }
     system("pause");
     return 0;
 }
