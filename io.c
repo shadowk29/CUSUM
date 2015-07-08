@@ -35,6 +35,10 @@ uint64_t read_current_int16(FILE *input, double *current, uint64_t position, uin
             read++;
             swapByteOrder_int16((uint16_t *) &iv[0]);
             current[i] = (double) iv[0];
+            if (d_abs(current[i]) < EPS)
+            {
+                printf("The error is happening here\n");
+            }
         }
         else
         {
@@ -65,7 +69,6 @@ void print_events(event *current, double timestep)
 
     fprintf(events,"Index,\
 Type,\
-Padding (us),\
 Start Time (s),\
 Length (us),\
 Threshold ,\
@@ -100,11 +103,9 @@ Level Length (us)\n");
                     %g,\
                     %g,\
                     %g,\
-                    %g,\
                     %d,",\
                     current->index, \
                     current->type, \
-                    current->padding * timestep * 1e6, \
                     current->start * timestep, \
                     current->length * timestep * 1e6, \
                     current->threshold, \
@@ -203,7 +204,7 @@ void print_event_signal(int index, event *current, double timestep)
         char eventname[1024];
         sprintf(eventname,"output/event_%05d.csv",index);
 
-        print_signal(current, current->length+2*current->padding, eventname, timestep);
+        print_signal(current, current->length + current->padding_before + current->padding_after, eventname, timestep);
     }
 }
 
@@ -261,6 +262,10 @@ uint64_t read_current(FILE *input, double *current, uint64_t position, uint64_t 
             read++;
             swapByteOrder((uint64_t *) &iv[0]);
             current[i] = iv[0];
+            if (d_abs(current[i]) < EPS)
+            {
+                printf("The error is happening here\n");
+            }
         }
         else
         {

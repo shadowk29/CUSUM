@@ -214,6 +214,14 @@ int main()
     fprintf(logfile, "Finished\n\n");
     fflush(logfile);
 
+
+    if (check_signals(current_event)==1)
+    {
+        printf("Error here\n");
+    }
+    current_event = head_event;
+
+
     printf("Detecting subevents...\n");
     fprintf(logfile, "Detecting subevents...");
     detect_subevents(current_event, cusum_delta, cusum_min_threshold, cusum_max_threshold, subevent_minpoints);
@@ -221,6 +229,12 @@ int main()
     printf("\nFinished\n\n");
     fprintf(logfile, "\nFinished\n\n");
     fflush(logfile);
+
+    if (check_signals(current_event)==1)
+    {
+        printf("Error here\n");
+    }
+    current_event = head_event;
 
     printf("Processing subevents...");
     fprintf(logfile, "Processing subevents...");
@@ -230,6 +244,12 @@ int main()
     fprintf(logfile, "Finished\n\n");
     fflush(logfile);
 
+    if (check_signals(current_event)==1)
+    {
+        printf("Error here\n");
+    }
+    current_event = head_event;
+
     printf("Assigning subevents...");
     fprintf(logfile, "Assigning subevents...");
     populate_all_levels(current_event);
@@ -237,6 +257,12 @@ int main()
     printf("Finished\n\n");
     fprintf(logfile, "Finished\n\n");
     fflush(logfile);
+
+    if (check_signals(current_event)==1)
+    {
+        printf("Error here\n");
+    }
+    current_event = head_event;
 
 
     if (refine_estimates)
@@ -248,6 +274,26 @@ int main()
         printf("Finished\n\n");
         fprintf(logfile, "Finished\n\n");
         fflush(logfile);
+
+        if (check_signals(current_event)==1)
+        {
+            printf("Error here\n");
+        }
+        current_event = head_event;
+
+        printf("Filtering on refined event length... ");
+        fprintf(logfile, "Filtering on refined event length... ");
+        filter_event_length(current_event, maxpoints, minpoints, logfile);
+        current_event = head_event;
+        printf("Finished\n\n");
+        fprintf(logfile, "Finished\n\n");
+        fflush(logfile);
+
+        if (check_signals(current_event)==1)
+        {
+            printf("Error here\n");
+        }
+        current_event = head_event;
     }
 
     printf("Assigning event baselines...");
@@ -258,6 +304,12 @@ int main()
     fprintf(logfile, "Finished\n\n");
     fflush(logfile);
 
+    if (check_signals(current_event)==1)
+    {
+        printf("Error here\n");
+    }
+    current_event = head_event;
+
     printf("Assigning max blockage...");
     fprintf(logfile, "Assigning max blockage...");
     find_max_blockages(current_event);
@@ -265,6 +317,12 @@ int main()
     printf("Finished\n\n");
     fprintf(logfile, "Finished\n\n");
     fflush(logfile);
+
+    if (check_signals(current_event)==1)
+    {
+        printf("Error here\n");
+    }
+    current_event = head_event;
 
     printf("Assigning event areas...");
     fprintf(logfile, "Assigning event areas...");
@@ -274,6 +332,12 @@ int main()
     fprintf(logfile, "Finished\n\n");
     fflush(logfile);
 
+    if (check_signals(current_event)==1)
+    {
+        printf("Error here\n");
+    }
+    current_event = head_event;
+
 
     printf("Printing all signals...\n");
     fprintf(logfile, "Printing all signals...");
@@ -282,6 +346,12 @@ int main()
     printf("Finished\n\n");
     fprintf(logfile, "Finished\n\n");
     fflush(logfile);
+
+    if (check_signals(current_event)==1)
+    {
+        printf("Error here\n");
+    }
+    current_event = head_event;
 
     printf("Printing event summary...");
     fprintf(logfile, "Printing event summary...");

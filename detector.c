@@ -156,7 +156,7 @@ void average_cusum_levels(event *current, uint64_t subevent_minpoints, double cu
 {
     edge *first_edge = current->first_edge;
     edge *current_edge = first_edge;
-    double baseline = signal_average(current->signal, current->padding);
+    double baseline = signal_average(current->signal, current->padding_before);
     double lastlevel = baseline;
     uint64_t j;
     int passflag = 1;
@@ -202,7 +202,7 @@ void populate_event_levels(event *current)
 {
     uint64_t i;
     uint64_t eventlength = current->length;
-    uint64_t padding = current->padding;
+    uint64_t padding = current->padding_before + current->padding_after;
     double *filtered_signal = current->filtered_signal;
     double lastlevel = filtered_signal[0];
     uint64_t anchor = 0;
@@ -211,7 +211,7 @@ void populate_event_levels(event *current)
     cusumlevel *current_level = current->first_level;
 
 
-    for (i=0; i<eventlength + 2*padding; i++)
+    for (i=0; i<eventlength + padding; i++)
     {
         if (signum(lastlevel - filtered_signal[i]) != 0)
         {
@@ -279,7 +279,8 @@ void refine_all_estimates(event *current)
 void refine_event_estimates(event *current)
 {
     cusumlevel *level = current->first_level;
-    uint64_t newstart = current->start + level->length - current->padding;
+    uint64_t newstart = current->start + level->length - current->padding_before;
+    current->padding_before = level->length;
     while (level)
     {
         if (level->next)
@@ -291,7 +292,8 @@ void refine_event_estimates(event *current)
             break;
         }
     }
-    uint64_t newfinish = current->finish - level->length + current->padding;
+    uint64_t newfinish = current->finish - level->length + current->padding_after;
+    current->padding_after = level->length;
     current->start = newstart;
     current->finish = newfinish;
     current->length = newfinish - newstart;
@@ -372,7 +374,7 @@ double get_cusum_threshold(uint64_t length, double minthreshold, double maxthres
 void cusum(event *current_event, double delta, double minthreshold, double maxthreshold, uint64_t subevent_minpoints)
 {
     double *signal = current_event->signal;
-    uint64_t length = current_event->length + 2 * current_event->padding;
+    uint64_t length = current_event->length + current_event->padding_before + current_event->padding_after;
     current_event->first_edge = initialize_edges();
     edge *first_edge = current_event->first_edge;
     edge *current_edge = first_edge;
@@ -382,7 +384,7 @@ void cusum(event *current_event, double delta, double minthreshold, double maxth
     double variance = 0;//initial variance estimation
     double logp = 0;//log-likelihood ratio for positive jumps
     double logn = 0;//log-likelihood ratio for negative jumps
-    double stdev = sqrt(signal_variance(signal, current_event->padding));
+    double stdev = sqrt(signal_variance(signal, current_event->padding_before));
     double jumpsizestdev = delta/stdev;
     uint64_t k = 0;//loop index
     uint64_t numjumps = 0;
@@ -488,7 +490,7 @@ void event_area(event *current_event, double timestep)
 {
     uint64_t i;
     double area = 0;
-    uint64_t padding = current_event->padding;
+    uint64_t padding = current_event->padding_before;
     uint64_t length = current_event->length;
     double *signal = current_event->signal;
 
@@ -628,17 +630,18 @@ void generate_trace(FILE *input, event *current, int datatype, FILE *logfile)
         fflush(logfile);
         abort();
     }
-    current->padding = padding;
+    current->padding_before = padding;
+    current->padding_after = padding;
 
 
-    if ((current->signal = calloc(current->length + 2*padding,sizeof(double)))==NULL)
+    if ((current->signal = calloc(current->length + current->padding_before + current->padding_after,sizeof(double)))==NULL)
     {
         printf("Cannot allocate trace array\n");
         fprintf(logfile,"Cannot allocate trace array\n");
         fflush(logfile);
         return;
     }
-    if ((current->filtered_signal = calloc(current->length + 2*padding,sizeof(double)))==NULL)
+    if ((current->filtered_signal = calloc(current->length + current->padding_before + current->padding_after,sizeof(double)))==NULL)
     {
         printf("Cannot allocate filtered trace array\n");
         fprintf(logfile,"Cannot allocate filtered trace array\n");
@@ -657,11 +660,11 @@ void generate_trace(FILE *input, event *current, int datatype, FILE *logfile)
 
     if (datatype==64)
     {
-        read = read_current(input, current->signal, position, current->length + 2*padding);
+        read = read_current(input, current->signal, position, current->length + current->padding_before + current->padding_after);
     }
     else if (datatype==16)
     {
-        read = read_current_int16(input, current->signal, position, current->length + 2*padding);
+        read = read_current_int16(input, current->signal, position, current->length + current->padding_before + current->padding_after);
     }
     else
     {
@@ -670,10 +673,10 @@ void generate_trace(FILE *input, event *current, int datatype, FILE *logfile)
         fflush(logfile);
         abort();
     }
-    if (read != current->length + 2*padding)
+    if (read != current->length + current->padding_before + current->padding_after)
     {
-        printf("Unable to read %" PRIu64 " samples for event %" PRId64 ": obtained %" PRId64 "\n",current->length + 2*padding,current->index,read);
-        fprintf(logfile,"Unable to read %" PRIu64 " samples for event %" PRId64 ": obtained %" PRId64 "\n",current->length + 2*padding,current->index,read);
+        printf("Unable to read %" PRIu64 " samples for event %" PRId64 ": obtained %" PRId64 "\n",current->length + + current->padding_before + current->padding_after,current->index,read);
+        fprintf(logfile,"Unable to read %" PRIu64 " samples for event %" PRId64 ": obtained %" PRId64 "\n",current->length + + current->padding_before + current->padding_after,current->index,read);
         fflush(logfile);
         current->type = BADTRACE;
     }

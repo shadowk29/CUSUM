@@ -41,7 +41,8 @@ struct Event
     double *signal;
     double *filtered_signal;
     double binsize;
-    uint64_t padding;
+    uint64_t padding_before;
+    uint64_t padding_after;
     int numlevels;
     double threshold;
     struct Edge *first_edge;
@@ -132,4 +133,5 @@ cusumlevel *initialize_levels(void);
 
 uint64_t get_filesize(FILE *input, int datatype);
 inline void progressbar(uint64_t pos, uint64_t finish);
+int check_signals(event *current);
 #endif // UTILS_H_INCLUDED
