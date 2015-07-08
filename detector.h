@@ -16,7 +16,8 @@ void populate_all_levels(event *current);
 void populate_event_levels(event *current);
 
 
-void print_error_summary(event *current, FILE *logfile);
+void filter_signal(double *signal, double *filtered, double *dcof, int *ccof, double scale, uint64_t order, uint64_t length);
+
 
 void filter_event_length(event *current, uint64_t maxpoints, uint64_t minpoints, FILE *logfile);
 void detect_subevents(event *current_event, double delta, double minthreshold, double maxthreshold, uint64_t subevent_minpoints);

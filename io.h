@@ -15,5 +15,5 @@ uint64_t read_current(FILE *input, double *current, uint64_t position, uint64_t 
 uint64_t read_current_int16(FILE *input, double *current, uint64_t position, uint64_t length);
 void print_event_signal(int index, event *current, double timestep);
 void print_signal(event *current, int length, char *filename, double timestep);
-
+void print_error_summary(event *current, FILE *logfile);
 #endif // IO_H_INCLUDED

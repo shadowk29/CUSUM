@@ -1,6 +1,8 @@
 #include"io.h"
 #include"utils.h"
 #include"detector.h"
+#include"butterworth.h"
+#include"filter.h"
 #include<string.h>
 #include<math.h>
 #include<stdio.h>
@@ -43,7 +45,8 @@ int main()
     //double binsize;
     double threshold;
     double hysteresis;
-    //uint64_t order;
+    uint64_t order;
+    int usefilter;
     double baseline_min;
     double baseline_max;
     uint64_t samplingfreq;
@@ -58,6 +61,7 @@ int main()
     int event_direction;
     int endflag;
     int refine_estimates;
+    double cutoff;
     endflag = 0;
     read = 0;
     pos = 0;
@@ -68,7 +72,9 @@ int main()
     threshold = config->threshold;
     hysteresis = config->hysteresis;
     event_direction = config->event_direction;
-    //order = config->poles;
+    order = config->order;
+    cutoff = config->cutoff;
+    usefilter = config->usefilter;
     baseline_min = config->baseline_min;
     baseline_max = config->baseline_max;
     samplingfreq = config->samplingfreq;
@@ -83,7 +89,12 @@ int main()
     refine_estimates = config->refine_estimates;
 
 
-
+    double scale;
+    double *dcof;
+    int *ccof;
+    dcof = dcof_bwlp(order, cutoff);
+    ccof = ccof_bwlp(order);
+    scale = sf_bwlp(order,cutoff);
 
     if (datatype != 16 && datatype != 64)
     {
@@ -95,6 +106,13 @@ int main()
     if ((signal = (double *) calloc(readlength,sizeof(double)))==NULL)
     {
         printf("Cannot allocate signal array\n");
+        abort();
+    }
+
+    double *filtered;
+    if ((filtered = (double *) calloc(readlength,sizeof(double)))==NULL)
+    {
+        printf("Cannot allocate filtered array\n");
         abort();
     }
 
@@ -148,6 +166,13 @@ int main()
         }
 
         //baseline = build_histogram(signal, histogram, read, binsize, baseline_max, baseline_min);
+
+
+        if (usefilter)
+        {
+            filter_signal(signal, filtered, dcof, ccof, scale, order, read);
+        }
+
         baseline = baseline_averaging(signal, read, baseline_min, baseline_max);
         if (baseline < baseline_min || baseline > baseline_max)
         {
@@ -343,6 +368,8 @@ int main()
     fprintf(logfile, "Finished\n\n");
     fprintf(logfile, "<----RUN LOG ENDS---->\n\n");
     fclose(logfile);
+    free(dcof);
+    free(ccof);
     system("pause");
     return 0;
 }

@@ -74,7 +74,7 @@ struct Configuration
     int usefilter;
     double cutoff;
     uint64_t samplingfreq;
-    uint64_t poles; //must be even
+    uint64_t order; //must be even
 
     //detection parameters
     double threshold;

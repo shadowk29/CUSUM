@@ -332,9 +332,9 @@ void read_config(configuration *config, FILE *logfile)
         {
             config->samplingfreq = strtoull(value,NULL,10);
         }
-        else if (strcmp(name,"poles") == 0)
+        else if (strcmp(name,"order") == 0)
         {
-            config->poles = strtoull(value,NULL,10);
+            config->order = strtoull(value,NULL,10);
         }
         else if (strcmp(name,"threshold") == 0)
         {
@@ -422,9 +422,122 @@ void read_config(configuration *config, FILE *logfile)
     fprintf(logfile, "<----CONFIGURATION ENDS---->\n\n");
     if (config->usefilter == 0)
     {
-        config->poles = 0;
+        config->order = 0;
         cutoff = 0;
     }
     config->cutoff = 2.0 *(double) cutoff/(double) config->samplingfreq;
     fclose(configfile);
 }
+
+
+void print_error_summary(event *current, FILE *logfile)
+{
+    uint64_t good = 0;
+    uint64_t total = 0;
+    uint64_t bad = 0;
+    uint64_t badbaseline = 0;
+    uint64_t tooshort = 0;
+    uint64_t toolong = 0;
+    uint64_t badlevels = 0;
+    uint64_t badtrace = 0;
+    while (current)
+    {
+        total++;
+        switch (current->type)
+        {
+            case 0:
+                good++;
+                break;
+            case BADBASELINE:
+                badbaseline++;
+                bad++;
+                break;
+            case TOOSHORT:
+                tooshort++;
+                bad++;
+                break;
+            case TOOLONG:
+                toolong++;
+                bad++;
+                break;
+            case BADTRACE:
+                badtrace++;
+                bad++;
+                break;
+            case BADLEVELS:
+                badlevels++;
+                bad++;
+                break;
+        }
+        current = current->next;
+    }
+    printf("\n\nError summary:\n%"PRIu64" (%.2f%%) good events and %"PRIu64" (%.2f%%) bad events\n",good, (100.0 * (double) good)/total, bad, (100.0 * (double) bad)/total);
+    printf("\n%"PRIu64" (%.2f%%) were discarded for being too short\n",tooshort, (100.0 * (double) tooshort)/total);
+    if ((100.0 * (double) tooshort)/total > 5)
+    {
+        printf("\tYou seem to have a lot of short events\n");
+        printf("\tIf you are picking up events that look like noise, try increasing threshold\n");
+        printf("\tIf you have lots of short events, try reducing event_minpoints\n\n");
+    }
+    printf("\n%"PRIu64" (%.2f%%) were discarded for being too long\n",toolong, (100.0 * (double) toolong)/total);
+    if ((100.0 * (double) toolong)/total > 5)
+    {
+        printf("\tYou seem to have a lot of long events\n");
+        printf("\tIf your experiment is relatively free of clogs, try increasing event_maxpoints\n\n");
+    }
+    printf("\n%"PRIu64" (%.2f%%) were discarded for having too few levels\n",badlevels, (100.0 * (double) badlevels)/total);
+    if ((100.0 * (double) badlevels)/total > 5)
+    {
+        printf("\tYou seem to have a lot of events that are too short for CUSUM to process properly with the current settings\n");
+        printf("\tTo simply get rid of them, try increasing event_minpoints\n");
+        printf("\tTo try to process them properly, try reducing cusum_delta, reducing cusum_minstep, or reducing subevent_minpoints to increase sensitivity\n\n");
+    }
+    printf("\n%"PRIu64" (%.2f%%) were discarded because the current trace could not be populated\n",badtrace, (100.0 * (double) badtrace)/total);
+    if ((100.0 * (double) badtrace)/total > 5)
+    {
+        printf("\tI have no idea why this number is nonzero\n");
+        printf("\tCongratulations, you may have broken logic\n");
+    }
+    printf("\n%"PRIu64" (%.2f%%) were discarded because the event did return to baseline\n",badbaseline, (100.0 * (double) badbaseline)/total);
+    if ((100.0 * (double) badbaseline)/total > 5)
+    {
+        printf("\tYou seem to have a lot of events that do not have similar baseline before and after\n");
+        printf("\tTry increasing hysteresis first, then threshold as well if that doesn't help\n");
+    }
+
+
+    fprintf(logfile,"\n\nError summary:\n%"PRIu64" (%.2f%%) good events and %"PRIu64" (%.2f%%) bad events\n",good, (100.0 * (double) good)/total, bad, (100.0 * (double) bad)/total);
+    fprintf(logfile,"\n%"PRIu64" (%.2f%%) were discarded for being too short\n",tooshort, (100.0 * (double) tooshort)/total);
+    if ((100.0 * (double) tooshort)/total > 5)
+    {
+        fprintf(logfile,"\tYou seem to have a lot of short events\n");
+        fprintf(logfile,"\tIf you are picking up events that look like noise, try increasing threshold\n");
+        fprintf(logfile,"\tIf you have lots of short events, try reducing event_minpoints\n\n");
+    }
+    fprintf(logfile,"\n%"PRIu64" (%.2f%%) were discarded for being too long\n",toolong, (100.0 * (double) toolong)/total);
+    if ((100.0 * (double) toolong)/total > 5)
+    {
+        fprintf(logfile,"\tYou seem to have a lot of long events\n");
+        fprintf(logfile,"\tIf your experiment is relatively free of clogs, try increasing event_maxpoints\n\n");
+    }
+    fprintf(logfile,"\n%"PRIu64" (%.2f%%) were discarded for having too few levels\n",badlevels, (100.0 * (double) badlevels)/total);
+    if ((100.0 * (double) badlevels)/total > 5)
+    {
+        fprintf(logfile,"\tYou seem to have a lot of events that are too short for CUSUM to process properly with the current settings\n");
+        fprintf(logfile,"\tTo simply get rid of them, try increasing event_minpoints\n");
+        fprintf(logfile,"\tTo try to process them properly, try reducing cusum_delta, reducing cusum_minstep, or reducing subevent_minpoints to increase sensitivity\n\n");
+    }
+    fprintf(logfile,"\n%"PRIu64" (%.2f%%) were discarded because the current trace could not be populated\n",badtrace, (100.0 * (double) badtrace)/total);
+    if ((100.0 * (double) badtrace)/total > 5)
+    {
+        fprintf(logfile,"\tI have no idea why this number is nonzero\n");
+        fprintf(logfile,"\tCongratulations, you may have broken logic\n");
+    }
+    fprintf(logfile,"\n%"PRIu64" (%.2f%%) were discarded because the event did return to baseline\n",badbaseline, (100.0 * (double) badbaseline)/total);
+    if ((100.0 * (double) badbaseline)/total > 5)
+    {
+        fprintf(logfile,"\tYou seem to have a lot of events that do not have similar baseline before and after\n");
+        fprintf(logfile,"\tTry increasing hysteresis first, then threshold as well if that doesn't help\n");
+    }
+}
+
