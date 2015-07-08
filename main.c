@@ -9,6 +9,7 @@
 
 int main()
 {
+    //read the configuration file
     configuration *config;
     if ((config = malloc(sizeof(configuration)))==NULL)
     {
@@ -22,11 +23,10 @@ int main()
         printf("Cannot open summary file\n");
         abort();
     }
-
-
     read_config(config, logfile);
 
 
+    //open the input file
     FILE *input;
     if ((input = fopen64(config->filepath,"rb"))==NULL)
     {
@@ -35,57 +35,49 @@ int main()
     }
 
 
-
+    //file reading variables
     uint64_t read;
     uint64_t pos;
     uint64_t start;
     uint64_t finish;
     uint64_t readlength;
-    //double binsize;
-    double threshold;
-    double hysteresis;
-    uint64_t order;
-    int usefilter;
-    double baseline_min;
-    double baseline_max;
-    uint64_t samplingfreq;
-    double cusum_delta;
-    double cusum_minstep;
-    double cusum_min_threshold;
-    double cusum_max_threshold;
-    uint64_t maxpoints;
-    uint64_t minpoints;
-    uint64_t subevent_minpoints;
     int datatype;
-    int event_direction;
     int endflag;
-    int refine_estimates;
-    double cutoff;
+
     endflag = 0;
     read = 0;
     pos = 0;
     start = config->start;
     finish = config->finish;
     readlength = config->readlength;
-    //binsize = config->binsize;
+    datatype = config->datatype;
+
+
+    //event location identification parameters
+    double threshold;
+    double hysteresis;
+    double baseline_min;
+    double baseline_max;
+    int event_direction;
+    //double binsize;
+
     threshold = config->threshold;
     hysteresis = config->hysteresis;
     event_direction = config->event_direction;
+    baseline_min = config->baseline_min;
+    baseline_max = config->baseline_max;
+    //binsize = config->binsize;
+
+    //low-pass filter parameters
+    uint64_t order;
+    int usefilter;
+    double cutoff;
+    uint64_t samplingfreq;
+
     order = config->order;
     cutoff = config->cutoff;
     usefilter = config->usefilter;
-    baseline_min = config->baseline_min;
-    baseline_max = config->baseline_max;
     samplingfreq = config->samplingfreq;
-    cusum_delta = config->cusum_delta;
-    cusum_minstep = config->cusum_minstep;
-    cusum_min_threshold = config->cusum_min_threshold;
-    cusum_max_threshold = config->cusum_max_threshold;
-    maxpoints = config->event_maxpoints;
-    minpoints = config->event_minpoints;
-    subevent_minpoints = config->subevent_minpoints;
-    datatype = config->datatype;
-    refine_estimates = config->refine_estimates;
 
     double scale;
     double *dcof = NULL;
@@ -95,6 +87,28 @@ int main()
     double *tempback = NULL;
     double *paddedsignal = NULL;
 
+    //CUSUM parameters
+    double cusum_delta;
+    double cusum_minstep;
+    double cusum_min_threshold;
+    double cusum_max_threshold;
+    uint64_t subevent_minpoints;
+    int refine_estimates;
+
+    cusum_delta = config->cusum_delta;
+    cusum_minstep = config->cusum_minstep;
+    cusum_min_threshold = config->cusum_min_threshold;
+    cusum_max_threshold = config->cusum_max_threshold;
+    subevent_minpoints = config->subevent_minpoints;
+    refine_estimates = config->refine_estimates;
+
+    //event requirement paramaters
+    uint64_t maxpoints;
+    uint64_t minpoints;
+    maxpoints = config->event_maxpoints;
+    minpoints = config->event_minpoints;
+
+    //initialize the low-pass filter and allocate necessary memory
     if (usefilter)
     {
         dcof = dcof_bwlp(order, cutoff);
@@ -127,6 +141,7 @@ int main()
 
     }
 
+    //allocate memory for file reading
     double *signal;
     if ((signal = (double *) calloc(readlength,sizeof(double)))==NULL)
     {
@@ -142,34 +157,39 @@ int main()
 
 
 
-    histostruct *histogram;
+    /*histostruct *histogram;
     if ((histogram = malloc(sizeof(histostruct)))==NULL)
     {
         printf("cannot allocate histogram structure\n");
         abort();
     }
     histogram->histogram = NULL;
-    histogram->numbins = 0;
+    histogram->numbins = 0;*/
 
+    //find out how big the file is for use in a progressbar
     uint64_t filesize = get_filesize(input, datatype);
     finish = filesize < finish ? filesize : finish;
 
-    uint64_t i;
-    i = 0;
 
+    //dummy variables
+    double baseline;
+    double badbaseline = 0;
+    double goodbaseline = 0;
+
+    //initialize linked list to store the locations of edges in the input file
     edge *head_edge;
     edge *current_edge;
     head_edge = initialize_edges();
     current_edge = head_edge;
 
+    //initialize linked list to store the information about events found using the edge list
     event *head_event;
     event *current_event;
     head_event = initialize_events();
     current_event = head_event;
 
-    double baseline;
-    double badbaseline = 0;
-    double goodbaseline = 0;
+
+
 
     fprintf(logfile, "<----RUN LOG BEGINS---->\n\n");
     printf("Locating events... \n");
@@ -398,14 +418,14 @@ int main()
     free_edges(head_edge);
     printf("Edge list freed...\n");
     fprintf(logfile, "Edge list freed...\n");
-    for (i=0; i<histogram->numbins; i++)
+    /*for (i=0; i<histogram->numbins; i++)
     {
         free(histogram->histogram[i]);
     }
-    free(histogram->histogram);
+    free(histogram->histogram);*/
+    //free(histogram);
     printf("Signal array freed\n");
     fprintf(logfile, "Signal array freed\n");
-    free(histogram);
     fclose(input);
     free(config);
     free(signal);
