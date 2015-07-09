@@ -79,13 +79,8 @@ int main()
     usefilter = config->usefilter;
     samplingfreq = config->samplingfreq;
 
-    double scale;
-    double *dcof = NULL;
-    int *ccof = NULL;
+    butterworth *lpfilter = NULL;
     double *filtered = NULL;
-    double *temp = NULL;
-    double *tempback = NULL;
-    double *paddedsignal = NULL;
 
     //CUSUM parameters
     double cusum_delta;
@@ -111,34 +106,13 @@ int main()
     //initialize the low-pass filter and allocate necessary memory
     if (usefilter)
     {
-        dcof = dcof_bwlp(order, cutoff);
-        ccof = ccof_bwlp(order);
-        scale = sf_bwlp(order,cutoff);
+        lpfilter = initialize_filter(lpfilter, order, cutoff, readlength);
 
         if ((filtered = (double *) calloc(readlength,sizeof(double)))==NULL)
         {
-            printf("Cannot allocate filtered array\n");
+            printf("Cannot allocate filtered signal array\n");
             abort();
         }
-
-        if ((temp = calloc(readlength+2*order, sizeof(double)))==NULL)
-        {
-            printf("Cannot allocate tempforward array\n");
-            abort();
-        }
-
-        if ((tempback = calloc(readlength+2*order, sizeof(double)))==NULL)
-        {
-            printf("Cannot allocate tempforward array\n");
-            abort();
-        }
-
-        if ((paddedsignal = (double *) calloc(readlength + 2*order,sizeof(double)))==NULL)
-        {
-            printf("Cannot allocate padded signal\n");
-            abort();
-        }
-
     }
 
     //allocate memory for file reading
@@ -190,7 +164,6 @@ int main()
 
 
 
-
     fprintf(logfile, "<----RUN LOG BEGINS---->\n\n");
     printf("Locating events... \n");
     fprintf(logfile, "Locating events...\n ");
@@ -216,7 +189,7 @@ int main()
 
         if (usefilter)
         {
-            filter_signal(signal, filtered, paddedsignal, temp, tempback, dcof, ccof, scale, order, read);
+            filter_signal(signal, filtered, lpfilter, read);
             baseline = baseline_averaging(filtered, read, baseline_min, baseline_max);
             if (baseline < baseline_min || baseline > baseline_max)
             {
@@ -435,11 +408,8 @@ int main()
     fclose(logfile);
     if (usefilter)
     {
-        free(dcof);
-        free(ccof);
+        free_filter(lpfilter);
         free(filtered);
-        free(temp);
-        free(tempback);
     }
     system("pause");
     return 0;

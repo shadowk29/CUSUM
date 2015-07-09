@@ -4,11 +4,12 @@
 #include<stdlib.h>
 #include<inttypes.h>
 #include<stdint.h>
+#include"butterworth.h"
 #define EPS 1e-50
 #define STRLENGTH 1024
 #define HEAD -1000
 
-struct LP_filter
+struct Butterworth
 {
     double *dcof;
     int *ccof;
@@ -18,7 +19,7 @@ struct LP_filter
     double *temp;
     double *tempback;
 };
-typedef struct LP_filter lp_filter;
+typedef struct Butterworth butterworth;
 
 struct Cusumlevel
 {
@@ -146,4 +147,7 @@ cusumlevel *initialize_levels(void);
 uint64_t get_filesize(FILE *input, int datatype);
 inline void progressbar(uint64_t pos, uint64_t finish);
 int check_signals(event *current);
+
+butterworth *initialize_filter(butterworth *lpfilter, uint64_t order, double cutoff, uint64_t length);
+void free_filter(butterworth *lpfilter);
 #endif // UTILS_H_INCLUDED

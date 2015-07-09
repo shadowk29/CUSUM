@@ -1,5 +1,4 @@
 #include"detector.h"
-#include"io.h"
 #include<inttypes.h>
 #include<stdint.h>
 #include<string.h>
@@ -10,11 +9,18 @@
 
 
 
-void filter_signal(double *signal, double *filtered, double *paddedsignal, double *temp, double *tempback, double *dcof, int *ccof, double scale, uint64_t order, uint64_t length)
+void filter_signal(double *signal, double *filtered, butterworth *lpfilter, uint64_t length)
 {
     uint64_t i;
     uint64_t p;
     uint64_t end;
+    uint64_t order = lpfilter->order;
+    double *paddedsignal = lpfilter->paddedsignal;
+    double *temp = lpfilter->temp;
+    double *tempback = lpfilter->tempback;
+    double *dcof = lpfilter->dcof;
+    int *ccof = lpfilter->ccof;
+    double scale = lpfilter->scale;
     end = length+2*order-1;
 
     memcpy(&paddedsignal[order],signal,length*sizeof(double));
@@ -48,6 +54,19 @@ void filter_signal(double *signal, double *filtered, double *paddedsignal, doubl
         }
     }
     memcpy(filtered,&tempback[order],length*sizeof(double));
+
+    /*FILE *output;
+    if ((output = fopen("output/filtered.csv","w"))==NULL)
+    {
+        printf("Can't open filter file\n");
+        abort();
+    }
+    for (i=0; i<length; i++)
+    {
+        fprintf(output,"%g,%g,%g\n",i*2.0,signal[i],filtered[i]);
+    }
+    fclose(output);
+    abort();*/
 }
 
 
