@@ -8,6 +8,18 @@
 #define STRLENGTH 1024
 #define HEAD -1000
 
+struct LP_filter
+{
+    double *dcof;
+    int *ccof;
+    double scale;
+    uint64_t order;
+    double *paddedsignal;
+    double *temp;
+    double *tempback;
+};
+typedef struct LP_filter lp_filter;
+
 struct Cusumlevel
 {
     double current;

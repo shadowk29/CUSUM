@@ -91,7 +91,7 @@ Level Length (us)\n");
             cusumlevel *level = current->first_level;
             fprintf(events,"%"PRId64",\
                     %d,\
-                    %g,\
+                    %.6lf,\
                     %g,\
                     %g,\
                     %g,\
