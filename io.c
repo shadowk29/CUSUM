@@ -72,16 +72,12 @@ void print_events(event *current, double timestep)
         printf("Cannot open blockages file\n");
         abort();
     }
-    FILE *starttimes;
-    if ((starttimes = fopen("output/starttimes.csv","w"))==NULL)
-    {
-        printf("Cannot open starttimes file\n");
-        abort();
-    }
+    uint64_t lasttime = 0;
 
     fprintf(events,"Index,\
 Type,\
 Start Time (s),\
+Time Since Last (s),\
 Length (us),\
 Threshold ,\
 Baseline Before (pA),\
@@ -104,6 +100,7 @@ Level Length (us)\n");
             fprintf(events,"%"PRId64",\
                     %d,\
                     %.6f,\
+                    %.6f,\
                     %g,\
                     %g,\
                     %g,\
@@ -119,6 +116,7 @@ Level Length (us)\n");
                     current->index, \
                     current->type, \
                     current->start * timestep, \
+                    (current->start - lasttime) * timestep, \
                     current->length * timestep * 1e6, \
                     current->threshold, \
                     current->baseline_before, \
@@ -131,7 +129,7 @@ Level Length (us)\n");
                     d_abs(current->max_blockage / (0.5 * (current->baseline_before + current->baseline_after))), \
                     current->max_length * timestep * 1e6, \
                     current->numlevels);
-
+            lasttime = current->start;
             while (level)
             {
                 fprintf(events,"%g",level->current);
@@ -155,9 +153,7 @@ Level Length (us)\n");
                 level = level->next;
             }
             fprintf(events,"\n");
-            fprintf(starttimes,"%.6f\n",current->start*timestep);
         }
-
         current = current->next;
     }
     fclose(events);
