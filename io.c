@@ -66,6 +66,19 @@ void print_events(event *current, double timestep)
         abort();
     }
 
+    FILE *blockages;
+    if ((blockages = fopen("output/blockages.csv","w"))==NULL)
+    {
+        printf("Cannot open blockages file\n");
+        abort();
+    }
+    FILE *starttimes;
+    if ((starttimes = fopen("output/starttimes.csv","w"))==NULL)
+    {
+        printf("Cannot open starttimes file\n");
+        abort();
+    }
+
     fprintf(events,"Index,\
 Type,\
 Start Time (s),\
@@ -90,7 +103,7 @@ Level Length (us)\n");
             cusumlevel *level = current->first_level;
             fprintf(events,"%"PRId64",\
                     %d,\
-                    %.6lf,\
+                    %.6f,\
                     %g,\
                     %g,\
                     %g,\
@@ -127,6 +140,7 @@ Level Length (us)\n");
                     fprintf(events,";");
                 }
                 fprintf(cusumlevels,"%g\n",level->current);
+                fprintf(blockages,"%g\n",level->current-0.5*(current->baseline_after+current->baseline_before));
                 level = level->next;
             }
             fprintf(events,",");
@@ -141,11 +155,14 @@ Level Length (us)\n");
                 level = level->next;
             }
             fprintf(events,"\n");
+            fprintf(starttimes,"%.6f\n",current->start*timestep);
         }
+
         current = current->next;
     }
     fclose(events);
     fclose(cusumlevels);
+    fclose(blockages);
 }
 
 
@@ -201,7 +218,7 @@ void print_event_signal(int index, event *current, double timestep)
     if (current->index != -1 && current->type != -1)
     {
         char eventname[1024];
-        sprintf(eventname,"output/event_%05d.csv",index);
+        sprintf(eventname,"output/events/event_%05d.csv",index);
 
         print_signal(current, current->length + current->padding_before + current->padding_after, eventname, timestep);
     }
