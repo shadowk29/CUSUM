@@ -91,7 +91,8 @@ Relative Max Blockage,\
 Max Blockage Length (us),\
 Num Levels,\
 Level Current (pA),\
-Level Length (us)\n");
+Level Length (us),\
+Blockages (pA) \n");
     while (current)
     {
         if (current->type == 0)
@@ -146,6 +147,17 @@ Level Length (us)\n");
             while (level)
             {
                 fprintf(events,"%g",level->length * timestep * 1e6);
+                if (level->next)
+                {
+                    fprintf(events,";");
+                }
+                level = level->next;
+            }
+            fprintf(events,",");
+            level = current->first_level;
+            while (level)
+            {
+                fprintf(events,"%g",level->current-0.5*(current->baseline_after+current->baseline_before));
                 if (level->next)
                 {
                     fprintf(events,";");
