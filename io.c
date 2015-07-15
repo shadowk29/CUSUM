@@ -34,10 +34,6 @@ uint64_t read_current_int16(FILE *input, double *current, uint64_t position, uin
             read++;
             swapByteOrder_int16((uint16_t *) &iv[0]);
             current[i] = (double) iv[0];
-            if (d_abs(current[i]) < EPS)
-            {
-                printf("The error is happening here\n");
-            }
         }
         else
         {
