@@ -734,7 +734,7 @@ double baseline_averaging(double *signal, uint64_t length, double baseline_min, 
             numsamples++;
         }
     }
-    if (numsamples > 0)
+    if (numsamples > 0 && numsamples > 9*length/10)
     {
         baseline /= (double) numsamples;
         return baseline;
