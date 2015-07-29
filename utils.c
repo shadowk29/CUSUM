@@ -1,7 +1,4 @@
 #include"utils.h"
-#include<stdio.h>
-#include<stdlib.h>
-#include<math.h>
 
 inline void progressbar(uint64_t pos, uint64_t finish)
 {

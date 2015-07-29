@@ -4,6 +4,7 @@
 #include<stdlib.h>
 #include<inttypes.h>
 #include<stdint.h>
+#include<math.h>
 #include"butterworth.h"
 #define EPS 1e-50
 #define STRLENGTH 1024

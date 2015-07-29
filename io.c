@@ -1,9 +1,5 @@
 #include"io.h"
-#include<string.h>
-#include<inttypes.h>
-#include<stdint.h>
-#include<stdio.h>
-#include<stdlib.h>
+
 
 
 inline void swapByteOrder_int16(uint16_t *ull)

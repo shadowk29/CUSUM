@@ -2,6 +2,13 @@
 #define DETECTOR_H_INCLUDED
 #include"utils.h"
 #include"io.h"
+#include<inttypes.h>
+#include<stdint.h>
+#include<string.h>
+#include<math.h>
+#include<stdio.h>
+#include<stdlib.h>
+#include<float.h>
 #define HISTOGRAM 0
 #define FIRST_DERIV 1
 #define SCND_DERIV 2

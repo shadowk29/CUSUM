@@ -2,6 +2,9 @@
 #define IO_H_INCLUDED
 #include"utils.h"
 #include"detector.h"
+#include<string.h>
+#include<inttypes.h>
+#include<stdint.h>
 #include<stdio.h>
 #include<stdlib.h>
 
