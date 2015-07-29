@@ -135,6 +135,12 @@ int stepResponse(event *current, double risetime, uint64_t maxiters)
     }
 
 
+    double i0 = FIT(0);
+    double a = FIT(1);
+    uint64_t u1 = (uint64_t) FIT(2);
+    double b = FIT(4);
+    uint64_t u2 = (uint64_t) FIT(5);
+
     gsl_multifit_covar (s->J, 0.0, covar);
 
     double chi = gsl_blas_dnrm2(s->f);

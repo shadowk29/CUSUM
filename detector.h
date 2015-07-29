@@ -12,6 +12,8 @@
 #define HISTOGRAM 0
 #define FIRST_DERIV 1
 #define SCND_DERIV 2
+#define STEPRESPONSE 1
+#define CUSUM 0
 #define BADBASELINE -1
 #define TOOLONG -2
 #define TOOSHORT -3

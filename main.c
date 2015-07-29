@@ -283,7 +283,7 @@ int main()
 
     printf("Filtering on event length... ");
     fprintf(logfile, "Filtering on event length... ");
-    filter_event_length(current_event, maxpoints, minpoints, logfile);
+    filter_event_length(current_event, maxpoints, minpoints, logfile); //divide by type CUSUM and type STEPRESPONSE based on length
     current_event = head_event;
     printf("Finished\n\n");
     fprintf(logfile, "Finished\n\n");
@@ -291,7 +291,7 @@ int main()
 
     printf("Populating event traces... ");
     fprintf(logfile, "Populating event traces... ");
-    populate_event_traces(input, current_event, datatype, logfile);
+    populate_event_traces(input, current_event, datatype, logfile); //both types
     current_event = head_event;
     printf("Finished\n\n");
     fprintf(logfile, "Finished\n\n");
@@ -300,7 +300,7 @@ int main()
 
     printf("Detecting subevents...\n");
     fprintf(logfile, "Detecting subevents...");
-    detect_subevents(current_event, cusum_delta, cusum_min_threshold, cusum_max_threshold, subevent_minpoints);
+    detect_subevents(current_event, cusum_delta, cusum_min_threshold, cusum_max_threshold, subevent_minpoints); //only CUSUM types
     current_event = head_event;
     printf("\nFinished\n\n");
     fprintf(logfile, "\nFinished\n\n");
@@ -314,16 +314,17 @@ int main()
 
     printf("Processing subevents...");
     fprintf(logfile, "Processing subevents...");
-    assign_cusum_levels(current_event, subevent_minpoints, cusum_minstep);
+    assign_cusum_levels(current_event, subevent_minpoints, cusum_minstep); //only CUSUM types - if < 3 levels found (modify), assign STEPRESPONSE TYPE
     current_event = head_event;
     printf("Finished\n\n");
     fprintf(logfile, "Finished\n\n");
     fflush(logfile);
 
+    //stepresponse function called - make sure no cusum overlap remains
 
     printf("Assigning subevents...");
     fprintf(logfile, "Assigning subevents...");
-    populate_all_levels(current_event);
+    populate_all_levels(current_event); //both types
     current_event = head_event;
     printf("Finished\n\n");
     fprintf(logfile, "Finished\n\n");
@@ -406,31 +407,25 @@ int main()
     printf("Cleaning up memory usage...\n");
     fprintf(logfile, "Cleaning up memory usage...\n");
     free_events(head_event);
-    printf("Event list freed...\n");
-    fprintf(logfile, "Event list freed...\n");
     free_edges(head_edge);
-    printf("Edge list freed...\n");
-    fprintf(logfile, "Edge list freed...\n");
     /*for (i=0; i<histogram->numbins; i++)
     {
         free(histogram->histogram[i]);
     }
-    free(histogram->histogram);*/
-    //free(histogram);
-    printf("Signal array freed\n");
-    fprintf(logfile, "Signal array freed\n");
+    free(histogram->histogram);
+    free(histogram);*/
     fclose(input);
     free(config);
     free(signal);
-    printf("Finished\n\n");
-    fprintf(logfile, "Finished\n\n");
-    fprintf(logfile, "<----RUN LOG ENDS---->\n\n");
-    fclose(logfile);
     if (usefilter)
     {
         free_filter(lpfilter);
         free(filtered);
     }
+    printf("Finished\n\n");
+    fprintf(logfile, "Finished\n\n");
+    fprintf(logfile, "<----RUN LOG ENDS---->\n\n");
+    fclose(logfile);
     system("pause");
     return 0;
 }
