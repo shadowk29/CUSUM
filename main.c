@@ -3,10 +3,7 @@
 #include"detector.h"
 #include"butterworth.h"
 #include "stepfit.h"
-#include<string.h>
-#include<math.h>
-#include<stdio.h>
-#include<stdlib.h>
+
 
 int main()
 {
