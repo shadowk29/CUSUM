@@ -35,7 +35,6 @@
  *  Longmont, CO 80501, USA
  *
  */
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>

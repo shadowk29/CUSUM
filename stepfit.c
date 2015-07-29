@@ -1,3 +1,23 @@
+/*
+
+                                COPYRIGHT
+    Copyright 2015 Kyle Briggs <kbrig035@uottawa.ca>
+
+    This file is part of CUSUM.
+
+    CUSUM is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    CUSUM is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with CUSUM.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #include "stepfit.h"
 
 int expb_f (const gsl_vector * x, void *data, gsl_vector * f)
@@ -75,15 +95,11 @@ int stepResponse(event *current, double risetime, uint64_t maxiters)
     uint64_t iter = 0;
     uint64_t p = 7;
     uint64_t n = current->length + current->padding_before + current->padding_after;
-
-
     gsl_matrix *covar = gsl_matrix_alloc (p, p);
-
-
     struct data d = {n, current->signal};
     gsl_multifit_function_fdf f;
-    gsl_vector *x = gsl_vector_alloc(p);
 
+    gsl_vector *x = gsl_vector_alloc(p);
     gsl_vector_set(x,0,current->signal[0]);
     gsl_vector_set(x,1,current->signal[current->padding_before + current->length/2]);
     gsl_vector_set(x,2,current->padding_before);
