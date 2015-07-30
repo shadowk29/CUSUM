@@ -107,7 +107,7 @@ Level Length (us),\
 Blockages (pA) \n");
     while (current)
     {
-        if (current->type == 0)
+        if (current->type == CUSUM || current->type == STEPRESPONSE)
         {
             cusumlevel *level = current->first_level;
             fprintf(events,"%"PRId64",\
@@ -200,7 +200,7 @@ void print_all_signals(event *current_event, double timestep)
     while (current_event != NULL)
     {
         progressbar(current_event->index, numevents);
-        if (current_event->type == 0)
+        if (current_event->type == CUSUM || current_event->type == STEPRESPONSE)
         {
             print_event_signal(current_event->index, current_event, timestep);
         }
@@ -453,6 +453,10 @@ void read_config(configuration *config, FILE *logfile)
         {
             config->stepfit_samples = strtol(value,NULL,10);
         }
+        else if (strcmp(name,"maxiters") == 0)
+        {
+            config->maxiters = strtol(value,NULL,10);
+        }
 
     }
     fprintf(logfile, "<----CONFIGURATION ENDS---->\n\n");
@@ -476,12 +480,13 @@ void print_error_summary(event *current, FILE *logfile)
     uint64_t toolong = 0;
     uint64_t badlevels = 0;
     uint64_t badtrace = 0;
+    uint64_t badfit = 0;
     while (current)
     {
         total++;
         switch (current->type)
         {
-            case 0:
+            case (CUSUM || STEPRESPONSE):
                 good++;
                 break;
             case BADBASELINE:
@@ -502,6 +507,10 @@ void print_error_summary(event *current, FILE *logfile)
                 break;
             case BADLEVELS:
                 badlevels++;
+                bad++;
+                break;
+            case BADFIT:
+                badfit++;
                 bad++;
                 break;
         }
@@ -540,6 +549,12 @@ void print_error_summary(event *current, FILE *logfile)
         printf("\tYou seem to have a lot of events that do not have similar baseline before and after\n");
         printf("\tTry increasing hysteresis first, then threshold as well if that doesn't help\n");
     }
+    printf("\n%"PRIu64" (%.2f%%) were discarded because stepresponse failed to fit a single-level event\n",badfit, (100.0 * (double) badfit)/total);
+    if ((100.0 * (double) badfit)/total > 5)
+    {
+        printf("\tYou seem to have a lot of events that cannot be fit to a single-level event\n");
+        printf("\tTry reducing stepfit_samples so that you are not fitting multi-level events with it\n");
+    }
 
 
     fprintf(logfile,"\n\nError summary:\n%"PRIu64" (%.2f%%) good events and %"PRIu64" (%.2f%%) bad events\n",good, (100.0 * (double) good)/total, bad, (100.0 * (double) bad)/total);
@@ -574,6 +589,12 @@ void print_error_summary(event *current, FILE *logfile)
     {
         fprintf(logfile,"\tYou seem to have a lot of events that do not have similar baseline before and after\n");
         fprintf(logfile,"\tTry increasing hysteresis first, then threshold as well if that doesn't help\n");
+    }
+    fprintf(logfile,"\n%"PRIu64" (%.2f%%) were discarded because stepresponse failed to fit a single-level event\n",badfit, (100.0 * (double) badfit)/total);
+    if ((100.0 * (double) badfit)/total > 5)
+    {
+        fprintf(logfile,"\tYou seem to have a lot of events that cannot be fit to a single-level event\n");
+        fprintf(logfile,"\tTry reducing stepfit_samples so that you are not fitting multi-level events with it\n");
     }
 }
 

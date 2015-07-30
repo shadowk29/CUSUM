@@ -19,7 +19,7 @@ struct data {
 int expb_f (const gsl_vector * x, void *data, gsl_vector * f);
 int expb_df (const gsl_vector * x, void *data, gsl_matrix * J);
 int expb_fdf (const gsl_vector * x, void *data, gsl_vector * f, gsl_matrix * J);
-int stepResponse(event *current, double risetime, uint64_t maxiters);
+int step_response(event *current, double risetime, uint64_t maxiters);
 
-
+void step_response_events(event *current, double risetime, uint64_t maxiters);
 #endif //STEPFIT_H_INCLUDED

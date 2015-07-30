@@ -87,7 +87,7 @@ int expb_fdf (const gsl_vector * x, void *data, gsl_vector * f, gsl_matrix * J)
 }
 
 
-int stepResponse(event *current, double risetime, uint64_t maxiters)
+int step_response(event *current, double risetime, uint64_t maxiters)
 {
     const gsl_multifit_fdfsolver_type *T;
     gsl_multifit_fdfsolver *s;
@@ -104,8 +104,8 @@ int stepResponse(event *current, double risetime, uint64_t maxiters)
     gsl_vector_set(x,1,current->signal[current->padding_before + current->length/2]);
     gsl_vector_set(x,2,current->padding_before);
     gsl_vector_set(x,3,risetime);
-    gsl_vector_set(x,4,current->padding_before + current->length);
-    gsl_vector_set(x,5,current->signal[current->padding_before + current->length/2]);
+    gsl_vector_set(x,4,current->signal[current->padding_before + current->length/2]);
+    gsl_vector_set(x,5,current->padding_before + current->length);
     gsl_vector_set(x,6,risetime);
 
 
@@ -124,12 +124,10 @@ int stepResponse(event *current, double risetime, uint64_t maxiters)
     {
         iter++;
         status = gsl_multifit_fdfsolver_iterate (s);
-
-        printf ("status = %s\n", gsl_strerror (status));
-
         if (status)
-        break;
-
+        {
+            break;
+        }
         status = gsl_multifit_test_delta (s->dx, s->x,
                                         1e-4, 1e-4);
     }
@@ -141,9 +139,10 @@ int stepResponse(event *current, double risetime, uint64_t maxiters)
     double b = FIT(4);
     uint64_t u2 = (uint64_t) FIT(5);
 
+    //printf("i0 = %g\na=%g\nu1=%"PRIu64"\nb=%g\nu2=%"PRIu64"\n",i0,a,u1,b,u2);
+
     if (u1 > u2) //if the fit got stuck in a variable swapped equivalent minimum, we can just reverse the paramters
     {
-        printf("Backwards fit, swapping\n");
         uint64_t temp;
         double dtemp;
         temp = u1;
@@ -155,7 +154,6 @@ int stepResponse(event *current, double risetime, uint64_t maxiters)
     }
     if (u2 > n || u1 <= 0) //if for some reason we are out of range
     {
-        printf("Fitting error, discarding\n");
         current->type = BADFIT;
         return BADFIT;
     }
@@ -176,4 +174,30 @@ int stepResponse(event *current, double risetime, uint64_t maxiters)
     gsl_matrix_free (covar);
     gsl_vector_free(x);
     return status;
+}
+
+void step_response_events(event *current, double risetime, uint64_t maxiters)
+{
+    event *head = current;
+    uint64_t numevents = 0;
+    int status;
+    while (current)
+    {
+        numevents++;
+        current = current->next;
+    }
+    current = head;
+    while (current)
+    {
+        progressbar(current->index, numevents);
+        if (current->type == STEPRESPONSE)
+        {
+            status = step_response(current, risetime, maxiters);
+            if (status != GSL_SUCCESS)
+            {
+                current->type = BADFIT;
+            }
+        }
+        current = current->next;
+    }
 }

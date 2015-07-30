@@ -122,6 +122,7 @@ struct Configuration
     double cusum_minstep;
     int refine_estimates;
     uint64_t stepfit_samples;
+    uint64_t maxiters;
 
     int datatype;
 
@@ -156,7 +157,6 @@ cusumlevel *initialize_levels(void);
 
 uint64_t get_filesize(FILE *input, int datatype);
 inline void progressbar(uint64_t pos, uint64_t finish);
-int check_signals(event *current);
 
 butterworth *initialize_filter(butterworth *lpfilter, uint64_t order, double cutoff, uint64_t length);
 void free_filter(butterworth *lpfilter);

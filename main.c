@@ -110,6 +110,7 @@ int main()
     uint64_t subevent_minpoints;
     int refine_estimates;
     uint64_t stepfit_samples;
+    uint64_t maxiters;
 
     cusum_delta = config->cusum_delta;
     cusum_minstep = config->cusum_minstep;
@@ -118,6 +119,8 @@ int main()
     subevent_minpoints = config->subevent_minpoints;
     refine_estimates = config->refine_estimates;
     stepfit_samples = config->stepfit_samples;
+    maxiters = config->maxiters;
+    double risetime = 5; //FIXME
     //event requirement paramaters
     uint64_t maxpoints;
     uint64_t minpoints;
@@ -307,12 +310,6 @@ int main()
     fprintf(logfile, "\nFinished\n\n");
     fflush(logfile);
 
-    if (check_signals(current_event)==1)
-    {
-        printf("Error here\n");
-    }
-    current_event = head_event;
-
     printf("Processing subevents...");
     fprintf(logfile, "Processing subevents...");
     assign_cusum_levels(current_event, subevent_minpoints, cusum_minstep); //only CUSUM types - if < 3 levels found (modify), assign STEPRESPONSE TYPE
@@ -322,6 +319,14 @@ int main()
     fflush(logfile);
 
     //stepresponse function called - make sure no cusum overlap remains
+    printf("Fitting short events...\n");
+    fprintf(logfile, "Fitting short events...");
+    step_response_events(current_event, risetime, maxiters);
+    current_event = head_event;
+    printf("\nFinished\n\n");
+    fprintf(logfile, "\nFinished\n\n");
+    fflush(logfile);
+
 
     printf("Assigning subevents...");
     fprintf(logfile, "Assigning subevents...");
@@ -347,7 +352,7 @@ int main()
 
         printf("Filtering on refined event length... ");
         fprintf(logfile, "Filtering on refined event length... ");
-        filter_event_length(current_event, maxpoints, minpoints, logfile, stepfit_samples);
+        filter_event_length(current_event, maxpoints, minpoints, logfile, 0);
         current_event = head_event;
         printf("Finished\n\n");
         fprintf(logfile, "Finished\n\n");
@@ -362,11 +367,6 @@ int main()
     fprintf(logfile, "Finished\n\n");
     fflush(logfile);
 
-    if (check_signals(current_event)==1)
-    {
-        printf("Error here\n");
-    }
-    current_event = head_event;
 
     printf("Assigning max blockage...");
     fprintf(logfile, "Assigning max blockage...");

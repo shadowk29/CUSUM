@@ -131,11 +131,12 @@ void average_cusum_levels(event *current, uint64_t subevent_minpoints, double cu
     edge *current_edge = first_edge;
     double baseline = signal_average(current->signal, current->padding_before);
     double lastlevel = baseline;
-    uint64_t j;
+    uint64_t j, nStates = 0;
     int passflag = 1;
     uint64_t anchor = 0;
     uint64_t prev_anchor = anchor;
     double average;
+    uint64_t totallength = current->length + current->padding_before + current->padding_after;
     while (current_edge)
     {
         average = signal_average(&current->signal[anchor + subevent_minpoints], current_edge->location - anchor - subevent_minpoints);
@@ -155,6 +156,18 @@ void average_cusum_levels(event *current, uint64_t subevent_minpoints, double cu
         anchor = current_edge->location;
         current_edge = current_edge->next;
     }
+    for (j=1; j<totallength; j++)
+    {
+        if (signum(current->filtered_signal[j] - current->filtered_signal[j-1]) != 0)
+        {
+            nStates++;
+        }
+    }
+    nStates++;
+    if (nStates < 3)
+    {
+        current->type = STEPRESPONSE;
+    }
     current_edge = first_edge;
 }
 
@@ -162,7 +175,7 @@ void populate_all_levels(event *current)
 {
     while (current)
     {
-        if (current->type == 0)
+        if (current->type == CUSUM || current->type == STEPRESPONSE)
         {
             populate_event_levels(current);
         }
@@ -208,7 +221,7 @@ void find_max_blockages(event *current)
 {
     while (current)
     {
-        if (current->type == 0)
+        if (current->type == CUSUM || current->type == STEPRESPONSE)
         {
             event_max_blockage(current);
         }
@@ -241,7 +254,7 @@ void refine_all_estimates(event *current)
 {
     while (current)
     {
-        if (current->type == 0)
+        if (current->type == CUSUM || current->type == STEPRESPONSE)
         {
             refine_event_estimates(current);
         }
@@ -285,7 +298,7 @@ void detect_subevents(event *current_event, double delta, double minthreshold, d
     while (current_event)
     {
         progressbar(current_event->index, numevents);
-        if (current_event->type == 0)
+        if (current_event->type == CUSUM)
         {
             cusum(current_event, delta, minthreshold, maxthreshold, subevent_minpoints);
         }
@@ -488,7 +501,7 @@ void assign_event_areas(event *current_event, double timestep)
 {
     while (current_event != NULL)
     {
-        if (current_event->type == 0)
+        if (current_event->type == CUSUM || current_event->type == STEPRESPONSE)
         {
             event_area(current_event, timestep);
         }
@@ -501,7 +514,7 @@ void assign_event_baselines(event *current_event, FILE *logfile, double baseline
     uint64_t badbaseline = 0;
     while (current_event != NULL)
     {
-        if (current_event->type == 0)
+        if (current_event->type == CUSUM || current_event->type == STEPRESPONSE)
         {
             event_baseline(current_event, baseline_min, baseline_max);
             if (current_event->type == BADBASELINE)
@@ -547,7 +560,7 @@ void populate_event_traces(FILE *input, event *current_event, int datatype, FILE
 {
     while (current_event != NULL)
     {
-        if (current_event->type == 0)
+        if (current_event->type == CUSUM || current_event->type == STEPRESPONSE)
         {
             generate_trace(input, current_event, datatype, logfile);
         }

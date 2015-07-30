@@ -315,26 +315,6 @@ double ARL(uint64_t length, double sigma, double mun, double h)
     return (exp(-2.0*mun*(h/sigma+1.166))-1.0+2.0*mun*(h/sigma+1.166))/(2.0*mun*mun)-(double) length;
 }
 
-int check_signals(event *current)
-{
-    uint64_t i;
-    while (current)
-    {
-        if (current->type == 0)
-        {
-            for (i=0; i<current->length + + current->padding_before + current->padding_after; i++)
-            {
-                if (d_abs(current->signal[i]) < 1e-10)
-                {
-                    return 1;
-                }
-            }
-        }
-        current = current->next;
-    }
-    return 0;
-}
-
 butterworth *initialize_filter(butterworth *lpfilter, uint64_t order, double cutoff, uint64_t length)
 {
     if ((lpfilter = malloc(sizeof(butterworth)))==NULL)
