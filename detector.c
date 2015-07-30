@@ -85,10 +85,11 @@ void filter_signal(double *signal, double *filtered, butterworth *lpfilter, uint
 
 
 
-void filter_event_length(event *current, uint64_t maxpoints, uint64_t minpoints, FILE *logfile)
+void filter_event_length(event *current, uint64_t maxpoints, uint64_t minpoints, FILE *logfile, uint64_t stepfit_samples)
 {
     uint64_t toolong = 0;
     uint64_t tooshort = 0;
+    uint64_t stepresponse = 0;
     while (current)
     {
         if (current->length > maxpoints)
@@ -101,10 +102,15 @@ void filter_event_length(event *current, uint64_t maxpoints, uint64_t minpoints,
             current->type = TOOSHORT;
             tooshort++;
         }
+        else if (current->length < stepfit_samples)
+        {
+            current->type = STEPRESPONSE;
+            stepresponse++;
+        }
         current = current->next;
     }
-    printf("\n%"PRIu64" events were too long\n%"PRIu64" events were too short\n",toolong,tooshort);
-    fprintf(logfile,"\n%"PRIu64" events were too long\n%"PRIu64" events were too short\n",toolong,tooshort);
+    printf("\n%"PRIu64" events were too long\n%"PRIu64" events were too short\n%"PRIu64" events will be processed using stepResponse fitting\n",toolong,tooshort,stepresponse);
+    fprintf(logfile,"\n%"PRIu64" events were too long\n%"PRIu64" events were too short\n%"PRIu64" events will be processed using stepResponse fitting\n",toolong,tooshort,stepresponse);
 }
 
 void assign_cusum_levels(event *current, uint64_t subevent_minpoints, double cusum_minstep)

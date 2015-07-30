@@ -449,6 +449,10 @@ void read_config(configuration *config, FILE *logfile)
         {
             config->refine_estimates = strtol(value,NULL,10);
         }
+        else if (strcmp(name,"stepfit_samples") == 0)
+        {
+            config->stepfit_samples = strtol(value,NULL,10);
+        }
 
     }
     fprintf(logfile, "<----CONFIGURATION ENDS---->\n\n");

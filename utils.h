@@ -9,6 +9,14 @@
 #define EPS 1e-50
 #define STRLENGTH 1024
 #define HEAD -1000
+#define STEPRESPONSE 1
+#define CUSUM 0
+#define BADBASELINE -1
+#define TOOLONG -2
+#define TOOSHORT -3
+#define BADLEVELS -4
+#define BADTRACE -5
+#define BADFIT -6
 
 struct Butterworth
 {
@@ -113,6 +121,7 @@ struct Configuration
     double cusum_delta;
     double cusum_minstep;
     int refine_estimates;
+    uint64_t stepfit_samples;
 
     int datatype;
 

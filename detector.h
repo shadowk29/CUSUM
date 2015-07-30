@@ -12,13 +12,7 @@
 #define HISTOGRAM 0
 #define FIRST_DERIV 1
 #define SCND_DERIV 2
-#define STEPRESPONSE 1
-#define CUSUM 0
-#define BADBASELINE -1
-#define TOOLONG -2
-#define TOOSHORT -3
-#define BADLEVELS -4
-#define BADTRACE -5
+
 
 
 void populate_all_levels(event *current);
@@ -27,7 +21,7 @@ void populate_event_levels(event *current);
 
 void filter_signal(double *signal, double *filtered, butterworth *lpfilter, uint64_t length);
 
-void filter_event_length(event *current, uint64_t maxpoints, uint64_t minpoints, FILE *logfile);
+void filter_event_length(event *current, uint64_t maxpoints, uint64_t minpoints, FILE *logfile, uint64_t stepfit_samples);
 void detect_subevents(event *current_event, double delta, double minthreshold, double maxthreshold, uint64_t subevent_minpoints);
 uint64_t locate_min(double *signal, uint64_t length);
 

@@ -92,7 +92,7 @@ int stepResponse(event *current, double risetime, uint64_t maxiters)
     const gsl_multifit_fdfsolver_type *T;
     gsl_multifit_fdfsolver *s;
     int status = GSL_CONTINUE;
-    uint64_t iter = 0;
+    uint64_t i,iter = 0;
     uint64_t p = 7;
     uint64_t n = current->length + current->padding_before + current->padding_after;
     gsl_matrix *covar = gsl_matrix_alloc (p, p);
@@ -141,24 +141,36 @@ int stepResponse(event *current, double risetime, uint64_t maxiters)
     double b = FIT(4);
     uint64_t u2 = (uint64_t) FIT(5);
 
-    gsl_multifit_covar (s->J, 0.0, covar);
-
-    double chi = gsl_blas_dnrm2(s->f);
-    double dof = n - p;
-    double c = GSL_MAX_DBL(1, chi / sqrt(dof));
-
-    printf("chisq/dof = %g\n",  pow(chi, 2.0) / dof);
-
-    printf ("i0      = %.5f +/- %.5f\n", FIT(0), c*ERR(0));
-    printf ("a = %.5f +/- %.5f\n", FIT(1), c*ERR(1));
-    printf ("u1      = %.5f +/- %.5f\n", FIT(2), c*ERR(2));
-    printf ("tau1      = %.5f +/- %.5f\n", FIT(3), c*ERR(3));
-    printf ("b      = %.5f +/- %.5f\n", FIT(4), c*ERR(4));
-    printf ("u2      = %.5f +/- %.5f\n", FIT(5), c*ERR(5));
-    printf ("tau2      = %.5f +/- %.5f\n", FIT(6), c*ERR(6));
-
-
-    printf ("status = %s\n", gsl_strerror (status));
+    if (u1 > u2) //if the fit got stuck in a variable swapped equivalent minimum, we can just reverse the paramters
+    {
+        printf("Backwards fit, swapping\n");
+        uint64_t temp;
+        double dtemp;
+        temp = u1;
+        u1 = u2;
+        u2 = temp;
+        dtemp = a;
+        a = -b;
+        b = -dtemp;
+    }
+    if (u2 > n || u1 <= 0) //if for some reason we are out of range
+    {
+        printf("Fitting error, discarding\n");
+        current->type = BADFIT;
+        return BADFIT;
+    }
+    for (i=0; i<u1; i++) //if all went well, populate the filtered trace
+    {
+        current->filtered_signal[i] = i0;
+    }
+    for (i=u1; i<u2; i++)
+    {
+        current->filtered_signal[i] = i0-a;
+    }
+    for (i=u2; i<n; i++)
+    {
+        current->filtered_signal[i] = i0-a+b;
+    }
 
     gsl_multifit_fdfsolver_free (s);
     gsl_matrix_free (covar);

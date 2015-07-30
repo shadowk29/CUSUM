@@ -109,6 +109,7 @@ int main()
     double cusum_max_threshold;
     uint64_t subevent_minpoints;
     int refine_estimates;
+    uint64_t stepfit_samples;
 
     cusum_delta = config->cusum_delta;
     cusum_minstep = config->cusum_minstep;
@@ -116,7 +117,7 @@ int main()
     cusum_max_threshold = config->cusum_max_threshold;
     subevent_minpoints = config->subevent_minpoints;
     refine_estimates = config->refine_estimates;
-
+    stepfit_samples = config->stepfit_samples;
     //event requirement paramaters
     uint64_t maxpoints;
     uint64_t minpoints;
@@ -283,7 +284,7 @@ int main()
 
     printf("Filtering on event length... ");
     fprintf(logfile, "Filtering on event length... ");
-    filter_event_length(current_event, maxpoints, minpoints, logfile); //divide by type CUSUM and type STEPRESPONSE based on length
+    filter_event_length(current_event, maxpoints, minpoints, logfile, stepfit_samples); //divide by type CUSUM and type STEPRESPONSE based on length
     current_event = head_event;
     printf("Finished\n\n");
     fprintf(logfile, "Finished\n\n");
@@ -346,7 +347,7 @@ int main()
 
         printf("Filtering on refined event length... ");
         fprintf(logfile, "Filtering on refined event length... ");
-        filter_event_length(current_event, maxpoints, minpoints, logfile);
+        filter_event_length(current_event, maxpoints, minpoints, logfile, stepfit_samples);
         current_event = head_event;
         printf("Finished\n\n");
         fprintf(logfile, "Finished\n\n");
