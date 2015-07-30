@@ -482,19 +482,12 @@ void event_area(event *current_event, double timestep)
 
     double baseline = 0.5 * (current_event->baseline_before + current_event->baseline_after);
 
-    if (current_event->type != 0)
+    for (i=padding; i<padding+length; i++)
     {
-        current_event->area = 0;
+        area += (signal[i] - baseline) * timestep;
     }
-    else
-    {
-        for (i=padding; i<padding+length; i++)
-        {
-            area += (signal[i] - baseline) * timestep;
-        }
-        current_event->area = d_abs(area);
-        current_event->average_blockage = current_event->area/(current_event->length*timestep);
-    }
+    current_event->area = d_abs(area);
+    current_event->average_blockage = current_event->area/(current_event->length*timestep);
 }
 
 void assign_event_areas(event *current_event, double timestep)
