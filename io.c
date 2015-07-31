@@ -102,9 +102,11 @@ Max Blockage (pA),\
 Relative Max Blockage,\
 Max Blockage Length (us),\
 Num Levels,\
+RCConst1 (us),\
+RCConst2 (us),\
 Level Current (pA),\
 Level Length (us),\
-Blockages (pA) \n");
+Blockages (pA)\n");
     while (current)
     {
         if (current->type == CUSUM || current->type == STEPRESPONSE)
@@ -125,7 +127,9 @@ Blockages (pA) \n");
                     %g,\
                     %g,\
                     %g,\
-                    %d,",\
+                    %d,\
+                    %g,\
+                    %g,",\
                     current->index, \
                     current->type, \
                     current->start * timestep, \
@@ -141,7 +145,9 @@ Blockages (pA) \n");
                     current->max_blockage, \
                     d_abs(current->max_blockage / (0.5 * (current->baseline_before + current->baseline_after))), \
                     current->max_length * timestep * 1e6, \
-                    current->numlevels);
+                    current->numlevels, \
+                    current->rc1 * timestep * 1e6, \
+                    current->rc2 * timestep * 1e6);
             lasttime = current->start;
             while (level)
             {

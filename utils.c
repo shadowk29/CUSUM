@@ -195,6 +195,9 @@ event *initialize_events(void)
         abort();
     }
     head->type = 0;
+    head->threshold = 0;
+    head->rc1 = 0;
+    head->rc2 = 0;
     head->index = HEAD;
     head->signal = NULL;
     head->filtered_signal = NULL;
@@ -213,6 +216,9 @@ event *add_event(event *current, uint64_t start, uint64_t finish)
         current->start = start;
         current->finish = finish;
         current->length = finish-start;
+        current->threshold = 0;
+        current->rc1 = 0;
+        current->rc2 = 0;
         current->first_edge = NULL;
         current->first_level = NULL;
         current->next = NULL;

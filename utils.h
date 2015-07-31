@@ -67,6 +67,8 @@ struct Event
     uint64_t padding_after;
     int numlevels;
     double threshold;
+    double rc1;
+    double rc2;
     struct Edge *first_edge;
     struct Cusumlevel *first_level;
     struct Event *next;

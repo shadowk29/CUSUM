@@ -135,8 +135,10 @@ int step_response(event *current, double risetime, uint64_t maxiters)
     double i0 = FIT(0);
     double a = FIT(1);
     uint64_t u1 = (uint64_t) FIT(2);
+    double rc1 = FIT(3);
     double b = FIT(4);
     uint64_t u2 = (uint64_t) FIT(5);
+    double rc2 = FIT(6);
 
     //printf("i0 = %g\na=%g\nu1=%"PRIu64"\nb=%g\nu2=%"PRIu64"\n",i0,a,u1,b,u2);
 
@@ -150,6 +152,9 @@ int step_response(event *current, double risetime, uint64_t maxiters)
         dtemp = a;
         a = -b;
         b = -dtemp;
+        dtemp = rc1;
+        rc1 = rc2;
+        rc2 = dtemp;
     }
     if (u2 > n || u1 <= 0) //if for some reason we are out of range
     {
@@ -168,7 +173,8 @@ int step_response(event *current, double risetime, uint64_t maxiters)
     {
         current->filtered_signal[i] = i0-a+b;
     }
-    current->threshold = 0;
+    current->rc1 = rc1;
+    current->rc2 = rc2;
 
     gsl_multifit_fdfsolver_free (s);
     gsl_matrix_free (covar);
