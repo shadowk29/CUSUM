@@ -326,6 +326,7 @@ void export_trace(double *signal, uint64_t length, char *file, double timestep, 
     fclose(output);
 }
 
+
 void read_config(configuration *config, FILE *logfile)
 {
     char configline[STRLENGTH];
@@ -486,7 +487,10 @@ void print_error_summary(event *current, FILE *logfile)
         total++;
         switch (current->type)
         {
-            case (CUSUM || STEPRESPONSE):
+            case CUSUM:
+                good++;
+                break;
+            case STEPRESPONSE:
                 good++;
                 break;
             case BADBASELINE:

@@ -128,8 +128,7 @@ int step_response(event *current, double risetime, uint64_t maxiters)
         {
             break;
         }
-        status = gsl_multifit_test_delta (s->dx, s->x,
-                                        1e-4, 1e-4);
+        status = gsl_multifit_test_delta (s->dx, s->x,1e-4, 1e-4);
     }
 
 
@@ -169,6 +168,7 @@ int step_response(event *current, double risetime, uint64_t maxiters)
     {
         current->filtered_signal[i] = i0-a+b;
     }
+    current->threshold = 0;
 
     gsl_multifit_fdfsolver_free (s);
     gsl_matrix_free (covar);
