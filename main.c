@@ -1,7 +1,7 @@
 /*
 
                                 COPYRIGHT
-    Copyright 2015 Kyle Briggs <kbrig035@uottawa.ca>
+    Copyright (C) 2015 Kyle Briggs (kbrig035<at>uottawa.ca)
 
     This file is part of CUSUM.
 
@@ -18,7 +18,6 @@
     You should have received a copy of the GNU General Public License
     along with CUSUM.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 
 #include"io.h"
 #include"utils.h"

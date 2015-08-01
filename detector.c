@@ -1,7 +1,7 @@
 /*
 
                                 COPYRIGHT
-    Copyright 2015 Kyle Briggs <kbrig035@uottawa.ca>
+    Copyright (C) 2015 Kyle Briggs (kbrig035<at>uottawa.ca)
 
     This file is part of CUSUM.
 
