@@ -192,7 +192,7 @@ int main()
     fprintf(logfile, "Locating events...\n ");
     for (pos = start; pos < finish; pos += read)
     {
-        progressbar(pos,finish);
+        progressbar(pos-start,finish-start);
         if (datatype == 64)
         {
             read = read_current(input, signal, pos, intmin(readlength,finish - pos));
