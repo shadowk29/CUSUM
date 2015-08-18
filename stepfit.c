@@ -100,11 +100,11 @@ int step_response(event *current, double risetime, uint64_t maxiters)
     gsl_multifit_function_fdf f;
 
     gsl_vector *x = gsl_vector_alloc(p);
-    gsl_vector_set(x,0,current->signal[0]);
-    gsl_vector_set(x,1,current->signal[current->padding_before + current->length/2]-current->signal[0]);
+    gsl_vector_set(x,0,signal_average(current->signal,current->padding_before));
+    gsl_vector_set(x,1,signal_average(&current->signal[current->padding_before],current->length)-signal_average(current->signal,current->padding_before));
     gsl_vector_set(x,2,current->padding_before);
     gsl_vector_set(x,3,risetime);
-    gsl_vector_set(x,4,current->signal[current->padding_before + current->length/2]-current->signal[0]);
+    gsl_vector_set(x,4,signal_average(&current->signal[current->padding_before],current->length)-signal_average(current->signal,current->padding_before));
     gsl_vector_set(x,5,current->padding_before + current->length);
     gsl_vector_set(x,6,risetime);
 

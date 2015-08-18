@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <inttypes.h>
 #include"utils.h"
+#include"detector.h"
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_blas.h>
 #include <gsl/gsl_multifit_nlin.h>
