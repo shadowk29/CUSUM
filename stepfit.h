@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <inttypes.h>
+#include<math.h>
 #include"utils.h"
 #include"detector.h"
 #include <gsl/gsl_vector.h>
