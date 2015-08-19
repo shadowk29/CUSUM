@@ -113,7 +113,7 @@ int step_response(event *current, double risetime, uint64_t maxiters)
     double minsignal = signal_min(current->signal, current->length + current->padding_before + current->padding_after);
     double baseline = signal_average(current->signal,current->padding_before);
     int sign = signum(baseline);
-    uint64_t start = current->padding_before - intmin(current->length/2, current->padding_before/2);
+    uint64_t start = current->padding_before - intmin(current->length/2, current->padding_before/4);
     uint64_t end = current->padding_before+current->length;
 
 
@@ -141,7 +141,7 @@ int step_response(event *current, double risetime, uint64_t maxiters)
     gsl_vector_set(x,2,start);
     gsl_vector_set(x,3,risetime);
     gsl_vector_set(x,4,sign < 0 ? maxsignal - minsignal: minsignal - maxsignal);
-    gsl_vector_set(x,5,end);
+    gsl_vector_set(x,5,end - current->length/2);
     gsl_vector_set(x,6,risetime);
 
 
@@ -164,7 +164,7 @@ int step_response(event *current, double risetime, uint64_t maxiters)
         {
             break;
         }
-        status = gsl_multifit_test_delta (s->dx, s->x,1e-4, 1e-4);
+        status = gsl_multifit_test_delta (s->dx, s->x,1e-3, 1e-3);
     }
 
 
