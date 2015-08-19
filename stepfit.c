@@ -215,6 +215,7 @@ int step_response(event *current, double risetime, uint64_t maxiters)
     gsl_multifit_fdfsolver_free (s);
     gsl_matrix_free (covar);
     gsl_vector_free(x);
+    free(weight);
     return status;
 }
 
