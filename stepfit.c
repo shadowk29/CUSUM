@@ -113,18 +113,18 @@ int step_response(event *current, double risetime, uint64_t maxiters)
     double minsignal = signal_min(current->signal, current->length + current->padding_before + current->padding_after);
     double baseline = signal_average(current->signal,current->padding_before);
     int sign = signum(baseline);
-    int64_t start = current->padding_before - intmin(current->length/2, current->padding_before/2);
-    int64_t end = current->padding_before+current->length;
+    uint64_t start = current->padding_before - intmin(current->length/2, current->padding_before/2);
+    uint64_t end = current->padding_before+current->length;
 
 
 
     for (i=0; i<n; i++)
     {
-        if (i < current->padding_before)
+        if (i < start)
         {
             weight[i] = 1;
         }
-        else if (i < current->padding_before + current->length)
+        else if (i < end)
         {
             weight[i] = 0.3;
         }
