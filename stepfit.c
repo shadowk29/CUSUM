@@ -24,6 +24,7 @@ int expb_f (const gsl_vector * x, void *data, gsl_vector * f)
 {
     uint64_t n = ((struct data *)data)->n;
     double *y = ((struct data *)data)->y;
+    double *weight = ((struct data *)data)->weight;
 
     double i0 = gsl_vector_get (x, 0);
     double a = gsl_vector_get (x, 1);
@@ -45,7 +46,7 @@ int expb_f (const gsl_vector * x, void *data, gsl_vector * f)
         {
             Yi += b*(1-exp(-(t-u2)/tau2));
         }
-        gsl_vector_set (f, i, (Yi - y[i]));
+        gsl_vector_set (f, i, (Yi - y[i])/weight[i]);
     }
     return GSL_SUCCESS;
 }
@@ -53,7 +54,7 @@ int expb_f (const gsl_vector * x, void *data, gsl_vector * f)
 int expb_df (const gsl_vector * x, void *data, gsl_matrix * J)
 {
     uint64_t n = ((struct data *)data)->n;
-
+    double *weight = ((struct data *)data)->weight;
     double a = gsl_vector_get (x, 1);
     double u1 = gsl_vector_get (x, 2);
     double tau1 = gsl_vector_get (x, 3);
@@ -66,7 +67,7 @@ int expb_df (const gsl_vector * x, void *data, gsl_matrix * J)
     for (i = 0; i < n; i++)
     {
         double t = i;
-        double s = 1;
+        double s = weight[i];
         gsl_matrix_set (J, i, 0, 1);
         gsl_matrix_set (J, i, 1, t < u1 ? 0 : 1/s*(exp(-(t-u1)/tau1)-1));
         gsl_matrix_set (J, i, 2, t < u1 ? 0 : 1/s*(a/tau1 * exp(-(t-u1)/tau1)));
@@ -95,17 +96,52 @@ int step_response(event *current, double risetime, uint64_t maxiters)
     uint64_t i,iter = 0;
     uint64_t p = 7;
     uint64_t n = current->length + current->padding_before + current->padding_after;
+    double *weight;
+    if ((weight = malloc(n*sizeof(double)))==NULL)
+    {
+        printf("Cannot allocate error array\n");
+        abort();
+    }
+
     gsl_matrix *covar = gsl_matrix_alloc (p, p);
-    struct data d = {n, current->signal};
+
     gsl_multifit_function_fdf f;
 
+
+
+    double maxsignal = signal_max(current->signal, current->length + current->padding_before + current->padding_after);
+    double minsignal = signal_min(current->signal, current->length + current->padding_before + current->padding_after);
+    double baseline = signal_average(current->signal,current->padding_before);
+    int sign = signum(baseline);
+    int64_t start = current->padding_before/2;
+    int64_t end = current->padding_before+current->length/2;
+
+
+
+    for (i=0; i<n; i++)
+    {
+        if (i < current->padding_before)
+        {
+            weight[i] = 1;
+        }
+        else if (i < current->padding_before + current->length)
+        {
+            weight[i] = 0.1;
+        }
+        else
+        {
+            weight[i] = 1;
+        }
+    }
+    struct data d = {n, current->signal,weight};
+
     gsl_vector *x = gsl_vector_alloc(p);
-    gsl_vector_set(x,0,signal_average(current->signal,current->padding_before));
-    gsl_vector_set(x,1,signal_average(&current->signal[current->padding_before],current->length)-signal_average(current->signal,current->padding_before));
-    gsl_vector_set(x,2,current->padding_before);
+    gsl_vector_set(x,0,baseline);
+    gsl_vector_set(x,1,sign < 0 ? maxsignal - minsignal: minsignal - maxsignal);
+    gsl_vector_set(x,2,start);
     gsl_vector_set(x,3,risetime);
-    gsl_vector_set(x,4,signal_average(&current->signal[current->padding_before],current->length)-signal_average(current->signal,current->padding_before));
-    gsl_vector_set(x,5,current->padding_before + current->length);
+    gsl_vector_set(x,4,sign < 0 ? maxsignal - minsignal: minsignal - maxsignal);
+    gsl_vector_set(x,5,end);
     gsl_vector_set(x,6,risetime);
 
 

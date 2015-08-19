@@ -16,6 +16,7 @@
 struct data {
     uint64_t n;
     double *y;
+    double *weight;
 };
 
 int expb_f (const gsl_vector * x, void *data, gsl_vector * f);
