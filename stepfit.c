@@ -126,7 +126,7 @@ int step_response(event *current, double risetime, uint64_t maxiters)
         }
         else if (i < current->padding_before + current->length)
         {
-            weight[i] = 0.1;
+            weight[i] = 0.3;
         }
         else
         {
