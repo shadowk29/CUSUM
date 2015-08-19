@@ -541,7 +541,7 @@ void event_baseline(event *current_event, double baseline_min, double baseline_m
 
 
     stdev = sqrt(signal_variance(signal, baseline_before_length));
-    if (d_abs(baseline_before - baseline_after) > 1.5 * stdev || baseline_before > baseline_max || baseline_after > baseline_max || baseline_before < baseline_min || baseline_after < baseline_min)
+    if (d_abs(baseline_before - baseline_after) > 2.5 * stdev || baseline_before > baseline_max || baseline_after > baseline_max || baseline_before < baseline_min || baseline_after < baseline_min)
     {
         current_event->type = BADBASELINE;
     }
