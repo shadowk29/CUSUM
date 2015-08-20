@@ -88,7 +88,7 @@ int expb_fdf (const gsl_vector * x, void *data, gsl_vector * f, gsl_matrix * J)
 }
 
 
-int step_response(event *current, double risetime, uint64_t maxiters)
+int step_response(event *current, double risetime, uint64_t maxiters, double minstep)
 {
     const gsl_multifit_fdfsolver_type *T;
     gsl_multifit_fdfsolver *s;
@@ -192,6 +192,14 @@ int step_response(event *current, double risetime, uint64_t maxiters)
         rc1 = rc2;
         rc2 = dtemp;
     }
+    if (signum(a) != signum(b)) //if it is not a step-and-return event
+    {
+        current->type = BADFIT;
+    }
+    if (d_abs(b) < minstep || d_abs(b) < minstep) //if it is not a step-and-return event
+    {
+        current->type = BADFIT;
+    }
     if (u2 > n || u1 <= 0) //if for some reason we are out of range
     {
         current->type = BADFIT;
@@ -212,6 +220,8 @@ int step_response(event *current, double risetime, uint64_t maxiters)
     current->rc1 = rc1;
     current->rc2 = rc2;
 
+
+
     gsl_multifit_fdfsolver_free (s);
     gsl_matrix_free (covar);
     gsl_vector_free(x);
@@ -219,7 +229,7 @@ int step_response(event *current, double risetime, uint64_t maxiters)
     return status;
 }
 
-void step_response_events(event *current, double risetime, uint64_t maxiters)
+void step_response_events(event *current, double risetime, uint64_t maxiters, double minstep)
 {
     event *head = current;
     uint64_t numevents = 0;
@@ -235,7 +245,7 @@ void step_response_events(event *current, double risetime, uint64_t maxiters)
         progressbar(current->index, numevents);
         if (current->type == STEPRESPONSE)
         {
-            status = step_response(current, risetime, maxiters);
+            status = step_response(current, risetime, maxiters, minstep);
             if (status != GSL_SUCCESS)
             {
                 current->type = BADFIT;

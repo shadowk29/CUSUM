@@ -320,7 +320,7 @@ int main()
     //stepresponse function called - make sure no cusum overlap remains
     printf("Fitting short events...\n");
     fprintf(logfile, "Fitting short events...");
-    step_response_events(current_event, risetime, maxiters);
+    step_response_events(current_event, risetime, maxiters, cusum_minstep);
     current_event = head_event;
     printf("\nFinished\n\n");
     fprintf(logfile, "\nFinished\n\n");
