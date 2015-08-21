@@ -137,7 +137,6 @@ int main()
             abort();
         }
     }
-
     //allocate memory for file reading
     double *signal;
     if ((signal = (double *) calloc(readlength,sizeof(double)))==NULL)
@@ -190,6 +189,7 @@ int main()
     fprintf(logfile, "<----RUN LOG BEGINS---->\n\n");
     printf("Locating events... \n");
     fprintf(logfile, "Locating events...\n ");
+    fflush(stdout);
     for (pos = start; pos < finish; pos += read)
     {
         progressbar(pos-start,finish-start);

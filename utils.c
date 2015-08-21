@@ -328,30 +328,25 @@ butterworth *initialize_filter(butterworth *lpfilter, uint64_t order, double cut
         printf("Cannot allocate filter memory\n");
         abort();
     }
-
     lpfilter->dcof = NULL;
     lpfilter->ccof = NULL;
     lpfilter->temp = NULL;
     lpfilter->tempback = NULL;
     lpfilter->paddedsignal = NULL;
-
     lpfilter->dcof = dcof_bwlp(order, cutoff);
     lpfilter->ccof = ccof_bwlp(order);
     lpfilter->scale = sf_bwlp(order,cutoff);
     lpfilter->order = order;
-
     if ((lpfilter->temp = calloc(length+2*order, sizeof(double)))==NULL)
     {
         printf("Cannot allocate temp filter array\n");
         abort();
     }
-
     if ((lpfilter->tempback = calloc(length+2*order, sizeof(double)))==NULL)
     {
         printf("Cannot allocate tempback array\n");
         abort();
     }
-
     if ((lpfilter->paddedsignal = calloc(length + 2*order,sizeof(double)))==NULL)
     {
         printf("Cannot allocate padded signal\n");
