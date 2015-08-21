@@ -371,7 +371,7 @@ void read_config(configuration *config, FILE *logfile)
         {
             config->samplingfreq = strtoull(value,NULL,10);
         }
-        else if (strcmp(name,"order") == 0)
+        else if (strcmp(name,"poles") == 0)
         {
             config->order = strtoull(value,NULL,10);
         }
