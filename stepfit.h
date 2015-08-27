@@ -12,7 +12,7 @@
 #include <gsl/gsl_multifit_nlin.h>
 #define FIT(i) gsl_vector_get(s->x, i)
 #define ERR(i) sqrt(gsl_matrix_get(covar,i,i))
-
+//test
 struct data {
     uint64_t n;
     double *y;
