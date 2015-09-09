@@ -55,6 +55,7 @@ int main()
 
 
     //file reading variables
+    uint64_t i;
     uint64_t read;
     uint64_t pos;
     uint64_t start;
@@ -78,14 +79,14 @@ int main()
     double baseline_min;
     double baseline_max;
     int event_direction;
-    //double binsize;
+    double binsize;
 
     threshold = config->threshold;
     hysteresis = config->hysteresis;
     event_direction = config->event_direction;
     baseline_min = config->baseline_min;
     baseline_max = config->baseline_max;
-    //binsize = config->binsize;
+    binsize = config->binsize;
 
     //low-pass filter parameters
     uint64_t order;
@@ -153,14 +154,14 @@ int main()
 
 
 
-    /*histostruct *histogram;
+    histostruct *histogram;
     if ((histogram = malloc(sizeof(histostruct)))==NULL)
     {
         printf("cannot allocate histogram structure\n");
         abort();
     }
     histogram->histogram = NULL;
-    histogram->numbins = 0;*/
+    histogram->numbins = 0;
 
     //find out how big the file is for use in a progressbar
     uint64_t filesize = get_filesize(input, datatype);
@@ -207,13 +208,14 @@ int main()
             endflag = 1;
         }
 
-        //baseline = build_histogram(signal, histogram, read, binsize, baseline_max, baseline_min);
+
 
 
         if (usefilter)
         {
             filter_signal(signal, filtered, lpfilter, read);
-            baseline = baseline_averaging(filtered, read, baseline_min, baseline_max);
+            //baseline = baseline_averaging(filtered, read, baseline_min, baseline_max);
+            baseline = build_histogram(filtered, histogram, read, binsize, baseline_max, baseline_min);
             if (baseline < baseline_min || baseline > baseline_max)
             {
                 badbaseline += read;
@@ -233,7 +235,8 @@ int main()
         }
         else
         {
-            baseline = baseline_averaging(signal, read, baseline_min, baseline_max);
+            //baseline = baseline_averaging(signal, read, baseline_min, baseline_max);
+            baseline = build_histogram(signal, histogram, read, binsize, baseline_max, baseline_min);
             if (baseline < baseline_min || baseline > baseline_max)
             {
                 badbaseline += read;
@@ -408,12 +411,12 @@ int main()
     fprintf(logfile, "Cleaning up memory usage...\n");
     free_events(head_event);
     free_edges(head_edge);
-    /*for (i=0; i<histogram->numbins; i++)
+    for (i=0; i<histogram->numbins; i++)
     {
         free(histogram->histogram[i]);
     }
     free(histogram->histogram);
-    free(histogram);*/
+    free(histogram);
     fclose(input);
     free(config);
     free(signal);

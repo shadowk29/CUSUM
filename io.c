@@ -86,27 +86,27 @@ void print_events(event *current, double timestep)
     }
     uint64_t lasttime = 0;
 
-    fprintf(events,"Index,\
-Type,\
-Start Time (s),\
-Time Since Last (s),\
-Length (us),\
-Threshold ,\
-Baseline Before (pA),\
-Baseline After,\
-Effective Baseline,\
-Area (pC),\
-Average Blockage (pA),\
-Relative Average Blockage (pA) ,\
-Max Blockage (pA),\
-Relative Max Blockage,\
-Max Blockage Length (us),\
-Num Levels,\
-RCConst1 (us),\
-RCConst2 (us),\
-Level Current (pA),\
-Level Length (us),\
-Blockages (pA)\n");
+    fprintf(events,"id,\
+type,\
+start_time_s,\
+event_delay_s,\
+duration_us,\
+threshold,\
+baseline_before_pA,\
+baseline_after_pA,\
+effective_baseline_pA,\
+area_pC,\
+average_blockage_pA,\
+relative_average_blockage,\
+max_blockage_pA,\
+relative_max_blockage,\
+max_blockage_duration_us,\
+n_levels,\
+rc_const1_us,\
+rc_const2_us,\
+level_current_pA,\
+level_duration_us,\
+blockages_pA\n");
     while (current)
     {
         if (current->type == CUSUM || current->type == STEPRESPONSE)
