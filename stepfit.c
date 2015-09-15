@@ -170,10 +170,10 @@ int step_response(event *current, double risetime, uint64_t maxiters, double min
 
     double i0 = FIT(0);
     double a = FIT(1);
-    uint64_t u1 = (uint64_t) FIT(2);
+    uint64_t u1 = FIT(2);
     double rc1 = FIT(3);
     double b = FIT(4);
-    uint64_t u2 = (uint64_t) FIT(5);
+    uint64_t u2 = FIT(5);
     double rc2 = FIT(6);
     double residual = 0;
 
