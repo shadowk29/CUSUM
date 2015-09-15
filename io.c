@@ -231,11 +231,11 @@ void print_signal(event *current, int length, char *filename, double timestep)
         for (i=0; i<length; i++)
         {
             stepfit = current->first_level->current;
-            if (i > u1)
+            if (i >= u1)
             {
-                stepfit += (current->first_level->current-current->first_level->next->current)*(exp(-(i-u1)/current->rc1)-1);
+                stepfit -= (current->first_level->current-current->first_level->next->current)*(1-exp(-(i-u1)/current->rc1));
             }
-            if (i > u2)
+            if (i >= u2)
             {
                 stepfit += (current->first_level->next->next->current-current->first_level->next->current)*(1-exp(-(i-u2)/current->rc2));
             }
