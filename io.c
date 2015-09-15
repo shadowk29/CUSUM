@@ -104,6 +104,7 @@ max_blockage_duration_us,\
 n_levels,\
 rc_const1_us,\
 rc_const2_us,\
+residual_pA,\
 level_current_pA,\
 level_duration_us,\
 blockages_pA\n");
@@ -129,6 +130,7 @@ blockages_pA\n");
                     %g,\
                     %d,\
                     %g,\
+                    %g,\
                     %g,",\
                     current->index, \
                     current->type, \
@@ -147,7 +149,8 @@ blockages_pA\n");
                     current->max_length * timestep * 1e6, \
                     current->numlevels, \
                     current->rc1 * timestep * 1e6, \
-                    current->rc2 * timestep * 1e6);
+                    current->rc2 * timestep * 1e6, \
+                    current->residual);
             lasttime = current->start;
             while (level)
             {

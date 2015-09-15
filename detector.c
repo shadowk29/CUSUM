@@ -136,6 +136,7 @@ void average_cusum_levels(event *current, uint64_t subevent_minpoints, double cu
     uint64_t anchor = 0;
     uint64_t prev_anchor = anchor;
     double average;
+    double residual = 0;
     uint64_t totallength = current->length + current->padding_before + current->padding_after;
     while (current_edge)
     {
@@ -156,13 +157,16 @@ void average_cusum_levels(event *current, uint64_t subevent_minpoints, double cu
         anchor = current_edge->location;
         current_edge = current_edge->next;
     }
+    residual = (current->signal[0]-current->filtered_signal[0])*(current->signal[0]-current->filtered_signal[0]);
     for (j=1; j<totallength; j++)
     {
         if (signum(current->filtered_signal[j] - current->filtered_signal[j-1]) != 0)
         {
             nStates++;
         }
+        residual += (current->signal[j]-current->filtered_signal[j])*(current->signal[j]-current->filtered_signal[j]);
     }
+    current->residual = sqrt(residual / totallength);
     nStates++;
     if (nStates < 3)
     {

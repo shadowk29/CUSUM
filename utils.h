@@ -69,6 +69,7 @@ struct Event
     double threshold;
     double rc1;
     double rc2;
+    double residual;
     struct Edge *first_edge;
     struct Cusumlevel *first_level;
     struct Event *next;

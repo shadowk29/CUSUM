@@ -175,6 +175,7 @@ int step_response(event *current, double risetime, uint64_t maxiters, double min
     double b = FIT(4);
     uint64_t u2 = (uint64_t) FIT(5);
     double rc2 = FIT(6);
+    double residual = 0;
 
     //printf("i0 = %g\na=%g\nu1=%"PRIu64"\nb=%g\nu2=%"PRIu64"\n",i0,a,u1,b,u2);
 
@@ -205,20 +206,27 @@ int step_response(event *current, double risetime, uint64_t maxiters, double min
         current->type = BADFIT;
         return BADFIT;
     }
+    double t;
     for (i=0; i<u1; i++) //if all went well, populate the filtered trace
     {
         current->filtered_signal[i] = i0;
+        residual += (current->signal[i]-i0)*(current->signal[i]-i0);
     }
     for (i=u1; i<u2; i++)
     {
+        t = i;
         current->filtered_signal[i] = i0-a;
+        residual += (current->signal[i]-(i0+a*(exp(-(t-u1)/rc1)-1)))*(current->signal[i]-(i0+a*(exp(-(t-u1)/rc1)-1)));
     }
     for (i=u2; i<n; i++)
     {
+        t = i;
         current->filtered_signal[i] = i0-a+b;
+        residual += (current->signal[i]-(i0+a*(exp(-(t-u1)/rc1)-1)+b*(1-exp(-(t-u2)/rc2))))*(current->signal[i]-(i0+a*(exp(-(t-u1)/rc1)-1)+b*(1-exp(-(t-u2)/rc2))));
     }
     current->rc1 = rc1;
     current->rc2 = rc2;
+    current->residual = sqrt(residual/(current->length + current->padding_before + current->padding_after));
 
 
 
