@@ -223,9 +223,31 @@ void print_signal(event *current, int length, char *filename, double timestep)
         abort();
     }
     int i;
-    for (i=0; i<length; i++)
+    if (current->type == STEPRESPONSE)
     {
-        fprintf(output,"%g,%g,%g\n",i*timestep,current->signal[i], current->filtered_signal[i]);
+        double stepfit;
+        double u1 = current->first_level->length;
+        double u2 = u1 + current->first_level->next->length;
+        for (i=0; i<length; i++)
+        {
+            stepfit = current->first_level->current;
+            if (i > u1)
+            {
+                stepfit += (current->first_level->current-current->first_level->next->current)*(exp(-(i-u1)/current->rc1)-1);
+            }
+            if (i > u2)
+            {
+                stepfit += (current->first_level->next->next->current-current->first_level->next->current)*(1-exp(-(i-u2)/current->rc2));
+            }
+            fprintf(output,"%g,%g,%g,%g\n",i*timestep,current->signal[i], current->filtered_signal[i],stepfit);
+        }
+    }
+    else
+    {
+        for (i=0; i<length; i++)
+        {
+            fprintf(output,"%g,%g,%g\n",i*timestep,current->signal[i], current->filtered_signal[i]);
+        }
     }
     fclose(output);
 }
