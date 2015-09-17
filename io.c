@@ -70,20 +70,6 @@ void print_events(event *current, double timestep)
         printf("Cannot open event summary file\n");
         abort();
     }
-
-    FILE *cusumlevels;
-    if ((cusumlevels = fopen("output/levels.csv","w"))==NULL)
-    {
-        printf("Cannot open levels file\n");
-        abort();
-    }
-
-    FILE *blockages;
-    if ((blockages = fopen("output/blockages.csv","w"))==NULL)
-    {
-        printf("Cannot open blockages file\n");
-        abort();
-    }
     uint64_t lasttime = 0;
 
     fprintf(events,"id,\
@@ -159,8 +145,6 @@ blockages_pA\n");
                 {
                     fprintf(events,";");
                 }
-                fprintf(cusumlevels,"%g\n",level->current);
-                fprintf(blockages,"%g\n",level->current-0.5*(current->baseline_after+current->baseline_before));
                 level = level->next;
             }
             fprintf(events,",");
@@ -190,8 +174,6 @@ blockages_pA\n");
         current = current->next;
     }
     fclose(events);
-    fclose(cusumlevels);
-    fclose(blockages);
 }
 
 
