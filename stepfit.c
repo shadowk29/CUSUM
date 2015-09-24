@@ -193,19 +193,27 @@ int step_response(event *current, double risetime, uint64_t maxiters, double min
         rc1 = rc2;
         rc2 = dtemp;
     }
-    if (signum(a) != signum(b)) //if it is not a step-and-return event
-    {
-        current->type = BADFIT;
-    }
-    if (d_abs(b) < minstep || d_abs(b) < minstep) //if it is not a step-and-return event
-    {
-        current->type = BADFIT;
-    }
+
     if (u2 > n || u1 <= 0) //if for some reason we are out of range
     {
         current->type = BADFIT;
         return BADFIT;
     }
+    else if (signum(a) != signum(b)) //if it is not a step-and-return event
+    {
+        current->type = BADFIT;
+    }
+    else if (d_abs(b) < minstep || d_abs(b) < minstep) //if it is not a step-and-return event
+    {
+        current->type = BADFIT;
+    }
+    else if (signum(a) != sign || signum(b) != sign)
+    {
+        current->type = BADFIT;
+    }
+
+
+
     double t;
     for (i=0; i<u1; i++) //if all went well, populate the filtered trace
     {
