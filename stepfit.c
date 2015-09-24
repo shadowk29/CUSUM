@@ -3,6 +3,9 @@
                                 COPYRIGHT
     Copyright (C) 2015 Kyle Briggs (kbrig035<at>uottawa.ca)
 
+    This section of the code implements an algorithm used in MOSAIC,
+    which can be found here: http://usnistgov.github.io/mosaic/html/
+
     This file is part of CUSUM.
 
     This program is free software: you can redistribute it and/or modify
@@ -17,6 +20,8 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
 */
 #include "stepfit.h"
 

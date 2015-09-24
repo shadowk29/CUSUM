@@ -113,25 +113,28 @@ void filter_event_length(event *current, uint64_t maxpoints, uint64_t minpoints,
     fprintf(logfile,"\n%"PRIu64" events were too long\n%"PRIu64" events were too short\n%"PRIu64" events will be processed using stepResponse fitting\n",toolong,tooshort,stepresponse);
 }
 
-void assign_cusum_levels(event *current, uint64_t subevent_minpoints, double cusum_minstep)
+uint64_t assign_cusum_levels(event *current, uint64_t subevent_minpoints, double cusum_minstep)
 {
+    uint64_t typeswitch = 0;
     while (current)
     {
         if (current->type == 0)
         {
-            average_cusum_levels(current, subevent_minpoints, cusum_minstep);
+            typeswitch += average_cusum_levels(current, subevent_minpoints, cusum_minstep);
         }
         current = current->next;
     }
+    return typeswitch;
 }
 
-void average_cusum_levels(event *current, uint64_t subevent_minpoints, double cusum_minstep)
+uint64_t average_cusum_levels(event *current, uint64_t subevent_minpoints, double cusum_minstep)
 {
     edge *first_edge = current->first_edge;
     edge *current_edge = first_edge;
     double baseline = signal_average(current->signal, current->padding_before);
     double lastlevel = baseline;
     uint64_t j, nStates = 0;
+    uint64_t typeswitch = 0;
     int passflag = 1;
     uint64_t anchor = 0;
     uint64_t prev_anchor = anchor;
@@ -171,8 +174,10 @@ void average_cusum_levels(event *current, uint64_t subevent_minpoints, double cu
     if (nStates < 3)
     {
         current->type = STEPRESPONSE;
+        typeswitch = 1;
     }
     current_edge = first_edge;
+    return typeswitch;
 }
 
 void populate_all_levels(event *current)

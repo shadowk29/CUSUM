@@ -126,6 +126,7 @@ int main()
     uint64_t minpoints;
     maxpoints = config->event_maxpoints;
     minpoints = config->event_minpoints;
+    uint64_t typeswitch = 0;
 
     //initialize the low-pass filter and allocate necessary memory
     if (usefilter)
@@ -314,10 +315,12 @@ int main()
 
     printf("Processing subevents...");
     fprintf(logfile, "Processing subevents...");
-    assign_cusum_levels(current_event, subevent_minpoints, cusum_minstep); //only CUSUM types - if < 3 levels found (modify), assign STEPRESPONSE TYPE
+    typeswitch = assign_cusum_levels(current_event, subevent_minpoints, cusum_minstep); //only CUSUM types - if < 3 levels found (modify), assign STEPRESPONSE TYPE
     current_event = head_event;
     printf("Finished\n\n");
     fprintf(logfile, "Finished\n\n");
+    printf("CUSUM failed to find a blockage in %"PRIu64" events, which will be processed with StepResponse fitting\n",typeswitch);
+    fprintf(logfile, "CUSUM failed to find a blockage in %"PRIu64" events, which will be processed with StepResponse fitting\n",typeswitch);
     fflush(logfile);
 
     //stepresponse function called - make sure no cusum overlap remains
