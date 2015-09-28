@@ -102,7 +102,8 @@ level_duration_us,\
 blockages_pA\n");
 
 fprintf(rejected,"id,\
-type\n");
+type,\
+start_time_s\n");
     while (current)
     {
         if (current->type == CUSUM || current->type == STEPRESPONSE)
@@ -183,9 +184,11 @@ type\n");
         else
         {
             fprintf(rejected,"%"PRId64",\
-                    %d\n", \
+                    %d,\
+                    %.6f\n", \
                     current->index, \
-                    current->type);
+                    current->type, \
+                    current->start * timestep);
         }
         current = current->next;
     }
