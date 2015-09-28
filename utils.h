@@ -17,6 +17,10 @@
 #define BADLEVELS -4
 #define BADTRACE -5
 #define BADFIT -6
+#define FITRANGE -7
+#define FITSIGN -8
+#define FITSTEP -9
+#define FITDIR -10
 
 struct Butterworth
 {

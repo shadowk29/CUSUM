@@ -201,20 +201,20 @@ int step_response(event *current, double risetime, uint64_t maxiters, double min
 
     if (u2 > n || u1 <= 0) //if for some reason we are out of range
     {
-        current->type = BADFIT;
-        return BADFIT;
+        current->type = FITRANGE;
+        return FITRANGE;
     }
     else if (signum(a) != signum(b)) //if it is not a step-and-return event
     {
-        current->type = BADFIT;
+        current->type = FITSIGN;
     }
     else if (d_abs(b) < minstep || d_abs(b) < minstep) //if it is not a step-and-return event
     {
-        current->type = BADFIT;
+        current->type = FITSTEP;
     }
     else if (signum(a) != sign || signum(b) != sign)
     {
-        current->type = BADFIT;
+        current->type = FITDIR;
     }
 
 
@@ -269,7 +269,10 @@ void step_response_events(event *current, double risetime, uint64_t maxiters, do
             status = step_response(current, risetime, maxiters, minstep);
             if (status != GSL_SUCCESS)
             {
-                current->type = BADFIT;
+                if (current->type == STEPRESPONSE)
+                {
+                    current->type = BADFIT;
+                }
             }
         }
         current = current->next;

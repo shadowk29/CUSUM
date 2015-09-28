@@ -512,6 +512,10 @@ void print_error_summary(event *current, FILE *logfile)
     uint64_t badlevels = 0;
     uint64_t badtrace = 0;
     uint64_t badfit = 0;
+    uint64_t fitrange = 0;
+    uint64_t fitsign = 0;
+    uint64_t fitstep = 0;
+    uint64_t fitdir = 0;
     while (current)
     {
         total++;
@@ -545,6 +549,22 @@ void print_error_summary(event *current, FILE *logfile)
                 break;
             case BADFIT:
                 badfit++;
+                bad++;
+                break;
+            case FITRANGE:
+                fitrange++;
+                bad++;
+                break;
+            case FITSIGN:
+                fitsign++;
+                bad++;
+                break;
+            case FITSTEP:
+                fitstep++;
+                bad++;
+                break;
+            case FITDIR:
+                fitdir++;
                 bad++;
                 break;
         }
@@ -583,7 +603,12 @@ void print_error_summary(event *current, FILE *logfile)
         printf("\tYou seem to have a lot of events that do not have similar baseline before and after\n");
         printf("\tTry increasing hysteresis first, then threshold as well if that doesn't help\n");
     }
-    printf("\n%"PRIu64" (%.2f%%) were discarded because stepresponse failed to fit a single-level event\n",badfit, (100.0 * (double) badfit)/total);
+    printf("\n%"PRIu64" (%.2f%%) were discarded because stepresponse failed to fit a single-level event\n",badfit+fitrange+fitstep+fitdir+fitsign, (100.0 * (double) (badfit+fitrange+fitstep+fitdir+fitsign))/total);
+    printf("\t%"PRIu64" (%.2f%%) were discarded because fitted jump locations were out of range\n",fitrange, (100.0 * (double) fitrange)/total);
+    printf("\t%"PRIu64" (%.2f%%) were discarded because the sign of the fitted step did not match\n",fitsign, (100.0 * (double) fitsign)/total);
+    printf("\t%"PRIu64" (%.2f%%) were discarded because the fitted step was smaller than cusum_minstep\n",fitstep, (100.0 * (double) fitstep)/total);
+    printf("\t%"PRIu64" (%.2f%%) were discarded because the fitted step was in the wrong direction\n",fitdir, (100.0 * (double) fitdir)/total);
+    printf("\t%"PRIu64" (%.2f%%) were discarded because the fit failed to converge\n",badfit, (100.0 * (double) badfit)/total);
     if ((100.0 * (double) badfit)/total > 5)
     {
         printf("\tYou seem to have a lot of events that cannot be fit to a single-level event\n");
@@ -624,7 +649,12 @@ void print_error_summary(event *current, FILE *logfile)
         fprintf(logfile,"\tYou seem to have a lot of events that do not have similar baseline before and after\n");
         fprintf(logfile,"\tTry increasing hysteresis first, then threshold as well if that doesn't help\n");
     }
-    fprintf(logfile,"\n%"PRIu64" (%.2f%%) were discarded because stepresponse failed to fit a single-level event\n",badfit, (100.0 * (double) badfit)/total);
+    fprintf(logfile,"\n%"PRIu64" (%.2f%%) were discarded because stepresponse failed to fit a single-level event\n",badfit+fitrange+fitstep+fitdir+fitsign, (100.0 * (double) (badfit+fitrange+fitstep+fitdir+fitsign))/total);
+    fprintf(logfile,"\t%"PRIu64" (%.2f%%) were discarded because fitted jump locations were out of range\n",fitrange, (100.0 * (double) fitrange)/total);
+    fprintf(logfile,"\t%"PRIu64" (%.2f%%) were discarded because the sign of the fitted step did not match\n",fitsign, (100.0 * (double) fitsign)/total);
+    fprintf(logfile,"\t%"PRIu64" (%.2f%%) were discarded because the fitted step was smaller than cusum_minstep\n",fitstep, (100.0 * (double) fitstep)/total);
+    fprintf(logfile,"\t%"PRIu64" (%.2f%%) were discarded because the fitted step was in the wrong direction\n",fitdir, (100.0 * (double) fitdir)/total);
+    fprintf(logfile,"\t%"PRIu64" (%.2f%%) were discarded because the fit failed to converge\n",badfit, (100.0 * (double) badfit)/total);
     if ((100.0 * (double) badfit)/total > 5)
     {
         fprintf(logfile,"\tYou seem to have a lot of events that cannot be fit to a single-level event\n");
