@@ -574,44 +574,44 @@ void print_error_summary(event *current, FILE *logfile)
         current = current->next;
     }
     printf("\n\nError summary:\n%"PRIu64" (%.2f%%) good events and %"PRIu64" (%.2f%%) bad events\n",good, (100.0 * (double) good)/total, bad, (100.0 * (double) bad)/total);
-    printf("\n%"PRIu64" (%.2f%%) were discarded for being too short\n",tooshort, (100.0 * (double) tooshort)/total);
+    printf("\n%"PRIu64" (%.2f%%) too short (type %d)\n",tooshort, (100.0 * (double) tooshort)/total,TOOSHORT);
     if ((100.0 * (double) tooshort)/total > 5)
     {
         printf("\tYou seem to have a lot of short events\n");
         printf("\tIf you are picking up events that look like noise, try increasing threshold\n");
         printf("\tIf you have lots of short events, try reducing event_minpoints\n\n");
     }
-    printf("\n%"PRIu64" (%.2f%%) were discarded for being too long\n",toolong, (100.0 * (double) toolong)/total);
+    printf("\n%"PRIu64" (%.2f%%) too long (type %d)\n",toolong, (100.0 * (double) toolong)/total,TOOLONG);
     if ((100.0 * (double) toolong)/total > 5)
     {
         printf("\tYou seem to have a lot of long events\n");
         printf("\tIf your experiment is relatively free of clogs, try increasing event_maxpoints\n\n");
     }
-    printf("\n%"PRIu64" (%.2f%%) were discarded for having too few levels\n",badlevels, (100.0 * (double) badlevels)/total);
+    printf("\n%"PRIu64" (%.2f%%) too few levels (type %d)\n",badlevels, (100.0 * (double) badlevels)/total,BADLEVELS);
     if ((100.0 * (double) badlevels)/total > 5)
     {
         printf("\tYou seem to have a lot of events that are too short for CUSUM to process properly with the current settings\n");
         printf("\tTo simply get rid of them, try increasing event_minpoints\n");
         printf("\tTo try to process them properly, try reducing cusum_delta, reducing cusum_minstep, or reducing subevent_minpoints to increase sensitivity\n\n");
     }
-    printf("\n%"PRIu64" (%.2f%%) were discarded because the current trace could not be populated\n",badtrace, (100.0 * (double) badtrace)/total);
+    printf("\n%"PRIu64" (%.2f%%) current trace could not be populated (type %d)\n",badtrace, (100.0 * (double) badtrace)/total,BADTRACE);
     if ((100.0 * (double) badtrace)/total > 5)
     {
         printf("\tI have no idea why this number is nonzero\n");
         printf("\tCongratulations, you may have broken logic\n");
     }
-    printf("\n%"PRIu64" (%.2f%%) were discarded because the event did return to baseline\n",badbaseline, (100.0 * (double) badbaseline)/total);
+    printf("\n%"PRIu64" (%.2f%%) event did return to baseline (type %d)\n",badbaseline, (100.0 * (double) badbaseline)/total,BADBASELINE);
     if ((100.0 * (double) badbaseline)/total > 5)
     {
         printf("\tYou seem to have a lot of events that do not have similar baseline before and after\n");
         printf("\tTry increasing hysteresis first, then threshold as well if that doesn't help\n");
     }
-    printf("\n%"PRIu64" (%.2f%%) were discarded because stepresponse failed to fit a single-level event\n",badfit+fitrange+fitstep+fitdir+fitsign, (100.0 * (double) (badfit+fitrange+fitstep+fitdir+fitsign))/total);
-    printf("\t%"PRIu64" (%.2f%%) were discarded because fitted jump locations were out of range\n",fitrange, (100.0 * (double) fitrange)/total);
-    printf("\t%"PRIu64" (%.2f%%) were discarded because the sign of the fitted step did not match\n",fitsign, (100.0 * (double) fitsign)/total);
-    printf("\t%"PRIu64" (%.2f%%) were discarded because the fitted step was smaller than cusum_minstep\n",fitstep, (100.0 * (double) fitstep)/total);
-    printf("\t%"PRIu64" (%.2f%%) were discarded because the fitted step was in the wrong direction\n",fitdir, (100.0 * (double) fitdir)/total);
-    printf("\t%"PRIu64" (%.2f%%) were discarded because the fit failed to converge\n",badfit, (100.0 * (double) badfit)/total);
+    printf("\n%"PRIu64" (%.2f%%) stepresponse failed to fit a single-level event:\n",badfit+fitrange+fitstep+fitdir+fitsign, (100.0 * (double) (badfit+fitrange+fitstep+fitdir+fitsign))/total);
+    printf("\t%"PRIu64" (%.2f%%) fitted jump locations were out of range (type %d)\n",fitrange, (100.0 * (double) fitrange)/total,FITRANGE);
+    printf("\t%"PRIu64" (%.2f%%) sign of the fitted step did not match (type %d)\n",fitsign, (100.0 * (double) fitsign)/total,FITSIGN);
+    printf("\t%"PRIu64" (%.2f%%) fitted step was smaller than cusum_minstep (type %d)\n",fitstep, (100.0 * (double) fitstep)/total,FITSTEP);
+    printf("\t%"PRIu64" (%.2f%%) fitted step was in the wrong direction (type %d)\n",fitdir, (100.0 * (double) fitdir)/total,FITDIR);
+    printf("\t%"PRIu64" (%.2f%%) fit failed to converge (type %d)\n",badfit, (100.0 * (double) badfit)/total,BADFIT);
     if ((100.0 * (double) badfit)/total > 5)
     {
         printf("\tYou seem to have a lot of events that cannot be fit to a single-level event\n");
@@ -620,44 +620,44 @@ void print_error_summary(event *current, FILE *logfile)
 
 
     fprintf(logfile,"\n\nError summary:\n%"PRIu64" (%.2f%%) good events and %"PRIu64" (%.2f%%) bad events\n",good, (100.0 * (double) good)/total, bad, (100.0 * (double) bad)/total);
-    fprintf(logfile,"\n%"PRIu64" (%.2f%%) were discarded for being too short\n",tooshort, (100.0 * (double) tooshort)/total);
+    fprintf(logfile,"\n%"PRIu64" (%.2f%%) too short (type %d)\n",tooshort, (100.0 * (double) tooshort)/total,TOOSHORT);
     if ((100.0 * (double) tooshort)/total > 5)
     {
         fprintf(logfile,"\tYou seem to have a lot of short events\n");
         fprintf(logfile,"\tIf you are picking up events that look like noise, try increasing threshold\n");
         fprintf(logfile,"\tIf you have lots of short events, try reducing event_minpoints\n\n");
     }
-    fprintf(logfile,"\n%"PRIu64" (%.2f%%) were discarded for being too long\n",toolong, (100.0 * (double) toolong)/total);
+    fprintf(logfile,"\n%"PRIu64" (%.2f%%) too long (type %d)\n",toolong, (100.0 * (double) toolong)/total,TOOLONG);
     if ((100.0 * (double) toolong)/total > 5)
     {
         fprintf(logfile,"\tYou seem to have a lot of long events\n");
         fprintf(logfile,"\tIf your experiment is relatively free of clogs, try increasing event_maxpoints\n\n");
     }
-    fprintf(logfile,"\n%"PRIu64" (%.2f%%) were discarded for having too few levels\n",badlevels, (100.0 * (double) badlevels)/total);
+    fprintf(logfile,"\n%"PRIu64" (%.2f%%) too few levels (type %d)\n",badlevels, (100.0 * (double) badlevels)/total,BADLEVELS);
     if ((100.0 * (double) badlevels)/total > 5)
     {
         fprintf(logfile,"\tYou seem to have a lot of events that are too short for CUSUM to process properly with the current settings\n");
         fprintf(logfile,"\tTo simply get rid of them, try increasing event_minpoints\n");
         fprintf(logfile,"\tTo try to process them properly, try reducing cusum_delta, reducing cusum_minstep, or reducing subevent_minpoints to increase sensitivity\n\n");
     }
-    fprintf(logfile,"\n%"PRIu64" (%.2f%%) were discarded because the current trace could not be populated\n",badtrace, (100.0 * (double) badtrace)/total);
+    fprintf(logfile,"\n%"PRIu64" (%.2f%%) wcurrent trace could not be populated (type %d)\n",badtrace, (100.0 * (double) badtrace)/total,BADTRACE);
     if ((100.0 * (double) badtrace)/total > 5)
     {
         fprintf(logfile,"\tI have no idea why this number is nonzero\n");
         fprintf(logfile,"\tCongratulations, you may have broken logic\n");
     }
-    fprintf(logfile,"\n%"PRIu64" (%.2f%%) were discarded because the event did return to baseline\n",badbaseline, (100.0 * (double) badbaseline)/total);
+    fprintf(logfile,"\n%"PRIu64" (%.2f%%) event did return to baseline (type %d)\n",badbaseline, (100.0 * (double) badbaseline)/total,BADBASELINE);
     if ((100.0 * (double) badbaseline)/total > 5)
     {
         fprintf(logfile,"\tYou seem to have a lot of events that do not have similar baseline before and after\n");
         fprintf(logfile,"\tTry increasing hysteresis first, then threshold as well if that doesn't help\n");
     }
-    fprintf(logfile,"\n%"PRIu64" (%.2f%%) were discarded because stepresponse failed to fit a single-level event\n",badfit+fitrange+fitstep+fitdir+fitsign, (100.0 * (double) (badfit+fitrange+fitstep+fitdir+fitsign))/total);
-    fprintf(logfile,"\t%"PRIu64" (%.2f%%) were discarded because fitted jump locations were out of range\n",fitrange, (100.0 * (double) fitrange)/total);
-    fprintf(logfile,"\t%"PRIu64" (%.2f%%) were discarded because the sign of the fitted step did not match\n",fitsign, (100.0 * (double) fitsign)/total);
-    fprintf(logfile,"\t%"PRIu64" (%.2f%%) were discarded because the fitted step was smaller than cusum_minstep\n",fitstep, (100.0 * (double) fitstep)/total);
-    fprintf(logfile,"\t%"PRIu64" (%.2f%%) were discarded because the fitted step was in the wrong direction\n",fitdir, (100.0 * (double) fitdir)/total);
-    fprintf(logfile,"\t%"PRIu64" (%.2f%%) were discarded because the fit failed to converge\n",badfit, (100.0 * (double) badfit)/total);
+    fprintf(logfile,"\n%"PRIu64" (%.2f%%) stepresponse failed to fit a single-level event:\n",badfit+fitrange+fitstep+fitdir+fitsign, (100.0 * (double) (badfit+fitrange+fitstep+fitdir+fitsign))/total);
+    fprintf(logfile,"\t%"PRIu64" (%.2f%%) fitted jump locations were out of range (type %d)\n",fitrange, (100.0 * (double) fitrange)/total,FITRANGE);
+    fprintf(logfile,"\t%"PRIu64" (%.2f%%) sign of the fitted step did not match (type %d)\n",fitsign, (100.0 * (double) fitsign)/total,FITSIGN);
+    fprintf(logfile,"\t%"PRIu64" (%.2f%%) fitted step was smaller than cusum_minstep (type %d)\n",fitstep, (100.0 * (double) fitstep)/total,FITSTEP);
+    fprintf(logfile,"\t%"PRIu64" (%.2f%%) fitted step was in the wrong direction (type %d)\n",fitdir, (100.0 * (double) fitdir)/total,FITDIR);
+    fprintf(logfile,"\t%"PRIu64" (%.2f%%) fit failed to converge (type %d)\n",badfit, (100.0 * (double) badfit)/total,BADFIT);
     if ((100.0 * (double) badfit)/total > 5)
     {
         fprintf(logfile,"\tYou seem to have a lot of events that cannot be fit to a single-level event\n");
