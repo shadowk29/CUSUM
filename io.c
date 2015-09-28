@@ -70,6 +70,12 @@ void print_events(event *current, double timestep)
         printf("Cannot open event summary file\n");
         abort();
     }
+    FILE *rejected;
+    if ((rejected = fopen("output/rejected.csv","w"))==NULL)
+    {
+        printf("Cannot open event rejected events file\n");
+        abort();
+    }
     uint64_t lasttime = 0;
 
     fprintf(events,"id,\
@@ -94,6 +100,9 @@ residual_pA,\
 level_current_pA,\
 level_duration_us,\
 blockages_pA\n");
+
+fprintf(rejected,"id,\
+type\n");
     while (current)
     {
         if (current->type == CUSUM || current->type == STEPRESPONSE)
@@ -171,9 +180,17 @@ blockages_pA\n");
             }
             fprintf(events,"\n");
         }
+        else
+        {
+            fprintf(rejected,"%"PRId64",\
+                    %d\n", \
+                    current->index, \
+                    current->type);
+        }
         current = current->next;
     }
     fclose(events);
+    fclose(rejected);
 }
 
 
