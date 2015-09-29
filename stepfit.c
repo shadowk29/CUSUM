@@ -208,10 +208,10 @@ int step_response(event *current, double risetime, uint64_t maxiters, double min
     {
         current->type = FITSIGN;
     }
-    else if (d_abs(b) < minstep || d_abs(b) < minstep) //if it is not a step-and-return event
-    {
-        current->type = FITSTEP;
-    }
+    //else if (d_abs(b) < minstep || d_abs(b) < minstep)
+    //{
+    //    current->type = FITSTEP;
+    //}
     else if (signum(a) != sign || signum(b) != sign)
     {
         current->type = FITDIR;
