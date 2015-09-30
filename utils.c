@@ -243,6 +243,9 @@ event *add_event(event *current, uint64_t start, uint64_t finish)
         current->next->finish = finish;
         current->next->length = finish-start;
         current = current->next;
+        current->threshold = 0;
+        current->rc1 = 0;
+        current->rc2 = 0;
     }
     return current;
 }
