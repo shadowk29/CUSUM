@@ -788,6 +788,10 @@ double build_histogram(double *signal, histostruct *histogram, uint64_t length, 
     double minimum = signal_min(signal, length);
 
     double range = maximum - minimum + delta;
+    if (signum(range)==0)//garbage data, bad baseline
+    {
+        return 0;
+    }
     uint64_t numbins = range / delta;
     if (numbins == 0)
     {
