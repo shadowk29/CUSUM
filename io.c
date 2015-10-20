@@ -99,7 +99,8 @@ rc_const2_us,\
 residual_pA,\
 level_current_pA,\
 level_duration_us,\
-blockages_pA\n");
+blockages_pA,\
+stdev_pA\n");
 
 fprintf(rejected,"id,\
 type,\
@@ -173,6 +174,17 @@ start_time_s\n");
             while (level)
             {
                 fprintf(events,"%g",level->current-0.5*(current->baseline_after+current->baseline_before));
+                if (level->next)
+                {
+                    fprintf(events,";");
+                }
+                level = level->next;
+            }
+            fprintf(events,",");
+            level = current->first_level;
+            while (level)
+            {
+                fprintf(events,"%g",level->stdev);
                 if (level->next)
                 {
                     fprintf(events,";");

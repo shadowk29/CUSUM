@@ -13,8 +13,8 @@
 #define FIRST_DERIV 1
 #define SCND_DERIV 2
 
-
-
+void calculate_event_noise(event *current, uint64_t minpoints);
+void calculate_level_noise(event *current, uint64_t minpoints);
 void populate_all_levels(event *current);
 void populate_event_levels(event *current);
 

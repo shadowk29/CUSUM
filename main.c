@@ -341,6 +341,13 @@ int main()
     fprintf(logfile, "Finished\n\n");
     fflush(logfile);
 
+    printf("Assigning noise...");
+    fprintf(logfile, "Assigning noise...");
+    calculate_event_noise(current_event, subevent_minpoints);
+    current_event = head_event;
+    printf("Finished\n\n");
+    fprintf(logfile, "Finished\n\n");
+    fflush(logfile);
 
 
 

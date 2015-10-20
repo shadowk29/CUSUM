@@ -37,6 +37,7 @@ typedef struct Butterworth butterworth;
 struct Cusumlevel
 {
     double current;
+    double stdev;
     uint64_t length;
     struct Cusumlevel *next;
 };

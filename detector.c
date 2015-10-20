@@ -20,7 +20,36 @@
 */
 #include"detector.h"
 
+void calculate_event_noise(event *current, uint64_t minpoints)
+{
+    while (current)
+    {
+        if (current->type == CUSUM || current->type == STEPRESPONSE)
+        {
+            calculate_level_noise(current, minpoints);
+        }
+        current = current->next;
+    }
+}
 
+void calculate_level_noise(event *current, uint64_t minpoints)
+{
+    cusumlevel *level = current->first_level;
+    uint64_t start = minpoints;
+    while (level)
+    {
+        if (minpoints > level->length)
+        {
+            level->stdev = 0;
+        }
+        else
+        {
+            level->stdev = sqrt(signal_variance(&current->signal[start], level->length - minpoints));
+        }
+        start += level->length;
+        level = level->next;
+    }
+}
 
 
 void filter_signal(double *signal, double *filtered, butterworth *lpfilter, uint64_t length)
