@@ -613,7 +613,7 @@ void generate_trace(FILE *input, event *current, int datatype, FILE *logfile)
     }
 
 
-    padding = 100;//intmax(current->length/2,100);
+    padding = intmin(current->length,100);
     if (current->index == 0) //for the first event, we need to make sure we don't overshoot the start of the file
     {
         if (padding > current->start)

@@ -169,7 +169,7 @@ int step_response(event *current, double risetime, uint64_t maxiters, double min
         {
             break;
         }
-        status = gsl_multifit_test_delta (s->dx, s->x,1e-3, 1e-3);
+        status = gsl_multifit_test_delta (s->dx, s->x,1e-4, 1e-4);
     }
 
 
