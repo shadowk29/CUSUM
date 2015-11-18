@@ -76,8 +76,14 @@ void print_events(event *current, double timestep)
         printf("Cannot open event rejected events file\n");
         abort();
     }
+    FILE *rate;
+    if ((rate = fopen("output/rate.csv","w"))==NULL)
+    {
+        printf("Cannot open event rate events file\n");
+        abort();
+    }
     uint64_t lasttime = 0;
-
+    uint64_t lasttime_rate = 0;
     fprintf(events,"id,\
 type,\
 start_time_s,\
@@ -107,6 +113,15 @@ type,\
 start_time_s\n");
     while (current)
     {
+        fprintf(rate,"%"PRId64",\
+                %d,\
+                %.6f,\
+                %.6f\n", \
+                current->index, \
+                current->type, \
+                current->start * timestep,\
+                (current->start - lasttime_rate) * timestep);
+        lasttime_rate = current->start;
         if (current->type == CUSUM || current->type == STEPRESPONSE)
         {
             cusumlevel *level = current->first_level;
@@ -206,6 +221,7 @@ start_time_s\n");
     }
     fclose(events);
     fclose(rejected);
+    fclose(rate);
 }
 
 
