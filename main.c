@@ -111,6 +111,7 @@ int main()
     int refine_estimates;
     uint64_t stepfit_samples;
     uint64_t maxiters;
+    int attempt_recovery;
 
     cusum_delta = config->cusum_delta;
     cusum_minstep = config->cusum_minstep;
@@ -120,6 +121,7 @@ int main()
     refine_estimates = config->refine_estimates;
     stepfit_samples = config->stepfit_samples;
     maxiters = config->maxiters;
+    attempt_recovery = config->attempt_recovery;
     double risetime = 5; //FIXME
     //event requirement paramaters
     uint64_t maxpoints;
@@ -315,7 +317,7 @@ int main()
 
     printf("Processing subevents...");
     fprintf(logfile, "Processing subevents...");
-    typeswitch = assign_cusum_levels(current_event, subevent_minpoints, cusum_minstep); //only CUSUM types - if < 3 levels found (modify), assign STEPRESPONSE TYPE
+    typeswitch = assign_cusum_levels(current_event, subevent_minpoints, cusum_minstep, attempt_recovery); //only CUSUM types - if < 3 levels found (modify), assign STEPRESPONSE TYPE
     current_event = head_event;
     printf("Finished\n\n");
     fprintf(logfile, "Finished\n\n");

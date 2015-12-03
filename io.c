@@ -519,6 +519,10 @@ void read_config(configuration *config, FILE *logfile)
         {
             config->maxiters = strtol(value,NULL,10);
         }
+        else if (strcmp(name,"attempt_recovery") == 0)
+        {
+            config->attempt_recovery = strtol(value,NULL,10);
+        }
 
     }
     fprintf(logfile, "<----CONFIGURATION ENDS---->\n\n");

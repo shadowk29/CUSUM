@@ -25,8 +25,8 @@ void filter_event_length(event *current, uint64_t maxpoints, uint64_t minpoints,
 void detect_subevents(event *current_event, double delta, double minthreshold, double maxthreshold, uint64_t subevent_minpoints);
 uint64_t locate_min(double *signal, uint64_t length);
 
-uint64_t assign_cusum_levels(event *current, uint64_t subevent_minpoints, double cusum_minstep);
-uint64_t average_cusum_levels(event *current, uint64_t subevent_minpoints, double cusum_minstep);
+uint64_t assign_cusum_levels(event *current, uint64_t subevent_minpoints, double cusum_minstep, int attempt_recovery);
+uint64_t average_cusum_levels(event *current, uint64_t subevent_minpoints, double cusum_minstep, int attempt_recovery);
 void cusum(event *current_event, double delta, double minthreshold, double maxthreshold, uint64_t subevent_minpoints);
 double get_cusum_threshold(uint64_t length, double minthreshold, double maxthreshold, double sigma, double mun);
 

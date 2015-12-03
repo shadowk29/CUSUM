@@ -131,6 +131,7 @@ struct Configuration
     int refine_estimates;
     uint64_t stepfit_samples;
     uint64_t maxiters;
+    int attempt_recovery;
 
     int datatype;
 
