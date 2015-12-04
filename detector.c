@@ -202,7 +202,6 @@ uint64_t average_cusum_levels(event *current, uint64_t subevent_minpoints, doubl
     nStates++;
     if (nStates < 3)
     {
-        printf("Attempt is %d",attempt_recovery);
         if (attempt_recovery)
         {
             current->type = STEPRESPONSE;
