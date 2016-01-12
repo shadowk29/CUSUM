@@ -116,10 +116,12 @@ start_time_s\n");
         fprintf(rate,"%"PRId64",\
                 %d,\
                 %.6f,\
+                %.6f,\
                 %.6f\n", \
                 current->index, \
                 current->type, \
                 current->start * timestep,\
+                current->finish * timestep,\
                 (current->start - lasttime_rate) * timestep);
         lasttime_rate = current->start;
         if (current->type == CUSUM || current->type == STEPRESPONSE)
