@@ -571,32 +571,26 @@ void read_config(configuration *config, FILE *logfile)
         else if (strcmp(name,"SETUP_ADCSAMPLERATE") == 0)
         {
             config->daqsetup->samplerate = strtod(value,NULL);
-            printf("SETUP_ADCSAMPLERATE: %g\n",config->daqsetup->samplerate);
         }
         else if (strcmp(name,"SETUP_pAoffset") == 0)
         {
             config->daqsetup->currentoffset = strtod(value,NULL);
-            printf("SETUP_pAoffset: %g\n",config->daqsetup->currentoffset);
         }
         else if (strcmp(name,"SETUP_TIAgain") == 0)
         {
             config->daqsetup->TIAgain = strtod(value,NULL);
-            printf("SETUP_TIAgain: %g\n",config->daqsetup->TIAgain);
         }
         else if (strcmp(name,"SETUP_ADCVREF") == 0)
         {
             config->daqsetup->ADCvref = strtod(value,NULL);
-            printf("SETUP_ADCVREF: %g\n",config->daqsetup->ADCvref);
         }
         else if (strcmp(name,"SETUP_ADCBITS") == 0)
         {
             config->daqsetup->ADCbits = strtol(value,NULL,10);
-            printf("SETUP_ADCBITS: %d\n",config->daqsetup->ADCbits);
         }
         else if (strcmp(name,"SETUP_preADCgain") == 0)
         {
             config->daqsetup->preADCgain = strtod(value,NULL);
-            printf("SETUP_preADCgain: %g\n",config->daqsetup->preADCgain);
         }
 
     }
