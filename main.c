@@ -35,6 +35,11 @@ int main()
         printf("Cannot allocate config structure\n");
         abort();
     }
+    if ((config->daqsetup = malloc(sizeof(chimera)))==NULL)
+    {
+        printf("Cannot allocate chimera setup structure\n");
+        abort();
+    }
 
     FILE *logfile;
     if ((logfile = fopen64("output/summary.txt","w"))==NULL)
@@ -52,7 +57,6 @@ int main()
         printf("Cannot open input file\n");
         abort();
     }
-
 
     //file reading variables
     uint64_t i;
@@ -149,11 +153,12 @@ int main()
         abort();
     }
 
-    if (datatype != 16 && datatype != 64)
+    if (datatype != 16 && datatype != 64 && datatype !=0)
     {
-        printf("datatype currently can only be 16 or 64\n");
+        printf("datatype currently can only be 0, 16, or 64\n");
         abort();
     }
+    printf("5\n");
 
 
 
@@ -188,6 +193,8 @@ int main()
     head_event = initialize_events();
     current_event = head_event;
 
+    fflush(stdout);
+
 
 
     fprintf(logfile, "<----RUN LOG BEGINS---->\n\n");
@@ -204,6 +211,10 @@ int main()
         else if (datatype == 16)
         {
             read = read_current_int16(input, signal, pos, intmin(readlength,finish - pos));
+        }
+        else if (datatype == 0)
+        {
+            read = read_current_chimera(input, signal, pos, intmin(readlength,finish - pos), config->daqsetup);
         }
 
         if (read < config->readlength || feof(input))
@@ -430,6 +441,7 @@ int main()
     free(histogram->histogram);
     free(histogram);
     fclose(input);
+    free(config->daqsetup);
     free(config);
     free(signal);
     if (usefilter)

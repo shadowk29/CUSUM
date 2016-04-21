@@ -20,6 +20,49 @@
 */
 #include"io.h"
 
+double chimera_gain(uint64_t sample, chimera *daqsetup)
+{
+    double current = 0;
+    double closed_loop_gain = daqsetup->TIAgain*daqsetup->preADCgain;
+    uint16_t bitmask = (uint16_t) (1 << 16) - (uint16_t) ((1 << (16-daqsetup->ADCbits)) - 1);
+    sample = (uint16_t) (sample & bitmask);
+    current = daqsetup->ADCvref - (2.0 * daqsetup->ADCvref) * (double) sample / (double) (1<<16);
+    current = -current / closed_loop_gain + daqsetup->currentoffset;
+    return current * 1e12;
+}
+
+uint64_t read_current_chimera(FILE *input, double *current, uint64_t position, uint64_t length, chimera *daqsetup)
+{
+    uint64_t test;
+    uint16_t iv;
+
+    uint64_t i;
+    uint64_t read = 0;
+
+    if (fseeko64(input,(off64_t) position*sizeof(uint16_t),SEEK_SET))
+    {
+        return 0;
+    }
+
+
+    for (i = 0; i < length; i++)
+    {
+        test = fread(&iv, sizeof(uint16_t), 1, input);
+        if (test == 1)
+        {
+            read++;
+            current[i] = chimera_gain(iv, daqsetup);
+        }
+        else
+        {
+            perror("End of file reached");
+            break;
+        }
+    }
+    return read;
+}
+
+
 
 
 inline void swapByteOrder_int16(uint16_t *ull)
@@ -525,7 +568,42 @@ void read_config(configuration *config, FILE *logfile)
         {
             config->attempt_recovery = strtol(value,NULL,10);
         }
+        else if (strcmp(name,"SETUP_ADCSAMPLERATE") == 0)
+        {
+            config->daqsetup->samplerate = strtod(value,NULL);
+            printf("SETUP_ADCSAMPLERATE: %g\n",config->daqsetup->samplerate);
+        }
+        else if (strcmp(name,"SETUP_pAoffset") == 0)
+        {
+            config->daqsetup->currentoffset = strtod(value,NULL);
+            printf("SETUP_pAoffset: %g\n",config->daqsetup->currentoffset);
+        }
+        else if (strcmp(name,"SETUP_TIAgain") == 0)
+        {
+            config->daqsetup->TIAgain = strtod(value,NULL);
+            printf("SETUP_TIAgain: %g\n",config->daqsetup->TIAgain);
+        }
+        else if (strcmp(name,"SETUP_ADCVREF") == 0)
+        {
+            config->daqsetup->ADCvref = strtod(value,NULL);
+            printf("SETUP_ADCVREF: %g\n",config->daqsetup->ADCvref);
+        }
+        else if (strcmp(name,"SETUP_ADCBITS") == 0)
+        {
+            config->daqsetup->ADCbits = strtol(value,NULL,10);
+            printf("SETUP_ADCBITS: %d\n",config->daqsetup->ADCbits);
+        }
+        else if (strcmp(name,"SETUP_preADCgain") == 0)
+        {
+            config->daqsetup->preADCgain = strtod(value,NULL);
+            printf("SETUP_preADCgain: %g\n",config->daqsetup->preADCgain);
+        }
 
+    }
+    if (config->datatype==0)
+    {
+        config->samplingfreq = (uint64_t) config->daqsetup->samplerate;
+        printf("Using VC100 sampling rate of %"PRIu64"\n",config->samplingfreq);
     }
     fprintf(logfile, "<----CONFIGURATION ENDS---->\n\n");
     if (config->usefilter == 0)

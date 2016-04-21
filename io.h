@@ -15,6 +15,8 @@ void read_config(configuration *config, FILE *logfile);
 void export_trace(double *signal, uint64_t length, char *file, double timestep, double start_time);
 inline void swapByteOrder(uint64_t *ull);
 inline void swapByteOrder_int16(uint16_t *ull);
+double chimera_gain(uint64_t sample, chimera *daqsetup);
+uint64_t read_current_chimera(FILE *input, double *current, uint64_t position, uint64_t length, chimera *daqsetup);
 uint64_t read_current(FILE *input, double *current, uint64_t position, uint64_t length);
 uint64_t read_current_int16(FILE *input, double *current, uint64_t position, uint64_t length);
 void print_event_signal(int index, event *current, double timestep);

@@ -22,6 +22,17 @@
 #define FITSTEP -9
 #define FITDIR -10
 
+struct Chimera
+{
+    double samplerate;
+    double TIAgain;
+    double preADCgain;
+    double currentoffset;
+    double ADCvref;
+    int ADCbits;
+};
+typedef struct Chimera chimera;
+
 struct Butterworth
 {
     double *dcof;
@@ -134,6 +145,8 @@ struct Configuration
     int attempt_recovery;
 
     int datatype;
+
+    chimera *daqsetup;
 
 };
 typedef struct Configuration configuration;

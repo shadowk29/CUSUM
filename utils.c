@@ -46,10 +46,21 @@ inline void progressbar(uint64_t pos, uint64_t finish)
 uint64_t get_filesize(FILE *input, int datatype)
 {
     uint64_t length;
-    fseeko64(input, 0, SEEK_END);
-    length = ftello64(input);
-    fseeko64(input, 0, SEEK_SET);
-    return length / (datatype / 8 * 2);
+    if (datatype != 0)
+    {
+        fseeko64(input, 0, SEEK_END);
+        length = ftello64(input);
+        fseeko64(input, 0, SEEK_SET);
+        return length / (datatype / 8 * 2);
+    }
+    else
+    {
+        fseeko64(input, 0, SEEK_END);
+        length = ftello64(input);
+        fseeko64(input, 0, SEEK_SET);
+        return length / (16 / 8 * 2);
+    }
+
 }
 
 
