@@ -96,7 +96,11 @@ void filter_signal(double *signal, double *filtered, butterworth *lpfilter, uint
             tempback[end-1-i] += ccof[p]*scale*temp[end-1-i+p] - dcof[p]*tempback[end-1-i+p];
         }
     }
+
+
     memcpy(filtered,&tempback[order],length*sizeof(double));
+
+
 
     /*FILE *output;
     if ((output = fopen("output/filtered.csv","w"))==NULL)
@@ -594,13 +598,13 @@ void event_baseline(event *current_event, double baseline_min, double baseline_m
     current_event->baseline_after = baseline_after;
 }
 
-void populate_event_traces(FILE *input, event *current_event, int datatype, FILE *logfile)
+void populate_event_traces(FILE *input, event *current_event, int datatype, FILE *logfile, butterworth *lpfilter, int eventfilter, chimera *daqsetup, uint64_t samplingfreq)
 {
     while (current_event != NULL)
     {
         if (current_event->type == CUSUM || current_event->type == STEPRESPONSE)
         {
-            generate_trace(input, current_event, datatype, logfile);
+            generate_trace(input, current_event, datatype, logfile, lpfilter, eventfilter, daqsetup, samplingfreq);
         }
         current_event = current_event->next;
     }
@@ -608,7 +612,7 @@ void populate_event_traces(FILE *input, event *current_event, int datatype, FILE
 
 
 
-void generate_trace(FILE *input, event *current, int datatype, FILE *logfile)
+void generate_trace(FILE *input, event *current, int datatype, FILE *logfile, butterworth *lpfilter, int eventfilter, chimera *daqsetup, uint64_t samplingfreq)
 {
     uint64_t padding;
     uint64_t position;
@@ -620,7 +624,7 @@ void generate_trace(FILE *input, event *current, int datatype, FILE *logfile)
     }
 
 
-    padding = 50;//intmin(current->length,100);
+    padding = 100e-6*(double) samplingfreq;//intmin(current->length,100);
     if (current->index == 0) //for the first event, we need to make sure we don't overshoot the start of the file
     {
         if (padding > current->start)
@@ -690,6 +694,10 @@ void generate_trace(FILE *input, event *current, int datatype, FILE *logfile)
     {
         read = read_current_int16(input, current->signal, position, current->length + current->padding_before + current->padding_after);
     }
+    else if (datatype==0)
+    {
+        read = read_current_chimera(input, current->signal, position, current->length + current->padding_before + current->padding_after, daqsetup);
+    }
     else
     {
         printf("Invalid data type\n");
@@ -703,6 +711,11 @@ void generate_trace(FILE *input, event *current, int datatype, FILE *logfile)
         fprintf(logfile,"Unable to read %" PRIu64 " samples for event %" PRId64 ": obtained %" PRId64 "\n",current->length + + current->padding_before + current->padding_after,current->index,read);
         fflush(logfile);
         current->type = BADTRACE;
+    }
+    if (eventfilter)
+    {
+        filter_signal(current->signal, current->filtered_signal, lpfilter, read);
+        memcpy(current->signal, current->filtered_signal, read*sizeof(double));
     }
 }
 
@@ -928,10 +941,7 @@ double build_histogram(double *signal, histostruct *histogram, uint64_t length, 
     histogram->offset = minimum;
     histogram->delta = delta;
 
-    /*char filename[1024];
-    sprintf(filename, "output/histo_%" PRIu64".csv",pos);
-    print_histogram(filename, histogram);*/
-
+    print_histogram("output/histogram.csv", histogram);
     return baseline;
 }
 

@@ -58,7 +58,7 @@ uint64_t get_filesize(FILE *input, int datatype)
         fseeko64(input, 0, SEEK_END);
         length = ftello64(input);
         fseeko64(input, 0, SEEK_SET);
-        return length / (16 / 8 * 2);
+        return length / 2;
     }
 
 }

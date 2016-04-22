@@ -446,6 +446,13 @@ void read_config(configuration *config, FILE *logfile)
         abort();
     }
     fprintf(logfile, "<----CONFIGURATION BEGINS---->\n\n");
+
+
+    //initialize some defaults
+    config->start = 0
+    config->usefilter = 0
+    config->eventfilter = 0
+
     while ((fgets(configline, STRLENGTH, configfile)) != NULL)
     {
         fprintf(logfile, "%s", configline);
@@ -529,6 +536,10 @@ void read_config(configuration *config, FILE *logfile)
         else if (strcmp(name,"use_filter") == 0)
         {
             config->usefilter = strtol(value,NULL,10);
+        }
+        else if (strcmp(name,"event_filter") == 0)
+        {
+            config->eventfilter = strtol(value,NULL,10);
         }
         else if (strcmp(name,"input_file") == 0)
         {

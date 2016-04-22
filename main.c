@@ -158,7 +158,6 @@ int main()
         printf("datatype currently can only be 0, 16, or 64\n");
         abort();
     }
-    printf("5\n");
 
 
 
@@ -311,7 +310,7 @@ int main()
 
     printf("Populating event traces... ");
     fprintf(logfile, "Populating event traces... ");
-    populate_event_traces(input, current_event, datatype, logfile); //both types
+    populate_event_traces(input, current_event, datatype, logfile, lpfilter, config->eventfilter, config->daqsetup, samplingfreq); //both types
     current_event = head_event;
     printf("Finished\n\n");
     fprintf(logfile, "Finished\n\n");

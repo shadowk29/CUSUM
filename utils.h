@@ -113,6 +113,7 @@ struct Configuration
 
     //filter parameters
     int usefilter;
+    int eventfilter;
     double cutoff;
     uint64_t samplingfreq;
     uint64_t order; //must be even
