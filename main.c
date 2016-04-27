@@ -229,6 +229,18 @@ int main()
         if (usefilter)
         {
             filter_signal(signal, filtered, lpfilter, read);
+
+            /*FILE *filtertest;
+            if ((filtertest=fopen64("filtertest.csv","w"))==NULL)
+            {
+                printf("Cannot open output file for filter data\n");
+                abort();
+            }
+            for (i=0; i<read; i++)
+            {
+                fprintf(filtertest,"%g,%g,%g\n",i/(double)samplingfreq,signal[i],filtered[i]);
+            }
+            abort();*/
             //baseline = baseline_averaging(filtered, read, baseline_min, baseline_max);
             baseline = build_histogram(filtered, histogram, read, binsize, baseline_max, baseline_min);
             if (baseline < baseline_min || baseline > baseline_max)
