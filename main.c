@@ -22,7 +22,7 @@
 #include"io.h"
 #include"utils.h"
 #include"detector.h"
-#include"butterworth.h"
+#include"bessel.h"
 #include"stepfit.h"
 
 
@@ -95,15 +95,17 @@ int main()
     //low-pass filter parameters
     uint64_t order;
     int usefilter;
+    int eventfilter;
     double cutoff;
     uint64_t samplingfreq;
 
     order = config->order;
     cutoff = config->cutoff;
     usefilter = config->usefilter;
+    eventfilter = config->eventfilter;
     samplingfreq = config->samplingfreq;
 
-    butterworth *lpfilter = NULL;
+    bessel *lpfilter = NULL;
     double *filtered = NULL;
 
     //CUSUM parameters
@@ -135,7 +137,7 @@ int main()
     uint64_t typeswitch = 0;
 
     //initialize the low-pass filter and allocate necessary memory
-    if (usefilter)
+    if (usefilter || eventfilter)
     {
         lpfilter = initialize_filter(lpfilter, order, cutoff, readlength);
 
@@ -227,6 +229,18 @@ int main()
         if (usefilter)
         {
             filter_signal(signal, filtered, lpfilter, read);
+
+            FILE *filtertest;
+            if ((filtertest=fopen64("output/filtertest.csv","w"))==NULL)
+            {
+                printf("cannot open file for filter output\n");
+                abort();
+            }
+            /*for (i=0; i<200000; i++)
+            {
+                fprintf(filtertest, "%g,%g,%g\n",i/(double) samplingfreq, signal[i], filtered[i]);
+            }
+            abort();*/
             //baseline = baseline_averaging(filtered, read, baseline_min, baseline_max);
             baseline = build_histogram(filtered, histogram, read, binsize, baseline_max, baseline_min);
             if (baseline < baseline_min || baseline > baseline_max)

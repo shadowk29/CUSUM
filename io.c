@@ -611,7 +611,7 @@ void read_config(configuration *config, FILE *logfile)
         printf("Using VC100 sampling rate of %"PRIu64"\n",config->samplingfreq);
     }
     fprintf(logfile, "<----CONFIGURATION ENDS---->\n\n");
-    if (config->usefilter == 0)
+    if (config->usefilter == 0 && config->eventfilter == 0)
     {
         config->order = 0;
         cutoff = 0;

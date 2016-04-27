@@ -52,7 +52,7 @@ void calculate_level_noise(event *current, uint64_t minpoints)
 }
 
 
-void filter_signal(double *signal, double *filtered, butterworth *lpfilter, uint64_t length)
+void filter_signal(double *signal, double *filtered, bessel *lpfilter, uint64_t length)
 {
     uint64_t i;
     uint64_t p;
@@ -62,8 +62,7 @@ void filter_signal(double *signal, double *filtered, butterworth *lpfilter, uint
     double *temp = lpfilter->temp;
     double *tempback = lpfilter->tempback;
     double *dcof = lpfilter->dcof;
-    int *ccof = lpfilter->ccof;
-    double scale = lpfilter->scale;
+    double *ccof = lpfilter->ccof;
     end = length+2*order-1;
 
     memcpy(&paddedsignal[order],signal,length*sizeof(double));
@@ -76,10 +75,10 @@ void filter_signal(double *signal, double *filtered, butterworth *lpfilter, uint
 
     for (i=order; i<end; i++)
     {
-        temp[i] = ccof[0]*scale*paddedsignal[i];
+        temp[i] = ccof[0]*paddedsignal[i];
         for (p=1; p<=order; p++)
         {
-            temp[i] += ccof[p]*scale*paddedsignal[i-p] - dcof[p]*temp[i-p];
+            temp[i] += ccof[p]*paddedsignal[i-p] - dcof[p]*temp[i-p];
         }
     }
 
@@ -90,10 +89,10 @@ void filter_signal(double *signal, double *filtered, butterworth *lpfilter, uint
     }
     for (i=order; i<end; i++)
     {
-        tempback[end-1-i] = ccof[0]*scale*temp[end-1-i];
+        tempback[end-1-i] = ccof[0]*temp[end-1-i];
         for (p=1; p<=order; p++)
         {
-            tempback[end-1-i] += ccof[p]*scale*temp[end-1-i+p] - dcof[p]*tempback[end-1-i+p];
+            tempback[end-1-i] += ccof[p]*temp[end-1-i+p] - dcof[p]*tempback[end-1-i+p];
         }
     }
 
@@ -598,7 +597,7 @@ void event_baseline(event *current_event, double baseline_min, double baseline_m
     current_event->baseline_after = baseline_after;
 }
 
-void populate_event_traces(FILE *input, event *current_event, int datatype, FILE *logfile, butterworth *lpfilter, int eventfilter, chimera *daqsetup, uint64_t samplingfreq)
+void populate_event_traces(FILE *input, event *current_event, int datatype, FILE *logfile, bessel *lpfilter, int eventfilter, chimera *daqsetup, uint64_t samplingfreq)
 {
     while (current_event != NULL)
     {
@@ -612,7 +611,7 @@ void populate_event_traces(FILE *input, event *current_event, int datatype, FILE
 
 
 
-void generate_trace(FILE *input, event *current, int datatype, FILE *logfile, butterworth *lpfilter, int eventfilter, chimera *daqsetup, uint64_t samplingfreq)
+void generate_trace(FILE *input, event *current, int datatype, FILE *logfile, bessel *lpfilter, int eventfilter, chimera *daqsetup, uint64_t samplingfreq)
 {
     uint64_t padding;
     uint64_t position;

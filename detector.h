@@ -19,7 +19,7 @@ void populate_all_levels(event *current);
 void populate_event_levels(event *current);
 
 
-void filter_signal(double *signal, double *filtered, butterworth *lpfilter, uint64_t length);
+void filter_signal(double *signal, double *filtered, bessel *lpfilter, uint64_t length);
 
 void filter_event_length(event *current, uint64_t maxpoints, uint64_t minpoints, FILE *logfile, uint64_t stepfit_samples);
 void detect_subevents(event *current_event, double delta, double minthreshold, double maxthreshold, uint64_t subevent_minpoints);
@@ -36,14 +36,14 @@ void refine_event_estimates(event *current);
 void find_max_blockages(event *current);
 void event_max_blockage(event *current);
 
-void populate_event_traces(FILE *input, event *current_event, int datatype, FILE *logfile, butterworth *lpfilter, int eventfilter, chimera *daqsetup, uint64_t samplingfreq);
+void populate_event_traces(FILE *input, event *current_event, int datatype, FILE *logfile, bessel *lpfilter, int eventfilter, chimera *daqsetup, uint64_t samplingfreq);
 
 
 event *process_edges(edge *current_edge, event *current_event);
 edge *detect_edges(double *signal, double baseline, uint64_t length, edge *current, double threshold, double hysteresis, uint64_t position, int event_direction);
 double build_histogram(double *signal, histostruct *histogram, uint64_t length, double delta, double baseline_max, double baseline_min);
 double baseline_averaging(double *signal, uint64_t length, double baseline_min, double baseline_max);
-void generate_trace(FILE *input, event *current, int datatype, FILE *logfile, butterworth *lpfilter, int eventfilter, chimera *daqsetup, uint64_t samplingfreq);
+void generate_trace(FILE *input, event *current, int datatype, FILE *logfile, bessel *lpfilter, int eventfilter, chimera *daqsetup, uint64_t samplingfreq);
 
 
 double signal_max(double *signal, uint64_t length);

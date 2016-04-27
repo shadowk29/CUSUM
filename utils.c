@@ -335,47 +335,5 @@ double ARL(uint64_t length, double sigma, double mun, double h)
     return (exp(-2.0*mun*(h/sigma+1.166))-1.0+2.0*mun*(h/sigma+1.166))/(2.0*mun*mun)-(double) length;
 }
 
-butterworth *initialize_filter(butterworth *lpfilter, uint64_t order, double cutoff, uint64_t length)
-{
-    if ((lpfilter = malloc(sizeof(butterworth)))==NULL)
-    {
-        printf("Cannot allocate filter memory\n");
-        abort();
-    }
-    lpfilter->dcof = NULL;
-    lpfilter->ccof = NULL;
-    lpfilter->temp = NULL;
-    lpfilter->tempback = NULL;
-    lpfilter->paddedsignal = NULL;
-    lpfilter->dcof = dcof_bwlp(order, cutoff);
-    lpfilter->ccof = ccof_bwlp(order);
-    lpfilter->scale = sf_bwlp(order,cutoff);
-    lpfilter->order = order;
-    if ((lpfilter->temp = calloc(length+2*order, sizeof(double)))==NULL)
-    {
-        printf("Cannot allocate temp filter array\n");
-        abort();
-    }
-    if ((lpfilter->tempback = calloc(length+2*order, sizeof(double)))==NULL)
-    {
-        printf("Cannot allocate tempback array\n");
-        abort();
-    }
-    if ((lpfilter->paddedsignal = calloc(length + 2*order,sizeof(double)))==NULL)
-    {
-        printf("Cannot allocate padded signal\n");
-        abort();
-    }
-    return lpfilter;
-}
 
-void free_filter(butterworth *lpfilter)
-{
-    free(lpfilter->dcof);
-    free(lpfilter->ccof);
-    free(lpfilter->temp);
-    free(lpfilter->tempback);
-    free(lpfilter->paddedsignal);
-    free(lpfilter);
-}
 
