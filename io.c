@@ -449,9 +449,9 @@ void read_config(configuration *config, FILE *logfile)
 
 
     //initialize some defaults
-    config->start = 0
-    config->usefilter = 0
-    config->eventfilter = 0
+    config->start = 0;
+    config->usefilter = 0;
+    config->eventfilter = 0;
 
     while ((fgets(configline, STRLENGTH, configfile)) != NULL)
     {
