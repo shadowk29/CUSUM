@@ -5,7 +5,6 @@
 #include<inttypes.h>
 #include<stdint.h>
 #include<math.h>
-#include"butterworth.h"
 #define EPS 1e-50
 #define STRLENGTH 1024
 #define HEAD -1000
@@ -33,17 +32,17 @@ struct Chimera
 };
 typedef struct Chimera chimera;
 
-struct Butterworth
+struct Bessel
 {
     double *dcof;
-    int *ccof;
-    double scale;
+    double *ccof;
+    double cutoff;
     uint64_t order;
     double *paddedsignal;
     double *temp;
     double *tempback;
 };
-typedef struct Butterworth butterworth;
+typedef struct Bessel bessel;
 
 struct Cusumlevel
 {
@@ -180,7 +179,4 @@ cusumlevel *initialize_levels(void);
 
 uint64_t get_filesize(FILE *input, int datatype);
 inline void progressbar(uint64_t pos, uint64_t finish);
-
-butterworth *initialize_filter(butterworth *lpfilter, uint64_t order, double cutoff, uint64_t length);
-void free_filter(butterworth *lpfilter);
 #endif // UTILS_H_INCLUDED
