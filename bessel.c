@@ -171,16 +171,10 @@ bessel *initialize_filter(bessel *lpfilter, uint64_t order, double cutoff, uint6
         abort();
     }
 
-    printf("Initializing\n");
-
 
 
     lpfilter->order = order;
     lpfilter->cutoff = cutoff;
-
-    printf("Cutoff is %g\n",lpfilter->cutoff);
-    printf("Order is %"PRIu64"\n",lpfilter->order);
-
 
 
     double complex *poles;
@@ -210,7 +204,6 @@ bessel *initialize_filter(bessel *lpfilter, uint64_t order, double cutoff, uint6
     double fs = 2.0;
     double warped = 2.0 * fs * tan(M_PI * cutoff / fs);
     double scale = 1;
-    uint64_t i;
 
     besselap(order, poles, zeros);
     scale = scale_filter(poles,order, warped, scale);
@@ -218,6 +211,8 @@ bessel *initialize_filter(bessel *lpfilter, uint64_t order, double cutoff, uint6
     transform_filter(poles, zeros, order, scale, lpfilter->ccof, lpfilter->dcof);
 
 
+    /*
+    uint64_t i;
     printf("b: \n");
     for (i=0; i<order+1; i++)
     {
@@ -227,7 +222,7 @@ bessel *initialize_filter(bessel *lpfilter, uint64_t order, double cutoff, uint6
     for (i=0; i<order+1; i++)
     {
         printf("%g\n",lpfilter->dcof[i]);
-    }
+    }*/
 
 
 

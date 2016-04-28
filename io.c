@@ -616,7 +616,26 @@ void read_config(configuration *config, FILE *logfile)
         config->order = 0;
         cutoff = 0;
     }
-    config->cutoff = 2.0 *(double) cutoff/(double) config->samplingfreq;
+    else
+    {
+        config->cutoff = 2.0 *(double) cutoff/(double) config->samplingfreq;
+        if (config->order > 10)
+        {
+            printf("Bessel filters of order >10 are not supported, defaulting to 10\n");
+            config->order = 10;
+        }
+        else if (config->order < 2)
+        {
+            printf("Bessel filters of order <2 are not supported, defaulting to 2\n");
+            config->order = 10;
+        }
+        else if (config->order % 2 == 1)
+        {
+            printf("Bessel filters of odd order are not supported, defaulting to %"PRIu64"\n",config->order + 1);
+            config->order += 1;
+        }
+    }
+
     fclose(configfile);
 }
 
