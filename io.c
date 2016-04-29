@@ -627,7 +627,7 @@ void read_config(configuration *config, FILE *logfile)
         else if (config->order < 2)
         {
             printf("Bessel filters of order <2 are not supported, defaulting to 2\n");
-            config->order = 10;
+            config->order = 2;
         }
         else if (config->order % 2 == 1)
         {
