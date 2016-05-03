@@ -104,8 +104,122 @@ uint64_t read_current_int16(FILE *input, double *current, uint64_t position, uin
     return read;
 }
 
+void initialize_events_file(FILE *events)
+{
+    fprintf(events,"id,\
+type,\
+start_time_s,\
+event_delay_s,\
+duration_us,\
+threshold,\
+baseline_before_pA,\
+baseline_after_pA,\
+effective_baseline_pA,\
+area_pC,\
+average_blockage_pA,\
+relative_average_blockage,\
+max_blockage_pA,\
+relative_max_blockage,\
+max_blockage_duration_us,\
+n_levels,\
+rc_const1_us,\
+rc_const2_us,\
+residual_pA,\
+level_current_pA,\
+level_duration_us,\
+blockages_pA,\
+stdev_pA\n");
+}
 
-void print_events(event *current, double timestep)
+void print_event_line(FILE *events, event *current, double timestep, uint64_t lasttime)
+{
+    cusumlevel *level = current->first_level;
+    fprintf(events,"%"PRId64",\
+        %d,\
+        %.6f,\
+        %.6f,\
+        %g,\
+        %g,\
+        %g,\
+        %g,\
+        %g,\
+        %g,\
+        %g,\
+        %g,\
+        %g,\
+        %g,\
+        %g,\
+        %d,\
+        %g,\
+        %g,\
+        %g,",\
+        current->index, \
+        current->type, \
+        current->start * timestep, \
+        (current->start - lasttime) * timestep, \
+        current->length * timestep * 1e6, \
+        current->threshold, \
+        current->baseline_before, \
+        current->baseline_after, \
+        0.5 * (current->baseline_after + current->baseline_before),\
+        current->area, \
+        current->average_blockage, \
+        d_abs(current->average_blockage / (0.5 * (current->baseline_before + current->baseline_after))), \
+        current->max_blockage, \
+        d_abs(current->max_blockage / (0.5 * (current->baseline_before + current->baseline_after))), \
+        current->max_length * timestep * 1e6, \
+        current->numlevels, \
+        current->rc1 * timestep * 1e6, \
+        current->rc2 * timestep * 1e6, \
+        current->residual);
+    while (level)
+    {
+        fprintf(events,"%g",level->current);
+        if (level->next)
+        {
+            fprintf(events,";");
+        }
+        level = level->next;
+    }
+    fprintf(events,",");
+    level = current->first_level;
+    while (level)
+    {
+        fprintf(events,"%g",level->length * timestep * 1e6);
+        if (level->next)
+        {
+            fprintf(events,";");
+        }
+        level = level->next;
+    }
+    fprintf(events,",");
+    level = current->first_level;
+    while (level)
+    {
+        fprintf(events,"%g",level->current-0.5*(current->baseline_after+current->baseline_before));
+        if (level->next)
+        {
+            fprintf(events,";");
+        }
+        level = level->next;
+    }
+    fprintf(events,",");
+    level = current->first_level;
+    while (level)
+    {
+        fprintf(events,"%g",level->stdev);
+        if (level->next)
+        {
+            fprintf(events,";");
+        }
+        level = level->next;
+    }
+    fprintf(events,"\n");
+}
+
+
+
+/*void print_events(event *current, double timestep)
 {
     FILE *events;
     if ((events = fopen("output/events.csv","w"))==NULL)
@@ -267,30 +381,8 @@ start_time_s\n");
     fclose(events);
     fclose(rejected);
     fclose(rate);
-}
+}*/
 
-
-
-void print_all_signals(event *current_event, double timestep)
-{
-    event *head_event = current_event;
-    uint64_t numevents = 0;
-    while (current_event)
-    {
-        numevents++;
-        current_event = current_event->next;
-    }
-    current_event = head_event;
-    while (current_event != NULL)
-    {
-        progressbar(current_event->index, numevents);
-        if (current_event->type == CUSUM || current_event->type == STEPRESPONSE)
-        {
-            print_event_signal(current_event->index, current_event, timestep);
-        }
-        current_event = current_event->next;
-    }
-}
 
 void print_signal(event *current, int length, char *filename, double timestep)
 {
@@ -332,22 +424,9 @@ void print_signal(event *current, int length, char *filename, double timestep)
 
 void print_event_signal(int index, event *current, double timestep)
 {
-    while (current && current->index != index)
-    {
-        current = current->next;
-    }
-    if (!current || current->index != index)
-    {
-        printf("Cannot locate event with index %d\n",index);
-        return;
-    }
-    if (current->index != -1 && current->type != -1)
-    {
-        char eventname[1024];
-        sprintf(eventname,"output/events/event_%05d.csv",index);
-
-        print_signal(current, current->length + current->padding_before + current->padding_after, eventname, timestep);
-    }
+    char eventname[1024];
+    sprintf(eventname,"output/events/event_%05d.csv",index);
+    print_signal(current, current->length + current->padding_before + current->padding_after, eventname, timestep);
 }
 
 
@@ -563,10 +642,6 @@ void read_config(configuration *config, FILE *logfile)
         {
             config->datatype = strtol(value,NULL,10);
         }
-        else if (strcmp(name,"refine_estimates") == 0)
-        {
-            config->refine_estimates = strtol(value,NULL,10);
-        }
         else if (strcmp(name,"stepfit_samples") == 0)
         {
             config->stepfit_samples = strtol(value,NULL,10);
@@ -640,7 +715,7 @@ void read_config(configuration *config, FILE *logfile)
 }
 
 
-void print_error_summary(event *current, FILE *logfile)
+/*void print_error_summary(event *current, FILE *logfile)
 {
     uint64_t good = 0;
     uint64_t total = 0;
@@ -799,5 +874,5 @@ void print_error_summary(event *current, FILE *logfile)
         fprintf(logfile,"\tYou seem to have a lot of events that cannot be fit to a single-level event\n");
         fprintf(logfile,"\tTry reducing stepfit_samples so that you are not fitting multi-level events with it\n");
     }
-}
+}*/
 

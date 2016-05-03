@@ -20,18 +20,6 @@
 */
 #include"detector.h"
 
-void calculate_event_noise(event *current, uint64_t minpoints)
-{
-    while (current)
-    {
-        if (current->type == CUSUM || current->type == STEPRESPONSE)
-        {
-            calculate_level_noise(current, minpoints);
-        }
-        current = current->next;
-    }
-}
-
 void calculate_level_noise(event *current, uint64_t minpoints)
 {
     cusumlevel *level = current->first_level;
@@ -117,47 +105,25 @@ void filter_signal(double *signal, double *filtered, bessel *lpfilter, uint64_t 
 
 
 
-void filter_event_length(event *current, uint64_t maxpoints, uint64_t minpoints, FILE *logfile, uint64_t stepfit_samples)
+void filter_event_length(event *current, uint64_t maxpoints, uint64_t minpoints, uint64_t stepfit_samples)
 {
     uint64_t toolong = 0;
     uint64_t tooshort = 0;
     uint64_t stepresponse = 0;
-    while (current)
+    if (current->length > maxpoints)
     {
-        if (current->length > maxpoints)
-        {
-            current->type = TOOLONG;
-            toolong++;
-        }
-        else if (current->length < minpoints)
-        {
-            current->type = TOOSHORT;
-            tooshort++;
-        }
-        else if (current->length < stepfit_samples)
-        {
-            current->type = STEPRESPONSE;
-            stepresponse++;
-        }
-        current = current->next;
+        current->type = TOOLONG;
     }
-    printf("\n%"PRIu64" events were too long\n%"PRIu64" events were too short\n%"PRIu64" events will be processed using stepResponse fitting\n",toolong,tooshort,stepresponse);
-    fprintf(logfile,"\n%"PRIu64" events were too long\n%"PRIu64" events were too short\n%"PRIu64" events will be processed using stepResponse fitting\n",toolong,tooshort,stepresponse);
+    else if (current->length < minpoints)
+    {
+        current->type = TOOSHORT;
+    }
+    else if (current->length < stepfit_samples)
+    {
+        current->type = STEPRESPONSE;
+    }
 }
 
-uint64_t assign_cusum_levels(event *current, uint64_t subevent_minpoints, double cusum_minstep, int attempt_recovery)
-{
-    uint64_t typeswitch = 0;
-    while (current)
-    {
-        if (current->type == 0)
-        {
-            typeswitch += average_cusum_levels(current, subevent_minpoints, cusum_minstep, attempt_recovery);
-        }
-        current = current->next;
-    }
-    return typeswitch;
-}
 
 uint64_t average_cusum_levels(event *current, uint64_t subevent_minpoints, double cusum_minstep, int attempt_recovery)
 {
@@ -219,18 +185,6 @@ uint64_t average_cusum_levels(event *current, uint64_t subevent_minpoints, doubl
     return typeswitch;
 }
 
-void populate_all_levels(event *current)
-{
-    while (current)
-    {
-        if (current->type == CUSUM || current->type == STEPRESPONSE)
-        {
-            populate_event_levels(current);
-        }
-        current = current->next;
-    }
-}
-
 
 void populate_event_levels(event *current)
 {
@@ -265,17 +219,6 @@ void populate_event_levels(event *current)
     }
 }
 
-void find_max_blockages(event *current)
-{
-    while (current)
-    {
-        if (current->type == CUSUM || current->type == STEPRESPONSE)
-        {
-            event_max_blockage(current);
-        }
-        current = current->next;
-    }
-}
 
 void event_max_blockage(event *current)
 {
@@ -298,17 +241,6 @@ void event_max_blockage(event *current)
     current->max_length = maxsamples;
 }
 
-void refine_all_estimates(event *current)
-{
-    while (current)
-    {
-        if (current->type == CUSUM || current->type == STEPRESPONSE)
-        {
-            refine_event_estimates(current);
-        }
-        current = current->next;
-    }
-}
 
 void refine_event_estimates(event *current)
 {
@@ -331,27 +263,6 @@ void refine_event_estimates(event *current)
     current->start = newstart;
     current->finish = newfinish;
     current->length = newfinish - newstart;
-}
-
-void detect_subevents(event *current_event, double delta, double minthreshold, double maxthreshold, uint64_t subevent_minpoints)
-{
-    event *head_event = current_event;
-    uint64_t numevents = 0;
-    while (current_event)
-    {
-        numevents++;
-        current_event = current_event->next;
-    }
-    current_event = head_event;
-    while (current_event)
-    {
-        progressbar(current_event->index, numevents);
-        if (current_event->type == CUSUM)
-        {
-            cusum(current_event, delta, minthreshold, maxthreshold, subevent_minpoints);
-        }
-        current_event = current_event->next;
-    }
 }
 
 uint64_t locate_min(double *signal, uint64_t length)
@@ -538,36 +449,6 @@ void event_area(event *current_event, double timestep)
     current_event->average_blockage = current_event->area/(current_event->length*timestep);
 }
 
-void assign_event_areas(event *current_event, double timestep)
-{
-    while (current_event != NULL)
-    {
-        if (current_event->type == CUSUM || current_event->type == STEPRESPONSE)
-        {
-            event_area(current_event, timestep);
-        }
-        current_event = current_event->next;
-    }
-}
-
-void assign_event_baselines(event *current_event, FILE *logfile, double baseline_min, double baseline_max)
-{
-    uint64_t badbaseline = 0;
-    while (current_event != NULL)
-    {
-        if (current_event->type == CUSUM || current_event->type == STEPRESPONSE)
-        {
-            event_baseline(current_event, baseline_min, baseline_max);
-            if (current_event->type == BADBASELINE)
-            {
-                badbaseline++;
-            }
-        }
-        current_event = current_event->next;
-    }
-    printf("\n%"PRIu64" events had bad baseline and were discarded\n",badbaseline);
-    fprintf(logfile,"\n%"PRIu64" events had bad baseline and were discarded\n",badbaseline);
-}
 
 void event_baseline(event *current_event, double baseline_min, double baseline_max)
 {
@@ -597,18 +478,6 @@ void event_baseline(event *current_event, double baseline_min, double baseline_m
     current_event->baseline_after = baseline_after;
 }
 
-void populate_event_traces(FILE *input, event *current_event, int datatype, FILE *logfile, bessel *lpfilter, int eventfilter, chimera *daqsetup, uint64_t samplingfreq)
-{
-    while (current_event != NULL)
-    {
-        if (current_event->type == CUSUM || current_event->type == STEPRESPONSE)
-        {
-            generate_trace(input, current_event, datatype, logfile, lpfilter, eventfilter, daqsetup, samplingfreq);
-        }
-        current_event = current_event->next;
-    }
-}
-
 
 
 void generate_trace(FILE *input, event *current, int datatype, FILE *logfile, bessel *lpfilter, int eventfilter, chimera *daqsetup, uint64_t samplingfreq)
@@ -624,29 +493,9 @@ void generate_trace(FILE *input, event *current, int datatype, FILE *logfile, be
 
 
     padding = 100e-6*(double) samplingfreq;//intmin(current->length,100);
-    if (current->index == 0) //for the first event, we need to make sure we don't overshoot the start of the file
+    if (padding > current->start)
     {
-        if (padding > current->start)
-        {
-            padding = current->start;
-        }
-    }
-    else
-    {
-        if (current->prev)
-        {
-            if (padding > current->start - current->prev->finish) //if padding would include some of the previous event, pare it down
-            {
-                padding = current->start - current->prev->finish;
-            }
-        }
-        if (current->next)
-        {
-            if (padding > current->next->start - current->finish)
-            {
-                padding = current->next->start - current->finish;
-            }
-        }
+        padding = current->start;
     }
 
     position = current->start - padding;
@@ -718,32 +567,6 @@ void generate_trace(FILE *input, event *current, int datatype, FILE *logfile, be
     }
 }
 
-
-
-event *process_edges(edge *current_edge, event *current_event)
-{
-    uint64_t start = 0;
-    uint64_t finish = 0;
-    while (current_edge)
-    {
-        while (current_edge->type != 0 && current_edge->next) //if for some reason there are multiple of the same type in a row, skip them.
-        {
-            current_edge = current_edge->next;
-        }
-        start = current_edge->location;
-        while (current_edge->type != 1 && current_edge->next) //if for some reason there are multiple of the same type in a row, skip them.
-        {
-            current_edge = current_edge->next;
-        }
-        finish = current_edge->location;
-        if (finish > start)
-        {
-            current_event = add_event(current_event, start, finish);
-        }
-        current_edge = current_edge->next;
-    }
-    return current_event;
-}
 
 
 

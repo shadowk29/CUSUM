@@ -58,6 +58,14 @@ int main()
         exit(4);
     }
 
+    FILE *events;
+    if ((events = fopen("output/events.csv","w"))==NULL)
+    {
+        printf("Cannot open event summary file\n");
+        exit(21);
+    }
+    initialize_events_file(events);
+
     //file reading variables
     uint64_t i;
     uint64_t read;
@@ -111,20 +119,14 @@ int main()
     //CUSUM parameters
     double cusum_delta;
     double cusum_minstep;
-    double cusum_min_threshold;
-    double cusum_max_threshold;
     uint64_t subevent_minpoints;
-    int refine_estimates;
     uint64_t stepfit_samples;
     uint64_t maxiters;
     int attempt_recovery;
 
     cusum_delta = config->cusum_delta;
     cusum_minstep = config->cusum_minstep;
-    cusum_min_threshold = config->cusum_min_threshold;
-    cusum_max_threshold = config->cusum_max_threshold;
     subevent_minpoints = config->subevent_minpoints;
-    refine_estimates = config->refine_estimates;
     stepfit_samples = config->stepfit_samples;
     maxiters = config->maxiters;
     attempt_recovery = config->attempt_recovery;
@@ -189,12 +191,9 @@ int main()
     current_edge = head_edge;
 
     //initialize linked list to store the information about events found using the edge list
-    event *head_event;
     event *current_event;
-    head_event = initialize_events();
-    current_event = head_event;
+    current_event = initialize_events();
 
-    fflush(stdout);
 
 
 
@@ -285,137 +284,228 @@ int main()
     printf("\nRead %g seconds of good baseline\nRead %g seconds of bad baseline\n", goodbaseline/(double) samplingfreq, badbaseline / (double) samplingfreq);
     fprintf(logfile, "\nRead %g seconds of good baseline\nRead %g seconds of bad baseline\n", goodbaseline/(double) samplingfreq, badbaseline / (double) samplingfreq);
 
+
     current_edge = head_edge;
-    current_event = head_event;
 
     if (!current_edge || current_edge->type == HEAD)
     {
+        printf("It is %"PRId64"\n",current_edge->type);
         printf("No edges found in signal, exiting\n");
         fprintf(logfile, "No edges found in signal, exiting\n");
         system("pause");
         exit(8);
     }
 
-    printf("Processing event locations... ");
-    fprintf(logfile, "Processing event locations... ");
-    current_event = process_edges(current_edge, current_event);
-    current_event = head_event;
 
 
-    if (!current_event || current_event->index == HEAD)
+    start = 0;
+    finish = 0;
+    uint64_t index = 0;
+
+
+    uint64_t lasttime = 0;
+    uint64_t lasttime_rate = 0;
+    while (current_edge)
     {
-        printf("No events found in signal, exiting\n");
-        fprintf(logfile, "No events found in signal, exiting\n");
-        system("pause");
-        exit(9);
+        while (current_edge->type != 0 && current_edge->next) //if for some reason there are multiple of the same type in a row, skip them.
+        {
+            current_edge = current_edge->next;
+        }
+        start = current_edge->location;
+        while (current_edge->type != 1 && current_edge->next) //if for some reason there are multiple of the same type in a row, skip them.
+        {
+            current_edge = current_edge->next;
+        }
+        finish = current_edge->location;
+        if (finish > start)
+        {
+            current_event = add_event(current_event, start, finish, index);
+            index++;
+        }
+
+
+        //filter events on length, and end processing here if they are too short
+        printf("Filtering\n");
+        filter_event_length(current_event, maxpoints, minpoints, stepfit_samples);
+        printf("Finished\n");
+        fflush(stdout);
+
+        if (current_event->type != CUSUM && current_event->type != STEPRESPONSE) //verify that we should continue processing
+        {
+            printf("Freeing\n");
+            current_edge = current_edge->next;
+            free_single_event(current_event);
+            printf("Finished\n");
+            lasttime_rate = current_event->start;
+            continue;
+        }
+
+        //read the data trace from the appropriate file position
+        printf("Reading\n");
+        generate_trace(input, current_event, datatype, logfile, lpfilter, eventfilter, config->daqsetup, samplingfreq);
+        printf("Finished\n");
+        fflush(stdout);
+
+        if (current_event->type != CUSUM && current_event->type != STEPRESPONSE) //verify that we should continue processing
+        {
+            current_edge = current_edge->next;
+            free_single_event(current_event);
+            lasttime_rate = current_event->start;
+            continue;
+        }
+
+        if (current_event->type == CUSUM)
+        {
+            printf("cusum\n");
+            cusum(current_event, config->cusum_delta, config->cusum_min_threshold, config->cusum_max_threshold, subevent_minpoints);
+            printf("Finished\n");
+            fflush(stdout);
+            printf("averaging\n");
+            typeswitch += average_cusum_levels(current_event, subevent_minpoints, cusum_minstep, attempt_recovery);
+            printf("Finished\n");
+            fflush(stdout);
+        }
+
+
+        if (current_event->type != CUSUM && current_event->type != STEPRESPONSE) //verify that we should continue processing
+        {
+            current_edge = current_edge->next;
+            free_single_event(current_event);
+            lasttime_rate = current_event->start;
+            continue;
+        }
+
+
+        if (current_event->type == STEPRESPONSE)
+        {
+            int status;
+            printf("stepfit\n");
+            status = step_response(current_event, risetime, maxiters, cusum_minstep);
+            printf("Finished\n");
+            fflush(stdout);
+            if (status != GSL_SUCCESS)
+            {
+                if (current_event->type == STEPRESPONSE)
+                {
+                    current_event->type = BADFIT;
+                }
+            }
+        }
+
+        if (current_event->type != CUSUM && current_event->type != STEPRESPONSE) //verify that we should continue processing
+        {
+            current_edge = current_edge->next;
+            free_single_event(current_event);
+            lasttime_rate = current_event->start;
+            continue;
+        }
+
+        printf("Levels\n");
+        populate_event_levels(current_event);
+        printf("Finished\n");
+        fflush(stdout);
+
+
+        if (current_event->type != CUSUM && current_event->type != STEPRESPONSE) //verify that we should continue processing
+        {
+            current_edge = current_edge->next;
+            free_single_event(current_event);
+            lasttime_rate = current_event->start;
+            continue;
+        }
+
+        printf("Noise\n");
+        calculate_level_noise(current_event, subevent_minpoints);
+        printf("Finished\n");
+        fflush(stdout);
+
+
+        if (current_event->type != CUSUM && current_event->type != STEPRESPONSE) //verify that we should continue processing
+        {
+            current_edge = current_edge->next;
+            free_single_event(current_event);
+            lasttime_rate = current_event->start;
+            continue;
+        }
+
+        printf("Refining\n");
+        refine_event_estimates(current_event);
+        printf("Finished\n");
+        fflush(stdout);
+
+        if (current_event->type != CUSUM && current_event->type != STEPRESPONSE) //verify that we should continue processing
+        {
+            current_edge = current_edge->next;
+            free_single_event(current_event);
+            lasttime_rate = current_event->start;
+            continue;
+        }
+
+        printf("Baseline\n");
+        event_baseline(current_event, baseline_min, baseline_max);
+        printf("Finished\n");
+        fflush(stdout);
+
+        if (current_event->type != CUSUM && current_event->type != STEPRESPONSE) //verify that we should continue processing
+        {
+            current_edge = current_edge->next;
+            free_single_event(current_event);
+            lasttime_rate = current_event->start;
+            continue;
+        }
+
+        printf("Maximum\n");
+        event_max_blockage(current_event);
+        printf("Finished\n");
+        fflush(stdout);
+
+
+        if (current_event->type != CUSUM && current_event->type != STEPRESPONSE) //verify that we should continue processing
+        {
+            current_edge = current_edge->next;
+            free_single_event(current_event);
+            lasttime_rate = current_event->start;
+            continue;
+        }
+
+        event_area(current_event, 1.0/samplingfreq);
+        printf("Finished\n");
+        fflush(stdout);
+
+
+        if (current_event->type != CUSUM && current_event->type != STEPRESPONSE) //verify that we should continue processing
+        {
+            current_edge = current_edge->next;
+            free_single_event(current_event);
+            lasttime_rate = current_event->start;
+            continue;
+        }
+
+
+        printf("Printign Trace\n");
+        print_event_signal(current_event->index, current_event, 1.0/samplingfreq*1e6);
+        printf("Finished\n");
+        fflush(stdout);
+        printf("Printing summary\n");
+        print_event_line(events, current_event, 1.0/samplingfreq, lasttime);
+        printf("Finished\n");
+        fflush(stdout);
+        lasttime = current_event -> start;
+        lasttime_rate = current_event->start;
+
+
+        current_edge = current_edge->next;
     }
 
-    printf("Filtering on event length... ");
-    fprintf(logfile, "Filtering on event length... ");
-    filter_event_length(current_event, maxpoints, minpoints, logfile, stepfit_samples); //divide by type CUSUM and type STEPRESPONSE based on length
-    current_event = head_event;
-    fflush(logfile);
-
-    printf("Populating event traces... ");
-    fprintf(logfile, "Populating event traces... ");
-    populate_event_traces(input, current_event, datatype, logfile, lpfilter, config->eventfilter, config->daqsetup, samplingfreq); //both types
-    current_event = head_event;
-    fflush(logfile);
 
 
-    printf("Detecting subevents...\n");
-    fprintf(logfile, "Detecting subevents...");
-    detect_subevents(current_event, cusum_delta, cusum_min_threshold, cusum_max_threshold, subevent_minpoints); //only CUSUM types
-    current_event = head_event;
-    fflush(logfile);
-
-    printf("Processing subevents...");
-    fprintf(logfile, "Processing subevents...");
-    typeswitch = assign_cusum_levels(current_event, subevent_minpoints, cusum_minstep, attempt_recovery); //only CUSUM types - if < 3 levels found (modify), assign STEPRESPONSE TYPE
-    current_event = head_event;
-    printf("CUSUM failed to find a blockage in %"PRIu64" events, which will be processed with StepResponse fitting\n",typeswitch);
-    fprintf(logfile, "CUSUM failed to find a blockage in %"PRIu64" events, which will be processed with StepResponse fitting\n",typeswitch);
-    fflush(logfile);
-
-    //stepresponse function called - make sure no cusum overlap remains
-    printf("Fitting short events...\n");
-    fprintf(logfile, "Fitting short events...");
-    step_response_events(current_event, risetime, maxiters, cusum_minstep);
-    current_event = head_event;
-    fflush(logfile);
-
-
-    printf("Assigning subevents...");
-    fprintf(logfile, "Assigning subevents...");
-    populate_all_levels(current_event); //both types
-    current_event = head_event;
-    fflush(logfile);
-
-    printf("Assigning noise...");
-    fprintf(logfile, "Assigning noise...");
-    calculate_event_noise(current_event, subevent_minpoints);
-    current_event = head_event;
-    fflush(logfile);
-
-
-
-    if (refine_estimates)
-    {
-        printf("Refining subevent estimates...");
-        fprintf(logfile, "Refining subevent estimates...");
-        refine_all_estimates(current_event);
-        current_event = head_event;
-        fflush(logfile);
-
-
-        printf("Filtering on refined event length... ");
-        fprintf(logfile, "Filtering on refined event length... ");
-        filter_event_length(current_event, maxpoints, minpoints, logfile, 0);
-        current_event = head_event;
-        fflush(logfile);
-    }
-
-    printf("Assigning event baselines...");
-    fprintf(logfile, "Assigning event baselines...");
-    assign_event_baselines(current_event, logfile, baseline_min, baseline_max);
-    current_event = head_event;
-    fflush(logfile);
-
-
-    printf("Assigning max blockage...");
-    fprintf(logfile, "Assigning max blockage...");
-    find_max_blockages(current_event);
-    current_event = head_event;
-    fflush(logfile);
-
-    printf("Assigning event areas...");
-    fprintf(logfile, "Assigning event areas...");
-    assign_event_areas(current_event, 1.0/samplingfreq);
-    current_event = head_event;
-    printf("Finished\n\n");
-    fprintf(logfile, "Finished\n\n");
-    fflush(logfile);
-
-
-    printf("Printing all signals...\n");
-    fprintf(logfile, "Printing all signals...");
-    print_all_signals(current_event, 1.0/samplingfreq*1e6);
-    current_event = head_event;
-    fflush(logfile);
-
-
-    printf("Printing event summary...");
-    fprintf(logfile, "Printing event summary...");
-    print_events(current_event, 1.0/samplingfreq);
-    current_event = head_event;
-    fflush(logfile);
-
-    print_error_summary(current_event, logfile);
-    current_event = head_event;
+    //print_error_summary(current_event, logfile);
+    //current_event = head_event;
 
     printf("Cleaning up memory usage...\n");
     fprintf(logfile, "Cleaning up memory usage...\n");
-    free_events(head_event);
+    free_single_event(current_event);
+    free(current_event);
     free_edges(head_edge);
     for (i=0; i<histogram->numbins; i++)
     {
@@ -434,6 +524,7 @@ int main()
     }
     fprintf(logfile, "<----RUN LOG ENDS---->\n\n");
     fclose(logfile);
+    fclose(events);
     system("pause");
     return 0;
 }

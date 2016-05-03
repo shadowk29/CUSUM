@@ -106,51 +106,6 @@ edge *initialize_edges(void)
     return head;
 }
 
-event *delete_bad_events(event *head)
-{
-    event *newhead;
-    event *current;
-    event *tempnext;
-    event *tempprev;
-    event *temp;
-    current = head;
-    newhead = head;
-    while (current)
-    {
-        if (current->type != 0)
-        {
-           tempnext = current->next;
-           tempprev = current->prev;
-           temp = current;
-           current = current->next;
-           free_single_event(temp);
-           if (tempprev && tempnext)
-           {
-               tempprev->next = tempnext;
-               tempnext->prev = tempprev;
-           }
-           else if (!tempprev && tempnext) //head of the list
-           {
-               newhead = tempnext;
-               newhead->index = 0;
-               tempnext->prev = NULL;
-           }
-           else if (tempprev && !tempnext) //end of the list
-           {
-               tempprev->next = NULL;
-           }
-           else if (!tempprev && !tempnext) //singleton list, odd case
-           {
-               newhead = NULL;
-           }
-        }
-        else
-        {
-            current = current->next;
-        }
-    }
-    return newhead;
-}
 
 edge *add_edge(edge *current, uint64_t location, int type)
 {
@@ -214,79 +169,57 @@ event *initialize_events(void)
     head->filtered_signal = NULL;
     head->first_edge = NULL;
     head->first_level = NULL;
-    head->next = NULL;
-    head->prev = NULL;
     return head;
 }
 
-event *add_event(event *current, uint64_t start, uint64_t finish)
+event *add_event(event *current, uint64_t start, uint64_t finish, uint64_t index)
 {
-    if (current->index == HEAD) //if we are adding a new node to the head node that hasn't been filled yet
-    {
-        current->index = 0;
-        current->start = start;
-        current->finish = finish;
-        current->length = finish-start;
-        current->threshold = 0;
-        current->rc1 = 0;
-        current->rc2 = 0;
-        current->first_edge = NULL;
-        current->first_level = NULL;
-        current->next = NULL;
-        current->prev = NULL;
-    }
-    else
-    {//if the current node is filled with useful information and we actually need more memory
-        if ((current->next = malloc(sizeof(event)))==NULL)
-        {
-            printf("Cannot allocate new event node after %" PRIu64 "\n",current->index);
-            exit(31);
-        }
-        current->next->type = 0;
-        current->next->first_edge = NULL;
-        current->next->first_level = NULL;
-        current->next->next = NULL;
-        current->next->signal = NULL;
-        current->filtered_signal = NULL;
-        current->next->prev = current;
-        current->next->index = current->index + 1;
-        current->next->start = start;
-        current->next->finish = finish;
-        current->next->length = finish-start;
-        current = current->next;
-        current->threshold = 0;
-        current->rc1 = 0;
-        current->rc2 = 0;
-    }
+    current->type = 0;
+    current->index = index;
+    current->start = start;
+    current->finish = finish;
+    current->length = finish-start;
+    current->threshold = 0;
+    current->rc1 = 0;
+    current->rc2 = 0;
+    current->first_edge = NULL;
+    current->first_level = NULL;
+    current->signal = NULL;
+    current->filtered_signal = NULL;
     return current;
 }
 
-void free_events(event *current)
-{
-    while (current->next)
-    {
-        current = current->next;
-        free_single_event(current->prev);
-    }
-    free_single_event(current);
-}
 
 void free_single_event(event *current)
 {
-    if (current)
+    printf("freeing signal\n");
+    if (current->signal)
     {
-        if (current->signal)
-        {
-            free(current->signal);
-        }
-        if (current->filtered_signal)
-        {
-            free(current->filtered_signal);
-        }
+        free(current->signal);
+    }
+    printf("done\n");
+    fflush(stdout);
+    printf("freeing filtered signal\n");
+    if (current->filtered_signal)
+    {
+        free(current->filtered_signal);
+    }
+    printf("done\n");
+    fflush(stdout);
+    printf("freeing edges\n");
+    if (current->first_edge)
+    {
         free_edges(current->first_edge);
+    }
+    printf("done\n");
+    fflush(stdout);
+    printf("freeing levels\n");
+    if (current->first_level)
+    {
         free_levels(current->first_level);
     }
-    free(current);
+    printf("done\n");
+    fflush(stdout);
 }
 
 

@@ -24,5 +24,4 @@ int expb_df (const gsl_vector * x, void *data, gsl_matrix * J);
 int expb_fdf (const gsl_vector * x, void *data, gsl_vector * f, gsl_matrix * J);
 int step_response(event *current, double risetime, uint64_t maxiters, double minstep);
 
-void step_response_events(event *current, double risetime, uint64_t maxiters, double minstep);
 #endif //STEPFIT_H_INCLUDED

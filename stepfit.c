@@ -250,31 +250,3 @@ int step_response(event *current, double risetime, uint64_t maxiters, double min
     return status;
 }
 
-void step_response_events(event *current, double risetime, uint64_t maxiters, double minstep)
-{
-    event *head = current;
-    uint64_t numevents = 0;
-    int status;
-    while (current)
-    {
-        numevents++;
-        current = current->next;
-    }
-    current = head;
-    while (current)
-    {
-        progressbar(current->index, numevents);
-        if (current->type == STEPRESPONSE)
-        {
-            status = step_response(current, risetime, maxiters, minstep);
-            if (status != GSL_SUCCESS)
-            {
-                if (current->type == STEPRESPONSE)
-                {
-                    current->type = BADFIT;
-                }
-            }
-        }
-        current = current->next;
-    }
-}

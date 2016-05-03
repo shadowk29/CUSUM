@@ -87,8 +87,6 @@ struct Event
     double residual;
     struct Edge *first_edge;
     struct Cusumlevel *first_level;
-    struct Event *next;
-    struct Event *prev;
 };
 typedef struct Event event;
 
@@ -139,7 +137,6 @@ struct Configuration
     double cusum_max_threshold;
     double cusum_delta;
     double cusum_minstep;
-    int refine_estimates;
     uint64_t stepfit_samples;
     uint64_t maxiters;
     int attempt_recovery;
@@ -167,10 +164,8 @@ edge *add_edge(edge *current, uint64_t location, int type);
 void free_edges(edge *current);
 
 event *initialize_events(void);
-event *add_event(event *current, uint64_t start, uint64_t finish);
-void free_events(event *current);
+event *add_event(event *current, uint64_t start, uint64_t finish, uint64_t index);
 void free_single_event(event *current);
-event *delete_bad_events(event *head);
 
 cusumlevel *add_cusum_level(cusumlevel *lastlevel, double current, uint64_t length);
 void free_levels(cusumlevel *current);
