@@ -105,14 +105,14 @@ void filter_signal(double *signal, double *filtered, bessel *lpfilter, uint64_t 
     if ((output = fopen("output/filtered.csv","w"))==NULL)
     {
         printf("Can't open filter file\n");
-        abort();
+        exit(1);
     }
     for (i=0; i<length; i++)
     {
         fprintf(output,"%g,%g,%g\n",i*2.0,signal[i],filtered[i]);
     }
     fclose(output);
-    abort();*/
+    exit(1);*/
 }
 
 
@@ -436,7 +436,7 @@ void cusum(event *current_event, double delta, double minthreshold, double maxth
     {
         printf("Cannot allocate cpos\n");
         fflush(stdout);
-        abort();
+        exit(10);
     }
     cpos[0] = 0;
     double *cneg;//cumulative log-likelihood for negative jumps
@@ -444,7 +444,7 @@ void cusum(event *current_event, double delta, double minthreshold, double maxth
     {
         printf("Cannot allocate cneg\n");
         fflush(stdout);
-        abort();
+        exit(11);
     }
     cneg[0] = 0;
     double *gpos;//decision function for positive jumps
@@ -452,7 +452,7 @@ void cusum(event *current_event, double delta, double minthreshold, double maxth
     {
         printf("Cannot allocate gpos\n");
         fflush(stdout);
-        abort();
+        exit(12);
     }
     gpos[0] = 0;
     double *gneg;//decision function for negative jumps
@@ -460,7 +460,7 @@ void cusum(event *current_event, double delta, double minthreshold, double maxth
     {
         printf("Cannot allocate gneg\n");
         fflush(stdout);
-        abort();
+        exit(13);
     }
     gneg[0] = 0;
 
@@ -655,7 +655,7 @@ void generate_trace(FILE *input, event *current, int datatype, FILE *logfile, be
         printf("Attempting to access negative file index, increase your start time past %" PRIu64 "\n",current->start);
         fprintf(logfile,"Attempting to access negative file index, increase your start time past %" PRIu64 "\n",current->start);
         fflush(logfile);
-        abort();
+        exit(14);
     }
     current->padding_before = padding;
     current->padding_after = padding;
@@ -666,14 +666,14 @@ void generate_trace(FILE *input, event *current, int datatype, FILE *logfile, be
         printf("Cannot allocate trace array\n");
         fprintf(logfile,"Cannot allocate trace array\n");
         fflush(logfile);
-        return;
+        exit(15);
     }
     if ((current->filtered_signal = calloc(current->length + current->padding_before + current->padding_after,sizeof(double)))==NULL)
     {
         printf("Cannot allocate filtered trace array\n");
         fprintf(logfile,"Cannot allocate filtered trace array\n");
         fflush(logfile);
-        return;
+        exit(16);
     }
 
 
@@ -682,7 +682,7 @@ void generate_trace(FILE *input, event *current, int datatype, FILE *logfile, be
         printf("Cannot locate file position at sample %" PRIu64 "\n",position);
         fprintf(logfile,"Cannot locate file position at sample %" PRIu64 "\n",position);
         fflush(logfile);
-        return;
+        exit(17);
     }
 
     if (datatype==64)
@@ -702,7 +702,7 @@ void generate_trace(FILE *input, event *current, int datatype, FILE *logfile, be
         printf("Invalid data type\n");
         fprintf(logfile,"Invalid data type\n");
         fflush(logfile);
-        abort();
+        exit(18);
     }
     if (read != current->length + current->padding_before + current->padding_after)
     {
@@ -866,14 +866,14 @@ double build_histogram(double *signal, histostruct *histogram, uint64_t length, 
         if ((histogram->histogram = realloc(histogram->histogram,numbins*sizeof(double *)))==NULL)
         {
             printf("Cannot allocate level 1 with %" PRIu64" using range: %.2lf and delta: %.2lf, min: %.2lf and max: %.2lf\n",numbins, range, delta, minimum, maximum);
-            abort();
+            exit(19);
         }
         for (i=histogram->numbins; i<numbins; i++)
         {
             if ((histogram->histogram[i] = calloc(3,sizeof(double)))==NULL)
             {
                 printf("Cannot allocate level 2\n");
-                abort();
+                exit(20);
             }
         }
         histogram->numbins = numbins;

@@ -98,7 +98,7 @@ edge *initialize_edges(void)
     if ((head = malloc(sizeof(edge)))==NULL)
     {
         printf("Cannot allocate head node\n");
-        abort();
+        exit(28);
     }
     head->next = NULL;
     head->location = 0;
@@ -164,7 +164,7 @@ edge *add_edge(edge *current, uint64_t location, int type)
         if ((current->next = malloc(sizeof(edge)))==NULL)
         {
             printf("Cannot allocate new node after %" PRIu64 "\n",current->location);
-            abort();
+            exit(29);
         }
         current->next->location = location;
         current->next->type = type;
@@ -203,7 +203,7 @@ event *initialize_events(void)
     if ((head = malloc(sizeof(event)))==NULL)
     {
         printf("Cannot allocate head node for event list\n");
-        abort();
+        exit(30);
     }
     head->type = 0;
     head->threshold = 0;
@@ -240,7 +240,7 @@ event *add_event(event *current, uint64_t start, uint64_t finish)
         if ((current->next = malloc(sizeof(event)))==NULL)
         {
             printf("Cannot allocate new event node after %" PRIu64 "\n",current->index);
-            abort();
+            exit(31);
         }
         current->next->type = 0;
         current->next->first_edge = NULL;
@@ -296,7 +296,7 @@ cusumlevel *initialize_levels(void)
     if ((head=malloc(sizeof(cusumlevel)))==NULL)
     {
         printf("Cannot allocate head level node\n");
-        abort();
+        exit(32);
     }
     head->current = 0;
     head->length = 0;
@@ -312,7 +312,7 @@ cusumlevel *add_cusum_level(cusumlevel *lastlevel, double current, uint64_t leng
         if ((lastlevel->next=malloc(sizeof(cusumlevel)))==NULL)
         {
             printf("Cannot allocate level node\n");
-            abort();
+            exit(33);
         }
         lastlevel->next->current = current;
         lastlevel->next->length = length;

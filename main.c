@@ -33,19 +33,19 @@ int main()
     if ((config = malloc(sizeof(configuration)))==NULL)
     {
         printf("Cannot allocate config structure\n");
-        abort();
+        exit(1);
     }
     if ((config->daqsetup = malloc(sizeof(chimera)))==NULL)
     {
         printf("Cannot allocate chimera setup structure\n");
-        abort();
+        exit(2);
     }
 
     FILE *logfile;
     if ((logfile = fopen64("output/summary.txt","w"))==NULL)
     {
         printf("Cannot open summary file\n");
-        abort();
+        exit(3);
     }
     read_config(config, logfile);
 
@@ -55,7 +55,7 @@ int main()
     if ((input = fopen64(config->filepath,"rb"))==NULL)
     {
         printf("Cannot open input file\n");
-        abort();
+        exit(4);
     }
 
     //file reading variables
@@ -144,7 +144,7 @@ int main()
         if ((filtered = (double *) calloc(readlength,sizeof(double)))==NULL)
         {
             printf("Cannot allocate filtered signal array\n");
-            abort();
+            exit(5);
         }
     }
     //allocate memory for file reading
@@ -152,13 +152,13 @@ int main()
     if ((signal = (double *) calloc(readlength,sizeof(double)))==NULL)
     {
         printf("Cannot allocate signal array\n");
-        abort();
+        exit(6);
     }
 
     if (datatype != 16 && datatype != 64 && datatype !=0)
     {
         printf("datatype currently can only be 0, 16, or 64\n");
-        abort();
+        exit(1);
     }
 
 
@@ -167,7 +167,7 @@ int main()
     if ((histogram = malloc(sizeof(histostruct)))==NULL)
     {
         printf("cannot allocate histogram structure\n");
-        abort();
+        exit(7);
     }
     histogram->histogram = NULL;
     histogram->numbins = 0;
@@ -234,13 +234,13 @@ int main()
             if ((filtertest=fopen64("filtertest.csv","w"))==NULL)
             {
                 printf("Cannot open output file for filter data\n");
-                abort();
+                exit(1);
             }
             for (i=0; i<read; i++)
             {
                 fprintf(filtertest,"%g,%g,%g\n",i/(double)samplingfreq,signal[i],filtered[i]);
             }
-            abort();*/
+            exit(1);*/
             //baseline = baseline_averaging(filtered, read, baseline_min, baseline_max);
             baseline = build_histogram(filtered, histogram, read, binsize, baseline_max, baseline_min);
             if (baseline < baseline_min || baseline > baseline_max)
@@ -293,7 +293,7 @@ int main()
         printf("No edges found in signal, exiting\n");
         fprintf(logfile, "No edges found in signal, exiting\n");
         system("pause");
-        return -1;
+        exit(8);
     }
 
     printf("Processing event locations... ");
@@ -307,7 +307,7 @@ int main()
         printf("No events found in signal, exiting\n");
         fprintf(logfile, "No events found in signal, exiting\n");
         system("pause");
-        return -2;
+        exit(9);
     }
 
     printf("Filtering on event length... ");

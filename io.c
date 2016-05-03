@@ -111,19 +111,19 @@ void print_events(event *current, double timestep)
     if ((events = fopen("output/events.csv","w"))==NULL)
     {
         printf("Cannot open event summary file\n");
-        abort();
+        exit(21);
     }
     FILE *rejected;
     if ((rejected = fopen("output/rejected.csv","w"))==NULL)
     {
         printf("Cannot open event rejected events file\n");
-        abort();
+        exit(22);
     }
     FILE *rate;
     if ((rate = fopen("output/rate.csv","w"))==NULL)
     {
         printf("Cannot open event rate events file\n");
-        abort();
+        exit(23);
     }
     uint64_t lasttime = 0;
     uint64_t lasttime_rate = 0;
@@ -298,7 +298,7 @@ void print_signal(event *current, int length, char *filename, double timestep)
     if ((output = fopen(filename,"w"))==NULL)
     {
         printf("Cannot open output file\n");
-        abort();
+        exit(24);
     }
     int i;
     if (current->type == STEPRESPONSE)
@@ -359,7 +359,7 @@ void print_histogram(char *filename, histostruct *histogram)
     if ((output = fopen(filename, "w"))==NULL)
     {
         printf("Cannot open histogram file\n");
-        abort();
+        exit(25);
     }
     for (i=0; i<histogram->numbins; i++)
     {
@@ -421,7 +421,7 @@ void export_trace(double *signal, uint64_t length, char *file, double timestep, 
     if ((output = fopen64(file,"w"))==NULL)
     {
         printf("Cannot open input file\n");
-        abort();
+        exit(26);
     }
     uint64_t i;
 
@@ -443,7 +443,7 @@ void read_config(configuration *config, FILE *logfile)
     if ((configfile = fopen("config.txt","r"))==NULL)
     {
         printf("Cannot find config file: \"config.txt\"!");
-        abort();
+        exit(27);
     }
     fprintf(logfile, "<----CONFIGURATION BEGINS---->\n\n");
 

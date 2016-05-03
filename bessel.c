@@ -108,7 +108,7 @@ void polymult(double complex *roots, uint64_t N, double *rcoefs)
     if ((polycoefs = calloc(N+1, sizeof(double complex)))==NULL)
     {
         printf("Cannot allocate coefficient array\n");
-        abort();
+        exit(35);
     }
     polycoefs[N]=1.0;
     for (i=0; i<N; i++)
@@ -168,7 +168,7 @@ bessel *initialize_filter(bessel *lpfilter, uint64_t order, double cutoff, uint6
     if ((lpfilter = malloc(sizeof(bessel)))==NULL)
     {
         printf("Cannot allocate filter memory\n");
-        abort();
+        exit(36);
     }
 
 
@@ -183,22 +183,22 @@ bessel *initialize_filter(bessel *lpfilter, uint64_t order, double cutoff, uint6
     if ((poles = calloc(order,sizeof(double complex)))==NULL)
     {
         printf("Cannot allocate complex poles array\n");
-        abort();
+        exit(37);
     }
     if ((zeros = calloc(order,sizeof(double complex)))==NULL)
     {
         printf("Cannot allocate zeros array\n");
-        abort();
+        exit(38);
     }
     if ((lpfilter->ccof = calloc(order+1,sizeof(double)))==NULL)
     {
         printf("Cannot allocate b array\n");
-        abort();
+        exit(39);
     }
     if ((lpfilter->dcof = calloc(order+1,sizeof(double)))==NULL)
     {
         printf("Cannot allocate zeros array\n");
-        abort();
+        exit(1);
     }
 
     double fs = 2.0;
@@ -233,17 +233,17 @@ bessel *initialize_filter(bessel *lpfilter, uint64_t order, double cutoff, uint6
     if ((lpfilter->temp = calloc(length+2*order, sizeof(double)))==NULL)
     {
         printf("Cannot allocate temp filter array\n");
-        abort();
+        exit(40);
     }
     if ((lpfilter->tempback = calloc(length+2*order, sizeof(double)))==NULL)
     {
         printf("Cannot allocate tempback array\n");
-        abort();
+        exit(41);
     }
     if ((lpfilter->paddedsignal = calloc(length + 2*order,sizeof(double)))==NULL)
     {
         printf("Cannot allocate padded signal\n");
-        abort();
+        exit(42);
     }
     free(poles);
     free(zeros);
