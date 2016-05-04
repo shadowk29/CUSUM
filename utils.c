@@ -20,6 +20,17 @@
 */
 #include"utils.h"
 
+uint64_t count_edges(edge *current_edge)
+{
+    uint64_t count = 0;
+    while (current_edge)
+    {
+        count++;
+        current_edge = current_edge->next;
+    }
+    return count;
+}
+
 inline void progressbar(uint64_t pos, uint64_t finish)
 {
     // Calculuate the ratio of complete-to-incomplete.

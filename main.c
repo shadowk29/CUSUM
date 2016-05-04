@@ -299,20 +299,29 @@ int main()
     start = 0;
     finish = 0;
     uint64_t index = 0;
+    uint64_t edgecount;
+    uint64_t edgenum = 0;
+
+    edgecount = count_edges(current_edge);
+    current_edge = head_edge;
 
 
     uint64_t lasttime = 0;
     uint64_t lasttime_rate = 0;
+    printf("Processing %"PRIu64" edges\n", edgecount);
     while (current_edge)
     {
+        progressbar(edgenum, edgecount);
         while (current_edge->type != 0 && current_edge->next) //if for some reason there are multiple of the same type in a row, skip them.
         {
             current_edge = current_edge->next;
+            edgenum++;
         }
         start = current_edge->location;
         while (current_edge->type != 1 && current_edge->next) //if for some reason there are multiple of the same type in a row, skip them.
         {
             current_edge = current_edge->next;
+            edgenum++;
         }
         finish = current_edge->location;
         if (finish > start)
@@ -330,10 +339,10 @@ int main()
 
         if (current_event->type != CUSUM && current_event->type != STEPRESPONSE) //verify that we should continue processing
         {
-            printf("Freeing\n");
+            //printf("Freeing\n");
             current_edge = current_edge->next;
             free_single_event(current_event);
-            printf("Finished\n");
+            //printf("Finished\n");
             lasttime_rate = current_event->start;
             continue;
         }
@@ -493,6 +502,7 @@ int main()
 
 
         current_edge = current_edge->next;
+        edgenum++;
         free_single_event(current_event);
     }
 

@@ -158,7 +158,7 @@ inline double d_abs(double num); //absolute value of a number
 
 double ARL(uint64_t length, double sigma, double mun, double h);
 
-
+uint64_t count_edges(edge *head_edge);
 edge *initialize_edges(void);
 edge *add_edge(edge *current, uint64_t location, int type);
 void free_edges(edge *current);
