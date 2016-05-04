@@ -158,7 +158,7 @@ int main()
     if (datatype != 16 && datatype != 64 && datatype !=0)
     {
         printf("datatype currently can only be 0, 16, or 64\n");
-        exit(1);
+        exit(43);
     }
 
 
@@ -323,10 +323,10 @@ int main()
 
 
         //filter events on length, and end processing here if they are too short
-        printf("Filtering\n");
+        //printf("Filtering\n");
         filter_event_length(current_event, maxpoints, minpoints, stepfit_samples);
-        printf("Finished\n");
-        fflush(stdout);
+        //printf("Finished\n");
+        //fflush(stdout);
 
         if (current_event->type != CUSUM && current_event->type != STEPRESPONSE) //verify that we should continue processing
         {
@@ -339,10 +339,10 @@ int main()
         }
 
         //read the data trace from the appropriate file position
-        printf("Reading\n");
+        //printf("Reading\n");
         generate_trace(input, current_event, datatype, logfile, lpfilter, eventfilter, config->daqsetup, samplingfreq);
-        printf("Finished\n");
-        fflush(stdout);
+        //printf("Finished\n");
+        //fflush(stdout);
 
         if (current_event->type != CUSUM && current_event->type != STEPRESPONSE) //verify that we should continue processing
         {
@@ -354,14 +354,14 @@ int main()
 
         if (current_event->type == CUSUM)
         {
-            printf("cusum\n");
+            //printf("cusum\n");
             cusum(current_event, config->cusum_delta, config->cusum_min_threshold, config->cusum_max_threshold, subevent_minpoints);
-            printf("Finished\n");
-            fflush(stdout);
-            printf("averaging\n");
+            //printf("Finished\n");
+            //fflush(stdout);
+            //printf("averaging\n");
             typeswitch += average_cusum_levels(current_event, subevent_minpoints, cusum_minstep, attempt_recovery);
-            printf("Finished\n");
-            fflush(stdout);
+            //printf("Finished\n");
+            //fflush(stdout);
         }
 
 
@@ -377,10 +377,10 @@ int main()
         if (current_event->type == STEPRESPONSE)
         {
             int status;
-            printf("stepfit\n");
+            //printf("stepfit\n");
             status = step_response(current_event, risetime, maxiters, cusum_minstep);
-            printf("Finished\n");
-            fflush(stdout);
+            //printf("Finished\n");
+            //fflush(stdout);
             if (status != GSL_SUCCESS)
             {
                 if (current_event->type == STEPRESPONSE)
@@ -398,10 +398,10 @@ int main()
             continue;
         }
 
-        printf("Levels\n");
+        //printf("Levels\n");
         populate_event_levels(current_event);
-        printf("Finished\n");
-        fflush(stdout);
+        //printf("Finished\n");
+        //fflush(stdout);
 
 
         if (current_event->type != CUSUM && current_event->type != STEPRESPONSE) //verify that we should continue processing
@@ -412,10 +412,10 @@ int main()
             continue;
         }
 
-        printf("Noise\n");
+        //printf("Noise\n");
         calculate_level_noise(current_event, subevent_minpoints);
-        printf("Finished\n");
-        fflush(stdout);
+        //printf("Finished\n");
+        //fflush(stdout);
 
 
         if (current_event->type != CUSUM && current_event->type != STEPRESPONSE) //verify that we should continue processing
@@ -426,10 +426,10 @@ int main()
             continue;
         }
 
-        printf("Refining\n");
+        //printf("Refining\n");
         refine_event_estimates(current_event);
-        printf("Finished\n");
-        fflush(stdout);
+        //printf("Finished\n");
+        //fflush(stdout);
 
         if (current_event->type != CUSUM && current_event->type != STEPRESPONSE) //verify that we should continue processing
         {
@@ -439,10 +439,10 @@ int main()
             continue;
         }
 
-        printf("Baseline\n");
+        //printf("Baseline\n");
         event_baseline(current_event, baseline_min, baseline_max);
-        printf("Finished\n");
-        fflush(stdout);
+        //printf("Finished\n");
+        //fflush(stdout);
 
         if (current_event->type != CUSUM && current_event->type != STEPRESPONSE) //verify that we should continue processing
         {
@@ -452,10 +452,10 @@ int main()
             continue;
         }
 
-        printf("Maximum\n");
+        //printf("Maximum\n");
         event_max_blockage(current_event);
-        printf("Finished\n");
-        fflush(stdout);
+        //printf("Finished\n");
+        //fflush(stdout);
 
 
         if (current_event->type != CUSUM && current_event->type != STEPRESPONSE) //verify that we should continue processing
@@ -467,8 +467,8 @@ int main()
         }
 
         event_area(current_event, 1.0/samplingfreq);
-        printf("Finished\n");
-        fflush(stdout);
+        //printf("Finished\n");
+        //fflush(stdout);
 
 
         if (current_event->type != CUSUM && current_event->type != STEPRESPONSE) //verify that we should continue processing
@@ -480,15 +480,15 @@ int main()
         }
 
 
-        printf("Printign Trace\n");
+        //printf("Printign Trace\n");
         print_event_signal(current_event->index, current_event, 1.0/samplingfreq*1e6);
-        printf("Finished\n");
-        fflush(stdout);
-        printf("Printing summary\n");
+        //printf("Finished\n");
+        //fflush(stdout);
+        //printf("Printing summary\n");
         print_event_line(events, current_event, 1.0/samplingfreq, lasttime);
-        printf("Finished\n");
-        fflush(stdout);
-        lasttime = current_event -> start;
+        //printf("Finished\n");
+        //fflush(stdout);
+        lasttime = current_event->start;
         lasttime_rate = current_event->start;
 
 
