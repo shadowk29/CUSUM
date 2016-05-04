@@ -70,19 +70,11 @@ int main()
     uint64_t i;
     uint64_t read;
     uint64_t pos;
-    uint64_t start;
-    uint64_t finish;
-    uint64_t readlength;
-    int datatype;
     int endflag;
 
     endflag = 0;
     read = 0;
     pos = 0;
-    start = config->start;
-    finish = config->finish;
-    readlength = config->readlength;
-    datatype = config->datatype;
 
 
     //event location identification parameters
@@ -127,9 +119,9 @@ int main()
     //initialize the low-pass filter and allocate necessary memory
     if (usefilter || eventfilter)
     {
-        lpfilter = initialize_filter(lpfilter, order, cutoff, readlength);
+        lpfilter = initialize_filter(lpfilter, order, cutoff, config->readlength);
 
-        if ((filtered = (double *) calloc(readlength,sizeof(double)))==NULL)
+        if ((filtered = (double *) calloc(config->readlength,sizeof(double)))==NULL)
         {
             printf("Cannot allocate filtered signal array\n");
             exit(5);
@@ -137,13 +129,13 @@ int main()
     }
     //allocate memory for file reading
     double *signal;
-    if ((signal = (double *) calloc(readlength,sizeof(double)))==NULL)
+    if ((signal = (double *) calloc(config->readlength,sizeof(double)))==NULL)
     {
         printf("Cannot allocate signal array\n");
         exit(6);
     }
 
-    if (datatype != 16 && datatype != 64 && datatype !=0)
+    if (config->datatype != 16 && config->datatype != 64 && config->datatype !=0)
     {
         printf("datatype currently can only be 0, 16, or 64\n");
         exit(43);
@@ -161,8 +153,8 @@ int main()
     histogram->numbins = 0;
 
     //find out how big the file is for use in a progressbar
-    uint64_t filesize = get_filesize(input, datatype);
-    finish = filesize < finish ? filesize : finish;
+    uint64_t filesize = get_filesize(input, config->datatype);
+    config->finish = filesize < config->finish ? filesize : config->finish;
 
 
     //dummy variables
@@ -187,20 +179,20 @@ int main()
     printf("Locating events... \n");
     fprintf(logfile, "Locating events...\n ");
     fflush(stdout);
-    for (pos = start; pos < finish; pos += read)
+    for (pos = config->start; pos < config->finish; pos += read)
     {
-        progressbar(pos-start,finish-start);
-        if (datatype == 64)
+        progressbar(pos-config->start,config->finish-config->start);
+        if (config->datatype == 64)
         {
-            read = read_current(input, signal, pos, intmin(readlength,finish - pos));
+            read = read_current(input, signal, pos, intmin(config->readlength,config->finish - pos));
         }
-        else if (datatype == 16)
+        else if (config->datatype == 16)
         {
-            read = read_current_int16(input, signal, pos, intmin(readlength,finish - pos));
+            read = read_current_int16(input, signal, pos, intmin(config->readlength,config->finish - pos));
         }
-        else if (datatype == 0)
+        else if (config->datatype == 0)
         {
-            read = read_current_chimera(input, signal, pos, intmin(readlength,finish - pos), config->daqsetup);
+            read = read_current_chimera(input, signal, pos, intmin(config->readlength,config->finish - pos), config->daqsetup);
         }
 
         if (read < config->readlength || feof(input))
@@ -243,7 +235,7 @@ int main()
                 pos += read;
                 break;
             }
-            memset(filtered,'0',(readlength)*sizeof(double));
+            memset(filtered,'0',(config->readlength)*sizeof(double));
         }
         else
         {
@@ -265,7 +257,7 @@ int main()
                 break;
             }
         }
-        memset(signal,'0',(readlength)*sizeof(double));
+        memset(signal,'0',(config->readlength)*sizeof(double));
     }
     printf("\nRead %g seconds of good baseline\nRead %g seconds of bad baseline\n", goodbaseline/(double) samplingfreq, badbaseline / (double) samplingfreq);
     fprintf(logfile, "\nRead %g seconds of good baseline\nRead %g seconds of bad baseline\n", goodbaseline/(double) samplingfreq, badbaseline / (double) samplingfreq);
@@ -290,7 +282,8 @@ int main()
     }
 
 
-
+    uint64_t start;
+    uint64_t finish;
     start = 0;
     finish = 0;
     uint64_t index = 0;
@@ -301,7 +294,7 @@ int main()
     current_edge = head_edge;
 
 
-    uint64_t lasttime = start;
+    uint64_t lasttime = config->start;
     uint64_t lasttime_rate = 0;
     printf("Processing %"PRIu64" edges\n", edgecount);
     while (current_edge)
@@ -345,7 +338,7 @@ int main()
 
         //read the data trace from the appropriate file position
         //printf("Reading\n");
-        generate_trace(input, current_event, datatype, logfile, lpfilter, eventfilter, config->daqsetup, samplingfreq);
+        generate_trace(input, current_event, config->datatype, logfile, lpfilter, eventfilter, config->daqsetup, samplingfreq);
         //printf("Finished\n");
         //fflush(stdout);
 

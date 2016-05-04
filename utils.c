@@ -20,6 +20,7 @@
 */
 #include"utils.h"
 
+
 uint64_t count_edges(edge *current_edge)
 {
     uint64_t count = 0;
