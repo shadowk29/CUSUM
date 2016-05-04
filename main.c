@@ -495,6 +495,7 @@ int main()
 
 
         current_edge = current_edge->next;
+        free_single_event(current_event);
     }
 
 
