@@ -117,23 +117,11 @@ int main()
     double *filtered = NULL;
 
     //CUSUM parameters
-    double cusum_minstep;
-    uint64_t subevent_minpoints;
-    uint64_t stepfit_samples;
-    uint64_t maxiters;
     int attempt_recovery;
 
-    cusum_minstep = config->cusum_minstep;
-    subevent_minpoints = config->subevent_minpoints;
-    stepfit_samples = config->stepfit_samples;
-    maxiters = config->maxiters;
     attempt_recovery = config->attempt_recovery;
     double risetime = 5; //FIXME
     //event requirement paramaters
-    uint64_t maxpoints;
-    uint64_t minpoints;
-    maxpoints = config->event_maxpoints;
-    minpoints = config->event_minpoints;
     uint64_t typeswitch = 0;
 
     //initialize the low-pass filter and allocate necessary memory
@@ -295,6 +283,13 @@ int main()
     }
 
 
+    free(signal);
+    if (usefilter)
+    {
+        free(filtered);
+    }
+
+
 
     start = 0;
     finish = 0;
@@ -306,7 +301,7 @@ int main()
     current_edge = head_edge;
 
 
-    uint64_t lasttime = 0;
+    uint64_t lasttime = start;
     uint64_t lasttime_rate = 0;
     printf("Processing %"PRIu64" edges\n", edgecount);
     while (current_edge)
@@ -333,7 +328,7 @@ int main()
 
         //filter events on length, and end processing here if they are too short
         //printf("Filtering\n");
-        filter_event_length(current_event, maxpoints, minpoints, stepfit_samples);
+        filter_event_length(current_event, config->event_maxpoints, config->event_minpoints, config->stepfit_samples);
         //printf("Finished\n");
         //fflush(stdout);
 
@@ -341,6 +336,7 @@ int main()
         {
             //printf("Freeing\n");
             current_edge = current_edge->next;
+            edgenum++;
             free_single_event(current_event);
             //printf("Finished\n");
             lasttime_rate = current_event->start;
@@ -356,6 +352,7 @@ int main()
         if (current_event->type != CUSUM && current_event->type != STEPRESPONSE) //verify that we should continue processing
         {
             current_edge = current_edge->next;
+            edgenum++;
             free_single_event(current_event);
             lasttime_rate = current_event->start;
             continue;
@@ -364,11 +361,11 @@ int main()
         if (current_event->type == CUSUM)
         {
             //printf("cusum\n");
-            cusum(current_event, config->cusum_delta, config->cusum_min_threshold, config->cusum_max_threshold, subevent_minpoints);
+            cusum(current_event, config->cusum_delta, config->cusum_min_threshold, config->cusum_max_threshold, config->subevent_minpoints);
             //printf("Finished\n");
             //fflush(stdout);
             //printf("averaging\n");
-            typeswitch += average_cusum_levels(current_event, subevent_minpoints, cusum_minstep, attempt_recovery);
+            typeswitch += average_cusum_levels(current_event, config->subevent_minpoints, config->cusum_minstep, attempt_recovery);
             //printf("Finished\n");
             //fflush(stdout);
         }
@@ -377,6 +374,7 @@ int main()
         if (current_event->type != CUSUM && current_event->type != STEPRESPONSE) //verify that we should continue processing
         {
             current_edge = current_edge->next;
+            edgenum++;
             free_single_event(current_event);
             lasttime_rate = current_event->start;
             continue;
@@ -387,7 +385,7 @@ int main()
         {
             int status;
             //printf("stepfit\n");
-            status = step_response(current_event, risetime, maxiters, cusum_minstep);
+            status = step_response(current_event, risetime, config->maxiters, config->cusum_minstep);
             //printf("Finished\n");
             //fflush(stdout);
             if (status != GSL_SUCCESS)
@@ -402,6 +400,7 @@ int main()
         if (current_event->type != CUSUM && current_event->type != STEPRESPONSE) //verify that we should continue processing
         {
             current_edge = current_edge->next;
+            edgenum++;
             free_single_event(current_event);
             lasttime_rate = current_event->start;
             continue;
@@ -416,13 +415,14 @@ int main()
         if (current_event->type != CUSUM && current_event->type != STEPRESPONSE) //verify that we should continue processing
         {
             current_edge = current_edge->next;
+            edgenum++;
             free_single_event(current_event);
             lasttime_rate = current_event->start;
             continue;
         }
 
         //printf("Noise\n");
-        calculate_level_noise(current_event, subevent_minpoints);
+        calculate_level_noise(current_event, config->subevent_minpoints);
         //printf("Finished\n");
         //fflush(stdout);
 
@@ -430,6 +430,7 @@ int main()
         if (current_event->type != CUSUM && current_event->type != STEPRESPONSE) //verify that we should continue processing
         {
             current_edge = current_edge->next;
+            edgenum++;
             free_single_event(current_event);
             lasttime_rate = current_event->start;
             continue;
@@ -443,6 +444,7 @@ int main()
         if (current_event->type != CUSUM && current_event->type != STEPRESPONSE) //verify that we should continue processing
         {
             current_edge = current_edge->next;
+            edgenum++;
             free_single_event(current_event);
             lasttime_rate = current_event->start;
             continue;
@@ -456,6 +458,7 @@ int main()
         if (current_event->type != CUSUM && current_event->type != STEPRESPONSE) //verify that we should continue processing
         {
             current_edge = current_edge->next;
+            edgenum++;
             free_single_event(current_event);
             lasttime_rate = current_event->start;
             continue;
@@ -470,6 +473,7 @@ int main()
         if (current_event->type != CUSUM && current_event->type != STEPRESPONSE) //verify that we should continue processing
         {
             current_edge = current_edge->next;
+            edgenum++;
             free_single_event(current_event);
             lasttime_rate = current_event->start;
             continue;
@@ -483,6 +487,7 @@ int main()
         if (current_event->type != CUSUM && current_event->type != STEPRESPONSE) //verify that we should continue processing
         {
             current_edge = current_edge->next;
+            edgenum++;
             free_single_event(current_event);
             lasttime_rate = current_event->start;
             continue;
@@ -511,7 +516,7 @@ int main()
     //print_error_summary(current_event, logfile);
     //current_event = head_event;
 
-    printf("Cleaning up memory usage...\n");
+    printf("\nCleaning up memory usage...\n");
     fprintf(logfile, "Cleaning up memory usage...\n");
     free_single_event(current_event);
     free(current_event);
@@ -525,12 +530,11 @@ int main()
     fclose(input);
     free(config->daqsetup);
     free(config);
-    free(signal);
     if (usefilter)
     {
         free_filter(lpfilter);
-        free(filtered);
     }
+
     fprintf(logfile, "<----RUN LOG ENDS---->\n\n");
     fclose(logfile);
     fclose(events);

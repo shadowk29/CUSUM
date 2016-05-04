@@ -763,7 +763,7 @@ double build_histogram(double *signal, histostruct *histogram, uint64_t length, 
     histogram->offset = minimum;
     histogram->delta = delta;
 
-    print_histogram("output/histogram.csv", histogram);
+    //print_histogram("output/histogram.csv", histogram);
     return baseline;
 }
 
