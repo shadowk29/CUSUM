@@ -192,40 +192,22 @@ event *add_event(event *current, uint64_t start, uint64_t finish, uint64_t index
 
 void free_single_event(event *current)
 {
-    printf("freeing signal\n");
     if (current->signal)
     {
         free(current->signal);
-        current->signal = NULL;
     }
-    printf("done\n");
-    fflush(stdout);
-    printf("freeing filtered signal\n");
     if (current->filtered_signal)
     {
-        printf("type is %d",current->type);
         free(current->filtered_signal);
-        current->filtered_signal = NULL;
     }
-    printf("done\n");
-
-    printf("freeing edges\n");
-    fflush(stdout);
     if (current->first_edge)
     {
         free_edges(current->first_edge);
-        current->first_edge = NULL;
     }
-    printf("done\n");
-    fflush(stdout);
-    printf("freeing levels\n");
     if (current->first_level)
     {
         free_levels(current->first_level);
-        current->first_level = NULL;
     }
-    printf("done\n");
-    fflush(stdout);
 }
 
 

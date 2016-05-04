@@ -117,14 +117,12 @@ int main()
     double *filtered = NULL;
 
     //CUSUM parameters
-    double cusum_delta;
     double cusum_minstep;
     uint64_t subevent_minpoints;
     uint64_t stepfit_samples;
     uint64_t maxiters;
     int attempt_recovery;
 
-    cusum_delta = config->cusum_delta;
     cusum_minstep = config->cusum_minstep;
     subevent_minpoints = config->subevent_minpoints;
     stepfit_samples = config->stepfit_samples;

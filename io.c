@@ -215,6 +215,7 @@ void print_event_line(FILE *events, event *current, double timestep, uint64_t la
         level = level->next;
     }
     fprintf(events,"\n");
+    fflush(events);
 }
 
 
@@ -419,6 +420,7 @@ void print_signal(event *current, int length, char *filename, double timestep)
             fprintf(output,"%g,%g,%g\n",i*timestep,current->signal[i], current->filtered_signal[i]);
         }
     }
+    fflush(output);
     fclose(output);
 }
 
