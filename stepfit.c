@@ -93,160 +93,165 @@ int expb_fdf (const gsl_vector * x, void *data, gsl_vector * f, gsl_matrix * J)
 }
 
 
-int step_response(event *current, double risetime, uint64_t maxiters, double minstep)
+void step_response(event *current, double risetime, uint64_t maxiters, double minstep)
 {
-    const gsl_multifit_fdfsolver_type *T;
-    gsl_multifit_fdfsolver *s;
-    int status = GSL_CONTINUE;
-    uint64_t i,iter = 0;
-    uint64_t p = 7;
-    uint64_t n = current->length + current->padding_before + current->padding_after;
-    double *weight;
-    if ((weight = malloc(n*sizeof(double)))==NULL)
+    if (current->type == STEPRESPONSE)
     {
-        printf("Cannot allocate error array\n");
-        exit(34);
-    }
-
-    gsl_matrix *covar = gsl_matrix_alloc (p, p);
-
-    gsl_multifit_function_fdf f;
-
-
-
-    double maxsignal = signal_max(current->signal, current->length + current->padding_before + current->padding_after);
-    double minsignal = signal_min(current->signal, current->length + current->padding_before + current->padding_after);
-    double baseline = signal_average(current->signal,current->padding_before);
-    int sign = signum(baseline);
-    uint64_t start = current->padding_before - intmin(current->length/2, current->padding_before/4);
-    uint64_t end = current->padding_before+current->length;
-
-
-
-    for (i=0; i<n; i++)
-    {
-        if (i < start)
+        const gsl_multifit_fdfsolver_type *T;
+        gsl_multifit_fdfsolver *s;
+        int status = GSL_CONTINUE;
+        uint64_t i,iter = 0;
+        uint64_t p = 7;
+        uint64_t n = current->length + current->padding_before + current->padding_after;
+        double *weight;
+        if ((weight = malloc(n*sizeof(double)))==NULL)
         {
-            weight[i] = 1;
+            printf("Cannot allocate error array\n");
+            exit(34);
         }
-        else if (i < end)
+
+        gsl_matrix *covar = gsl_matrix_alloc (p, p);
+
+        gsl_multifit_function_fdf f;
+
+
+
+        double maxsignal = signal_max(current->signal, current->length + current->padding_before + current->padding_after);
+        double minsignal = signal_min(current->signal, current->length + current->padding_before + current->padding_after);
+        double baseline = signal_average(current->signal,current->padding_before);
+        int sign = signum(baseline);
+        uint64_t start = current->padding_before - intmin(current->length/2, current->padding_before/4);
+        uint64_t end = current->padding_before+current->length;
+
+
+
+        for (i=0; i<n; i++)
         {
-            weight[i] = 0.3;
+            if (i < start)
+            {
+                weight[i] = 1;
+            }
+            else if (i < end)
+            {
+                weight[i] = 0.3;
+            }
+            else
+            {
+                weight[i] = 1;
+            }
         }
-        else
+        struct data d = {n, current->signal,weight};
+
+        gsl_vector *x = gsl_vector_alloc(p);
+        gsl_vector_set(x,0,baseline);
+        gsl_vector_set(x,1,sign < 0 ? maxsignal - minsignal: minsignal - maxsignal);
+        gsl_vector_set(x,2,start);
+        gsl_vector_set(x,3,risetime);
+        gsl_vector_set(x,4,sign < 0 ? maxsignal - minsignal: minsignal - maxsignal);
+        gsl_vector_set(x,5,end - current->length/2);
+        gsl_vector_set(x,6,risetime);
+
+
+        f.f = &expb_f;
+        f.df = &expb_df;
+        f.fdf = &expb_fdf;
+        f.n = n;
+        f.p = p;
+        f.params = &d;
+
+        T = gsl_multifit_fdfsolver_lmsder;
+        s = gsl_multifit_fdfsolver_alloc (T, n, p);
+        gsl_multifit_fdfsolver_set (s, &f, x);
+
+        while (iter < maxiters && status == GSL_CONTINUE)
         {
-            weight[i] = 1;
+            iter++;
+            status = gsl_multifit_fdfsolver_iterate (s);
+            if (status)
+            {
+                break;
+            }
+            status = gsl_multifit_test_delta (s->dx, s->x,1e-4, 1e-4);
         }
-    }
-    struct data d = {n, current->signal,weight};
-
-    gsl_vector *x = gsl_vector_alloc(p);
-    gsl_vector_set(x,0,baseline);
-    gsl_vector_set(x,1,sign < 0 ? maxsignal - minsignal: minsignal - maxsignal);
-    gsl_vector_set(x,2,start);
-    gsl_vector_set(x,3,risetime);
-    gsl_vector_set(x,4,sign < 0 ? maxsignal - minsignal: minsignal - maxsignal);
-    gsl_vector_set(x,5,end - current->length/2);
-    gsl_vector_set(x,6,risetime);
 
 
-    f.f = &expb_f;
-    f.df = &expb_df;
-    f.fdf = &expb_fdf;
-    f.n = n;
-    f.p = p;
-    f.params = &d;
+        double i0 = FIT(0);
+        double a = FIT(1);
+        uint64_t u1 = FIT(2);
+        double rc1 = FIT(3);
+        double b = FIT(4);
+        uint64_t u2 = FIT(5);
+        double rc2 = FIT(6);
+        double residual = 0;
 
-    T = gsl_multifit_fdfsolver_lmsder;
-    s = gsl_multifit_fdfsolver_alloc (T, n, p);
-    gsl_multifit_fdfsolver_set (s, &f, x);
+        //printf("i0 = %g\na=%g\nu1=%"PRIu64"\nb=%g\nu2=%"PRIu64"\n",i0,a,u1,b,u2);
 
-    while (iter < maxiters && status == GSL_CONTINUE)
-    {
-        iter++;
-        status = gsl_multifit_fdfsolver_iterate (s);
-        if (status)
+        if (u1 > u2) //if the fit got stuck in a variable swapped equivalent minimum, we can just reverse the paramters
         {
-            break;
+            uint64_t temp;
+            double dtemp;
+            temp = u1;
+            u1 = u2;
+            u2 = temp;
+            dtemp = a;
+            a = -b;
+            b = -dtemp;
+            dtemp = rc1;
+            rc1 = rc2;
+            rc2 = dtemp;
         }
-        status = gsl_multifit_test_delta (s->dx, s->x,1e-4, 1e-4);
+
+        if (u2 > n || u1 <= 0) //if for some reason we are out of range
+        {
+            current->type = FITRANGE;
+        }
+        else if (signum(a) != signum(b)) //if it is not a step-and-return event
+        {
+            current->type = FITSIGN;
+        }
+        else if (d_abs(b) < minstep || d_abs(b) < minstep)
+        {
+            current->type = FITSTEP;
+        }
+        else if (signum(a) != sign || signum(b) != sign)
+        {
+            current->type = FITDIR;
+        }
+
+
+
+        double t;
+        for (i=0; i<u1; i++) //if all went well, populate the filtered trace
+        {
+            current->filtered_signal[i] = i0;
+            residual += (current->signal[i]-i0)*(current->signal[i]-i0);
+        }
+        for (i=u1; i<u2; i++)
+        {
+            t = i;
+            current->filtered_signal[i] = i0-a;
+            residual += (current->signal[i]-(i0+a*(exp(-(t-u1)/rc1)-1)))*(current->signal[i]-(i0+a*(exp(-(t-u1)/rc1)-1)));
+        }
+        for (i=u2; i<n; i++)
+        {
+            t = i;
+            current->filtered_signal[i] = i0-a+b;
+            residual += (current->signal[i]-(i0+a*(exp(-(t-u1)/rc1)-1)+b*(1-exp(-(t-u2)/rc2))))*(current->signal[i]-(i0+a*(exp(-(t-u1)/rc1)-1)+b*(1-exp(-(t-u2)/rc2))));
+        }
+        current->rc1 = rc1;
+        current->rc2 = rc2;
+        current->residual = sqrt(residual/(current->length + current->padding_before + current->padding_after));
+
+
+
+        gsl_multifit_fdfsolver_free (s);
+        gsl_matrix_free (covar);
+        gsl_vector_free(x);
+        free(weight);
+        if (status != GSL_SUCCESS)
+        {
+            current->type = BADFIT;
+        }
     }
-
-
-    double i0 = FIT(0);
-    double a = FIT(1);
-    uint64_t u1 = FIT(2);
-    double rc1 = FIT(3);
-    double b = FIT(4);
-    uint64_t u2 = FIT(5);
-    double rc2 = FIT(6);
-    double residual = 0;
-
-    //printf("i0 = %g\na=%g\nu1=%"PRIu64"\nb=%g\nu2=%"PRIu64"\n",i0,a,u1,b,u2);
-
-    if (u1 > u2) //if the fit got stuck in a variable swapped equivalent minimum, we can just reverse the paramters
-    {
-        uint64_t temp;
-        double dtemp;
-        temp = u1;
-        u1 = u2;
-        u2 = temp;
-        dtemp = a;
-        a = -b;
-        b = -dtemp;
-        dtemp = rc1;
-        rc1 = rc2;
-        rc2 = dtemp;
-    }
-
-    if (u2 > n || u1 <= 0) //if for some reason we are out of range
-    {
-        current->type = FITRANGE;
-        return FITRANGE;
-    }
-    else if (signum(a) != signum(b)) //if it is not a step-and-return event
-    {
-        current->type = FITSIGN;
-    }
-    else if (d_abs(b) < minstep || d_abs(b) < minstep)
-    {
-        current->type = FITSTEP;
-    }
-    else if (signum(a) != sign || signum(b) != sign)
-    {
-        current->type = FITDIR;
-    }
-
-
-
-    double t;
-    for (i=0; i<u1; i++) //if all went well, populate the filtered trace
-    {
-        current->filtered_signal[i] = i0;
-        residual += (current->signal[i]-i0)*(current->signal[i]-i0);
-    }
-    for (i=u1; i<u2; i++)
-    {
-        t = i;
-        current->filtered_signal[i] = i0-a;
-        residual += (current->signal[i]-(i0+a*(exp(-(t-u1)/rc1)-1)))*(current->signal[i]-(i0+a*(exp(-(t-u1)/rc1)-1)));
-    }
-    for (i=u2; i<n; i++)
-    {
-        t = i;
-        current->filtered_signal[i] = i0-a+b;
-        residual += (current->signal[i]-(i0+a*(exp(-(t-u1)/rc1)-1)+b*(1-exp(-(t-u2)/rc2))))*(current->signal[i]-(i0+a*(exp(-(t-u1)/rc1)-1)+b*(1-exp(-(t-u2)/rc2))));
-    }
-    current->rc1 = rc1;
-    current->rc2 = rc2;
-    current->residual = sqrt(residual/(current->length + current->padding_before + current->padding_after));
-
-
-
-    gsl_multifit_fdfsolver_free (s);
-    gsl_matrix_free (covar);
-    gsl_vector_free(x);
-    free(weight);
-    return status;
 }
 

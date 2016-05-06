@@ -133,89 +133,92 @@ stdev_pA\n");
 
 void print_event_line(FILE *events, event *current, double timestep, uint64_t lasttime)
 {
-    cusumlevel *level = current->first_level;
-    fprintf(events,"%"PRId64",\
-        %d,\
-        %.6f,\
-        %.6f,\
-        %g,\
-        %g,\
-        %g,\
-        %g,\
-        %g,\
-        %g,\
-        %g,\
-        %g,\
-        %g,\
-        %g,\
-        %g,\
-        %d,\
-        %g,\
-        %g,\
-        %g,",\
-        current->index, \
-        current->type, \
-        current->start * timestep, \
-        (current->start - lasttime) * timestep, \
-        current->length * timestep * 1e6, \
-        current->threshold, \
-        current->baseline_before, \
-        current->baseline_after, \
-        0.5 * (current->baseline_after + current->baseline_before),\
-        current->area, \
-        current->average_blockage, \
-        d_abs(current->average_blockage / (0.5 * (current->baseline_before + current->baseline_after))), \
-        current->max_blockage, \
-        d_abs(current->max_blockage / (0.5 * (current->baseline_before + current->baseline_after))), \
-        current->max_length * timestep * 1e6, \
-        current->numlevels, \
-        current->rc1 * timestep * 1e6, \
-        current->rc2 * timestep * 1e6, \
-        current->residual);
-    while (level)
+    if (current->type == CUSUM || current->type == STEPRESPONSE)
     {
-        fprintf(events,"%g",level->current);
-        if (level->next)
+        cusumlevel *level = current->first_level;
+        fprintf(events,"%"PRId64",\
+            %d,\
+            %.6f,\
+            %.6f,\
+            %g,\
+            %g,\
+            %g,\
+            %g,\
+            %g,\
+            %g,\
+            %g,\
+            %g,\
+            %g,\
+            %g,\
+            %g,\
+            %d,\
+            %g,\
+            %g,\
+            %g,",\
+            current->index, \
+            current->type, \
+            current->start * timestep, \
+            (current->start - lasttime) * timestep, \
+            current->length * timestep * 1e6, \
+            current->threshold, \
+            current->baseline_before, \
+            current->baseline_after, \
+            0.5 * (current->baseline_after + current->baseline_before),\
+            current->area, \
+            current->average_blockage, \
+            d_abs(current->average_blockage / (0.5 * (current->baseline_before + current->baseline_after))), \
+            current->max_blockage, \
+            d_abs(current->max_blockage / (0.5 * (current->baseline_before + current->baseline_after))), \
+            current->max_length * timestep * 1e6, \
+            current->numlevels, \
+            current->rc1 * timestep * 1e6, \
+            current->rc2 * timestep * 1e6, \
+            current->residual);
+        while (level)
         {
-            fprintf(events,";");
+            fprintf(events,"%g",level->current);
+            if (level->next)
+            {
+                fprintf(events,";");
+            }
+            level = level->next;
         }
-        level = level->next;
-    }
-    fprintf(events,",");
-    level = current->first_level;
-    while (level)
-    {
-        fprintf(events,"%g",level->length * timestep * 1e6);
-        if (level->next)
+        fprintf(events,",");
+        level = current->first_level;
+        while (level)
         {
-            fprintf(events,";");
+            fprintf(events,"%g",level->length * timestep * 1e6);
+            if (level->next)
+            {
+                fprintf(events,";");
+            }
+            level = level->next;
         }
-        level = level->next;
-    }
-    fprintf(events,",");
-    level = current->first_level;
-    while (level)
-    {
-        fprintf(events,"%g",level->current-0.5*(current->baseline_after+current->baseline_before));
-        if (level->next)
+        fprintf(events,",");
+        level = current->first_level;
+        while (level)
         {
-            fprintf(events,";");
+            fprintf(events,"%g",level->current-0.5*(current->baseline_after+current->baseline_before));
+            if (level->next)
+            {
+                fprintf(events,";");
+            }
+            level = level->next;
         }
-        level = level->next;
-    }
-    fprintf(events,",");
-    level = current->first_level;
-    while (level)
-    {
-        fprintf(events,"%g",level->stdev);
-        if (level->next)
+        fprintf(events,",");
+        level = current->first_level;
+        while (level)
         {
-            fprintf(events,";");
+            fprintf(events,"%g",level->stdev);
+            if (level->next)
+            {
+                fprintf(events,";");
+            }
+            level = level->next;
         }
-        level = level->next;
+        fprintf(events,"\n");
+        fflush(events);
     }
-    fprintf(events,"\n");
-    fflush(events);
 }
 
 
@@ -426,9 +429,12 @@ void print_signal(event *current, int length, char *filename, double timestep)
 
 void print_event_signal(int index, event *current, double timestep)
 {
-    char eventname[1024];
-    sprintf(eventname,"output/events/event_%05d.csv",index);
-    print_signal(current, current->length + current->padding_before + current->padding_after, eventname, timestep);
+    if (current->type == CUSUM || current->type == STEPRESPONSE)
+    {
+        char eventname[1024];
+        sprintf(eventname,"output/events/event_%05d.csv",index);
+        print_signal(current, current->length + current->padding_before + current->padding_after, eventname, timestep);
+    }
 }
 
 
