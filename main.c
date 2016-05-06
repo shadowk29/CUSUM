@@ -319,189 +319,32 @@ int main()
         }
 
 
-        //filter events on length, and end processing here if they are too short
-        //printf("Filtering\n");
         filter_event_length(current_event, config->event_maxpoints, config->event_minpoints, config->stepfit_samples);
-        //printf("Finished\n");
-        //fflush(stdout);
-
-        /*if (current_event->type != CUSUM && current_event->type != STEPRESPONSE) //verify that we should continue processing
-        {
-            //printf("Freeing\n");
-            current_edge = current_edge->next;
-            edgenum++;
-            free_single_event(current_event);
-            //printf("Finished\n");
-            lasttime_rate = current_event->start;
-            continue;
-        }*/
-
-        //read the data trace from the appropriate file position
-        //printf("Reading\n");
         generate_trace(input, current_event, config->datatype, logfile, lpfilter, eventfilter, config->daqsetup, samplingfreq);
-        //printf("Finished\n");
-        //fflush(stdout);
-
-        /*if (current_event->type != CUSUM && current_event->type != STEPRESPONSE) //verify that we should continue processing
-        {
-            current_edge = current_edge->next;
-            edgenum++;
-            free_single_event(current_event);
-            lasttime_rate = current_event->start;
-            continue;
-        }*/
-
-        //if (current_event->type == CUSUM)
-        //{
-            //printf("cusum\n");
-            cusum(current_event, config->cusum_delta, config->cusum_min_threshold, config->cusum_max_threshold, config->subevent_minpoints);
-            //printf("Finished\n");
-            //fflush(stdout);
-            //printf("averaging\n");
-            typeswitch += average_cusum_levels(current_event, config->subevent_minpoints, config->cusum_minstep, attempt_recovery);
-            //printf("Finished\n");
-            //fflush(stdout);
-        //}
-
-
-        /*if (current_event->type != CUSUM && current_event->type != STEPRESPONSE) //verify that we should continue processing
-        {
-            current_edge = current_edge->next;
-            edgenum++;
-            free_single_event(current_event);
-            lasttime_rate = current_event->start;
-            continue;
-        }*/
-
-
-        //if (current_event->type == STEPRESPONSE)
-        //{
-            //int status;
-            //printf("stepfit\n");
-            step_response(current_event, risetime, config->maxiters, config->cusum_minstep);
-            //printf("Finished\n");
-            //fflush(stdout);
-
-        //}
-
-        /*if (current_event->type != CUSUM && current_event->type != STEPRESPONSE) //verify that we should continue processing
-        {
-            current_edge = current_edge->next;
-            edgenum++;
-            free_single_event(current_event);
-            lasttime_rate = current_event->start;
-            continue;
-        }*/
-
-        //printf("Levels\n");
+        cusum(current_event, config->cusum_delta, config->cusum_min_threshold, config->cusum_max_threshold, config->subevent_minpoints);
+        typeswitch += average_cusum_levels(current_event, config->subevent_minpoints, config->cusum_minstep, attempt_recovery);
+        step_response(current_event, risetime, config->maxiters, config->cusum_minstep);
         populate_event_levels(current_event);
-        //printf("Finished\n");
-        //fflush(stdout);
-
-
-        /*if (current_event->type != CUSUM && current_event->type != STEPRESPONSE) //verify that we should continue processing
-        {
-            current_edge = current_edge->next;
-            edgenum++;
-            free_single_event(current_event);
-            lasttime_rate = current_event->start;
-            continue;
-        }*/
-
-        //printf("Noise\n");
         calculate_level_noise(current_event, config->subevent_minpoints);
-        //printf("Finished\n");
-        //fflush(stdout);
-
-
-        /*if (current_event->type != CUSUM && current_event->type != STEPRESPONSE) //verify that we should continue processing
-        {
-            current_edge = current_edge->next;
-            edgenum++;
-            free_single_event(current_event);
-            lasttime_rate = current_event->start;
-            continue;
-        }*/
-
-        //printf("Refining\n");
         refine_event_estimates(current_event);
-        //printf("Finished\n");
-        //fflush(stdout);
-
-        /*if (current_event->type != CUSUM && current_event->type != STEPRESPONSE) //verify that we should continue processing
-        {
-            current_edge = current_edge->next;
-            edgenum++;
-            free_single_event(current_event);
-            lasttime_rate = current_event->start;
-            continue;
-        }*/
-
-        //printf("Baseline\n");
         event_baseline(current_event, baseline_min, baseline_max);
-        //printf("Finished\n");
-        //fflush(stdout);
-
-        /*if (current_event->type != CUSUM && current_event->type != STEPRESPONSE) //verify that we should continue processing
-        {
-            current_edge = current_edge->next;
-            edgenum++;
-            free_single_event(current_event);
-            lasttime_rate = current_event->start;
-            continue;
-        }*/
-
-        //printf("Maximum\n");
         event_max_blockage(current_event);
-        //printf("Finished\n");
-        //fflush(stdout);
-
-
-        /*if (current_event->type != CUSUM && current_event->type != STEPRESPONSE) //verify that we should continue processing
-        {
-            current_edge = current_edge->next;
-            edgenum++;
-            free_single_event(current_event);
-            lasttime_rate = current_event->start;
-            continue;
-        }*/
-
         event_area(current_event, 1.0/samplingfreq);
-        //printf("Finished\n");
-        //fflush(stdout);
-
-
-        /*if (current_event->type != CUSUM && current_event->type != STEPRESPONSE) //verify that we should continue processing
-        {
-            current_edge = current_edge->next;
-            edgenum++;
-            free_single_event(current_event);
-            lasttime_rate = current_event->start;
-            continue;
-        }*/
-
-
-        //printf("Printign Trace\n");
         print_event_signal(current_event->index, current_event, 1.0/samplingfreq*1e6);
-        //printf("Finished\n");
-        //fflush(stdout);
-        //printf("Printing summary\n");
         print_event_line(events, current_event, 1.0/samplingfreq, lasttime);
-        //printf("Finished\n");
-        //fflush(stdout);
+
+
         lasttime = current_event->start;
         lasttime_rate = current_event->start;
 
 
         current_edge = current_edge->next;
         edgenum++;
+
+
         free_single_event(current_event);
     }
 
-
-
-    //print_error_summary(current_event, logfile);
-    //current_event = head_event;
 
     printf("\nCleaning up memory usage...\n");
     fprintf(logfile, "Cleaning up memory usage...\n");
