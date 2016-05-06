@@ -20,6 +20,30 @@
 */
 #include"detector.h"
 
+uint64_t get_next_event(event *current_event, edge *current_edge, uint64_t index)
+{
+    uint64_t edges = 0;
+    uint64_t start;
+    uint64_t finish;
+    while (current_edge->type != 0 && current_edge->next) //if for some reason there are multiple of the same type in a row, skip them.
+    {
+        current_edge = current_edge->next;
+        edges++;
+    }
+    start = current_edge->location;
+    while (current_edge->type != 1 && current_edge->next) //if for some reason there are multiple of the same type in a row, skip them.
+    {
+        current_edge = current_edge->next;
+        edges++;
+    }
+    finish = current_edge->location;
+    if (finish > start)
+    {
+        current_event = add_event(current_event, start, finish, index);
+    }
+    return edges;
+}
+
 void calculate_level_noise(event *current, uint64_t minpoints)
 {
     if (current->type == CUSUM || current->type == STEPRESPONSE)

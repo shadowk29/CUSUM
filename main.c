@@ -289,6 +289,7 @@ int main()
     uint64_t index = 0;
     uint64_t edgecount;
     uint64_t edgenum = 0;
+    uint64_t edges;
 
     edgecount = count_edges(current_edge);
     current_edge = head_edge;
@@ -300,7 +301,7 @@ int main()
     while (current_edge)
     {
         progressbar(edgenum, edgecount);
-        while (current_edge->type != 0 && current_edge->next) //if for some reason there are multiple of the same type in a row, skip them.
+        /*while (current_edge->type != 0 && current_edge->next) //if for some reason there are multiple of the same type in a row, skip them.
         {
             current_edge = current_edge->next;
             edgenum++;
@@ -316,7 +317,14 @@ int main()
         {
             current_event = add_event(current_event, start, finish, index);
             index++;
+        }*/
+        edges = get_next_event(current_event, current_edge, index);
+        edgenum += edges;
+        for (i=0; i<edges; i++)
+        {
+            current_edge = current_edge->next;
         }
+        index++;
 
 
         filter_event_length(current_event, config->event_maxpoints, config->event_minpoints, config->stepfit_samples);

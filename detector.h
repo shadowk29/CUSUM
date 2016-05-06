@@ -12,6 +12,7 @@
 #define HISTOGRAM 0
 #define FIRST_DERIV 1
 #define SCND_DERIV 2
+uint64_t get_next_event(event *current_event, edge *current_edge, uint64_t index);
 
 void calculate_level_noise(event *current, uint64_t minpoints);
 void populate_event_levels(event *current);
