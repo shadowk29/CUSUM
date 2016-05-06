@@ -511,8 +511,9 @@ int main()
 
     printf("\nCleaning up memory usage...\n");
     fprintf(logfile, "Cleaning up memory usage...\n");
-    free_single_event(current_event);
     free(current_event);
+
+
     free_edges(head_edge);
     for (i=0; i<histogram->numbins; i++)
     {
@@ -523,10 +524,13 @@ int main()
     fclose(input);
     free(config->daqsetup);
     free(config);
+
+
     if (usefilter)
     {
         free_filter(lpfilter);
     }
+
 
     fprintf(logfile, "<----RUN LOG ENDS---->\n\n");
     fclose(logfile);

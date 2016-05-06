@@ -51,14 +51,19 @@ void filter_signal(double *signal, double *filtered, bessel *lpfilter, uint64_t 
     double *tempback = lpfilter->tempback;
     double *dcof = lpfilter->dcof;
     double *ccof = lpfilter->ccof;
-    end = length+2*order-1;
+    end = length+2*order;
+
 
     memcpy(&paddedsignal[order],signal,length*sizeof(double));
     for (i=0; i<order; i++)
     {
         temp[i] = signal[0];
         paddedsignal[i] = signal[0];
+        paddedsignal[end-1-i]=signal[length-1];
+        temp[end-1-i]=signal[length-1];
     }
+
+
 
 
     for (i=order; i<end; i++)
@@ -71,9 +76,12 @@ void filter_signal(double *signal, double *filtered, bessel *lpfilter, uint64_t 
     }
 
 
+
+
     for (i=0; i<order; i++)
     {
         tempback[end-1-i] = temp[end-1];
+        tempback[i] = temp[0];
     }
     for (i=order; i<end; i++)
     {
@@ -83,6 +91,8 @@ void filter_signal(double *signal, double *filtered, bessel *lpfilter, uint64_t 
             tempback[end-1-i] += ccof[p]*temp[end-1-i+p] - dcof[p]*tempback[end-1-i+p];
         }
     }
+
+
 
 
     memcpy(filtered,&tempback[order],length*sizeof(double));
@@ -572,6 +582,7 @@ void generate_trace(FILE *input, event *current, int datatype, FILE *logfile, be
 
 edge *detect_edges(double *signal, double baseline, uint64_t length, edge *current, double threshold, double hysteresis, uint64_t position, int event_direction)
 {
+
     uint64_t i = 0;
     double sign;
     double down_threshold;
