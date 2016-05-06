@@ -46,16 +46,17 @@ void filter_signal(double *signal, double *filtered, bessel *lpfilter, uint64_t 
     uint64_t p;
     uint64_t end;
     uint64_t order = lpfilter->order;
+    uint64_t padding = lpfilter->padding;
     double *paddedsignal = lpfilter->paddedsignal;
     double *temp = lpfilter->temp;
     double *tempback = lpfilter->tempback;
     double *dcof = lpfilter->dcof;
     double *ccof = lpfilter->ccof;
-    end = length+2*order;
+    end = length+2*(order+padding);
 
 
-    memcpy(&paddedsignal[order],signal,length*sizeof(double));
-    for (i=0; i<order; i++)
+    memcpy(&paddedsignal[order+padding],signal,length*sizeof(double));
+    for (i=0; i<order+padding; i++)
     {
         temp[i] = signal[0];
         paddedsignal[i] = signal[0];
@@ -78,7 +79,7 @@ void filter_signal(double *signal, double *filtered, bessel *lpfilter, uint64_t 
 
 
 
-    for (i=0; i<order; i++)
+    for (i=0; i<order+padding; i++)
     {
         tempback[end-1-i] = temp[end-1];
         tempback[i] = temp[0];
@@ -95,7 +96,7 @@ void filter_signal(double *signal, double *filtered, bessel *lpfilter, uint64_t 
 
 
 
-    memcpy(filtered,&tempback[order],length*sizeof(double));
+    memcpy(filtered,&tempback[order+padding],length*sizeof(double));
 
 
 

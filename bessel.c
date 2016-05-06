@@ -160,7 +160,7 @@ void transform_filter(double complex *poles, double complex *zeros, uint64_t N, 
     }
 }
 
-bessel *initialize_filter(bessel *lpfilter, uint64_t order, double cutoff, uint64_t length)
+bessel *initialize_filter(bessel *lpfilter, uint64_t order, double cutoff, uint64_t length, uint64_t samplingfreq)
 {
 
 
@@ -175,6 +175,7 @@ bessel *initialize_filter(bessel *lpfilter, uint64_t order, double cutoff, uint6
 
     lpfilter->order = order;
     lpfilter->cutoff = cutoff;
+    lpfilter->padding = (uint64_t) (100e-6*samplingfreq);
 
 
     double complex *poles;
@@ -230,17 +231,17 @@ bessel *initialize_filter(bessel *lpfilter, uint64_t order, double cutoff, uint6
     lpfilter->tempback = NULL;
     lpfilter->paddedsignal = NULL;
 
-    if ((lpfilter->temp = calloc(length+2*order, sizeof(double)))==NULL)
+    if ((lpfilter->temp = calloc(length+2*(order+lpfilter->padding), sizeof(double)))==NULL)
     {
         printf("Cannot allocate temp filter array\n");
         exit(40);
     }
-    if ((lpfilter->tempback = calloc(length+2*order, sizeof(double)))==NULL)
+    if ((lpfilter->tempback = calloc(length+2*(order+lpfilter->padding), sizeof(double)))==NULL)
     {
         printf("Cannot allocate tempback array\n");
         exit(41);
     }
-    if ((lpfilter->paddedsignal = calloc(length + 2*order,sizeof(double)))==NULL)
+    if ((lpfilter->paddedsignal = calloc(length+2*(order+lpfilter->padding),sizeof(double)))==NULL)
     {
         printf("Cannot allocate padded signal\n");
         exit(42);

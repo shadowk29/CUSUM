@@ -119,7 +119,7 @@ int main()
     //initialize the low-pass filter and allocate necessary memory
     if (usefilter || eventfilter)
     {
-        lpfilter = initialize_filter(lpfilter, order, cutoff, config->readlength);
+        lpfilter = initialize_filter(lpfilter, order, cutoff, config->readlength, config->samplingfreq);
 
         if ((filtered = (double *) calloc(config->readlength,sizeof(double)))==NULL)
         {

@@ -38,6 +38,7 @@ struct Bessel
     double *ccof;
     double cutoff;
     uint64_t order;
+    uint64_t padding;
     double *paddedsignal;
     double *temp;
     double *tempback;
