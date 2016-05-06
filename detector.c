@@ -58,10 +58,10 @@ void filter_signal(double *signal, double *filtered, bessel *lpfilter, uint64_t 
     memcpy(&paddedsignal[order+padding],signal,length*sizeof(double));
     for (i=0; i<order+padding; i++)
     {
-        temp[i] = signal[0];
-        paddedsignal[i] = signal[0];
-        paddedsignal[end-1-i]=signal[length-1];
-        temp[end-1-i]=signal[length-1];
+        temp[i] = signal_average(signal,padding);
+        paddedsignal[i] = signal_average(signal,padding);
+        paddedsignal[end-1-i]=signal_average(signal,padding);
+        temp[end-1-i]=signal_average(signal,padding);
     }
 
 
@@ -81,8 +81,8 @@ void filter_signal(double *signal, double *filtered, bessel *lpfilter, uint64_t 
 
     for (i=0; i<order+padding; i++)
     {
-        tempback[end-1-i] = temp[end-1];
-        tempback[i] = temp[0];
+        tempback[end-1-i] = signal_average(&temp[order],padding);
+        tempback[i] = signal_average(&temp[order],padding);
     }
     for (i=order; i<end; i++)
     {
