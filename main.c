@@ -63,7 +63,6 @@ int main()
     if (config->usefilter || config->eventfilter)
     {
         lpfilter = initialize_filter(lpfilter, config->order, config->cutoff, config->readlength, config->samplingfreq);
-        filtered = calloc_and_check(config->readlength,sizeof(double), 5);
     }
     //allocate memory for file reading
     double *signal = calloc_and_check(config->readlength,sizeof(double), 6);
@@ -130,45 +129,25 @@ int main()
 
         if (config->usefilter)
         {
-            filter_signal(signal, filtered, lpfilter, read);
+            filter_signal(signal, lpfilter, read);
+        }
 
-            baseline = build_histogram(filtered, histogram, read, config->binsize, config->baseline_max, config->baseline_min);
-            if (baseline < config->baseline_min || baseline > config->baseline_max)
-            {
-                badbaseline += read;
-            }
-            else
-            {
-                goodbaseline += read;
-                current_edge = detect_edges(filtered, baseline, read, current_edge, config->threshold, config->hysteresis, pos, config->event_direction);
-            }
-
-            if (endflag)
-            {
-                pos += read;
-                break;
-            }
-            memset(filtered,'0',(config->readlength)*sizeof(double));
+        //baseline = baseline_averaging(signal, read, config->baseline_min, config->baseline_max);
+        baseline = build_histogram(signal, histogram, read, config->binsize, config->baseline_max, config->baseline_min);
+        if (baseline < config->baseline_min || baseline > config->baseline_max)
+        {
+            badbaseline += read;
         }
         else
         {
-            //baseline = baseline_averaging(signal, read, config->baseline_min, config->baseline_max);
-            baseline = build_histogram(signal, histogram, read, config->binsize, config->baseline_max, config->baseline_min);
-            if (baseline < config->baseline_min || baseline > config->baseline_max)
-            {
-                badbaseline += read;
-            }
-            else
-            {
-                goodbaseline += read;
-                current_edge = detect_edges(signal, baseline, read, current_edge, config->threshold, config->hysteresis, pos, config->event_direction);
-            }
+            goodbaseline += read;
+            current_edge = detect_edges(signal, baseline, read, current_edge, config->threshold, config->hysteresis, pos, config->event_direction);
+        }
 
-            if (endflag)
-            {
-                pos += read;
+        if (endflag)
+        {
+            pos += read;
                 break;
-            }
         }
         memset(signal,'0',(config->readlength)*sizeof(double));
     }

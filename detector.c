@@ -67,7 +67,7 @@ void calculate_level_noise(event *current, uint64_t minpoints)
 }
 
 
-void filter_signal(double *signal, double *filtered, bessel *lpfilter, uint64_t length)
+void filter_signal(double *signal, bessel *lpfilter, uint64_t length)
 {
     uint64_t i;
     uint64_t p;
@@ -123,7 +123,7 @@ void filter_signal(double *signal, double *filtered, bessel *lpfilter, uint64_t 
 
 
 
-    memcpy(filtered,&tempback[order+padding],length*sizeof(double));
+    memcpy(signal,&tempback[order+padding],length*sizeof(double));
 
 
 
@@ -624,8 +624,7 @@ void generate_trace(FILE *input, event *current, int datatype, FILE *logfile, be
         }
         if (eventfilter)
         {
-            filter_signal(current->signal, current->filtered_signal, lpfilter, read);
-            memcpy(current->signal, current->filtered_signal, read*sizeof(double));
+            filter_signal(current->signal, lpfilter, read);
         }
     }
 }

@@ -18,7 +18,7 @@ void calculate_level_noise(event *current, uint64_t minpoints);
 void populate_event_levels(event *current);
 
 
-void filter_signal(double *signal, double *filtered, bessel *lpfilter, uint64_t length);
+void filter_signal(double *signal, bessel *lpfilter, uint64_t length);
 
 void filter_event_length(event *current, uint64_t maxpoints, uint64_t minpoints, uint64_t stepfit_samples);
 uint64_t locate_min(double *signal, uint64_t length);
