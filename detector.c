@@ -570,20 +570,9 @@ void generate_trace(FILE *input, event *current, int datatype, FILE *logfile, be
         current->padding_after = padding;
 
 
-        if ((current->signal = calloc(current->length + current->padding_before + current->padding_after,sizeof(double)))==NULL)
-        {
-            printf("Cannot allocate trace array\n");
-            fprintf(logfile,"Cannot allocate trace array\n");
-            fflush(logfile);
-            exit(15);
-        }
-        if ((current->filtered_signal = calloc(current->length + current->padding_before + current->padding_after,sizeof(double)))==NULL)
-        {
-            printf("Cannot allocate filtered trace array\n");
-            fprintf(logfile,"Cannot allocate filtered trace array\n");
-            fflush(logfile);
-            exit(16);
-        }
+        current->signal = calloc_and_check(current->length + current->padding_before + current->padding_after,sizeof(double),15);
+        current->filtered_signal = calloc_and_check(current->length + current->padding_before + current->padding_after,sizeof(double),16);
+
 
 
         if (fseeko64(input,(off64_t) position*2*sizeof(double),SEEK_SET))
@@ -594,25 +583,9 @@ void generate_trace(FILE *input, event *current, int datatype, FILE *logfile, be
             exit(17);
         }
 
-        if (datatype==64)
-        {
-            read = read_current_double(input, current->signal, position, current->length + current->padding_before + current->padding_after);
-        }
-        else if (datatype==16)
-        {
-            read = read_current_int16(input, current->signal, position, current->length + current->padding_before + current->padding_after);
-        }
-        else if (datatype==0)
-        {
-            read = read_current_chimera(input, current->signal, position, current->length + current->padding_before + current->padding_after, daqsetup);
-        }
-        else
-        {
-            printf("Invalid data type\n");
-            fprintf(logfile,"Invalid data type\n");
-            fflush(logfile);
-            exit(18);
-        }
+        read = read_current(input, current->signal, position, current->length + current->padding_before + current->padding_after, datatype, daqsetup);
+
+
         if (read != current->length + current->padding_before + current->padding_after)
         {
             printf("Unable to read %" PRIu64 " samples for event %" PRId64 ": obtained %" PRId64 "\n",current->length + + current->padding_before + current->padding_after,current->index,read);
