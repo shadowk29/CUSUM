@@ -52,7 +52,7 @@ void calculate_level_noise(event *current, uint64_t minpoints)
         uint64_t start = minpoints;
         while (level)
         {
-            if (minpoints > level->length)
+            if (minpoints + 2 > level->length)
             {
                 level->stdev = 0;
             }
