@@ -20,6 +20,17 @@
 */
 #include"utils.h"
 
+void *calloc_and_check(size_t num, size_t size)
+{
+    void *block;
+    if ((block=calloc(num,size))==NULL)
+    {
+        printf("Failed to allocate memory block\n");
+        exit(1);
+    }
+    return block;
+}
+
 
 uint64_t count_edges(edge *current_edge)
 {

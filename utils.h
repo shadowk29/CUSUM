@@ -149,7 +149,7 @@ struct Configuration
 };
 typedef struct Configuration configuration;
 
-
+void *calloc_and_check(size_t num, size_t size);
 inline int signum(double num);
 inline double my_min(double a, double b);
 inline double my_max(double a, double b);

@@ -137,12 +137,12 @@ int main()
         }
     }
     //allocate memory for file reading
-    double *signal;
-    if ((signal = (double *) calloc(config->readlength,sizeof(double)))==NULL)
+    double *signal = calloc_and_check(config->readlength,sizeof(double));
+    /*if ((signal = (double *) calloc(config->readlength,sizeof(double)))==NULL)
     {
         printf("Cannot allocate signal array\n");
         exit(6);
-    }
+    }*/
 
     if (config->datatype != 16 && config->datatype != 64 && config->datatype !=0)
     {
@@ -313,8 +313,6 @@ int main()
             current_edge = current_edge->next;
         }
         index++;
-
-
         filter_event_length(current_event, config->event_maxpoints, config->event_minpoints, config->stepfit_samples);
         generate_trace(input, current_event, config->datatype, logfile, lpfilter, eventfilter, config->daqsetup, samplingfreq);
         cusum(current_event, config->cusum_delta, config->cusum_min_threshold, config->cusum_max_threshold, config->subevent_minpoints);
