@@ -20,13 +20,24 @@
 */
 #include"utils.h"
 
-void *calloc_and_check(size_t num, size_t size)
+FILE *fopen64_and_check(const char *fname, const char *mode, int error)
+{
+    FILE *buffer;
+    if ((buffer=fopen64(fname,mode))==NULL)
+    {
+        printf("Cannot open file %s\n",fname);
+        exit(error);
+    }
+    return buffer;
+}
+
+void *calloc_and_check(size_t num, size_t size, int error)
 {
     void *block;
     if ((block=calloc(num,size))==NULL)
     {
         printf("Failed to allocate memory block\n");
-        exit(1);
+        exit(error);
     }
     return block;
 }
