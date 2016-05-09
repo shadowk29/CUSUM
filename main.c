@@ -64,7 +64,16 @@ int main()
         printf("Cannot open event summary file\n");
         exit(21);
     }
-    initialize_events_file(events);
+
+
+    FILE *rate;
+    if ((rate = fopen("output/rate.csv","w"))==NULL)
+    {
+        printf("Cannot open event rate file\n");
+        exit(21);
+    }
+
+    initialize_events_file(events, rate);
 
     //file reading variables
     uint64_t i;
@@ -259,6 +268,7 @@ int main()
         }
         memset(signal,'0',(config->readlength)*sizeof(double));
     }
+    progressbar(pos-config->start,config->finish-config->start);
     printf("\nRead %g seconds of good baseline\nRead %g seconds of bad baseline\n", goodbaseline/(double) samplingfreq, badbaseline / (double) samplingfreq);
     fprintf(logfile, "\nRead %g seconds of good baseline\nRead %g seconds of bad baseline\n", goodbaseline/(double) samplingfreq, badbaseline / (double) samplingfreq);
 
@@ -339,7 +349,7 @@ int main()
         event_max_blockage(current_event);
         event_area(current_event, 1.0/samplingfreq);
         print_event_signal(current_event->index, current_event, 1.0/samplingfreq*1e6);
-        print_event_line(events, current_event, 1.0/samplingfreq, lasttime);
+        print_event_line(events, rate, current_event, 1.0/samplingfreq, lasttime);
 
 
         lasttime = current_event->start;
@@ -352,6 +362,7 @@ int main()
 
         free_single_event(current_event);
     }
+    progressbar(edgenum, edgecount);
 
 
     printf("\nCleaning up memory usage...\n");
@@ -380,6 +391,7 @@ int main()
     fprintf(logfile, "<----RUN LOG ENDS---->\n\n");
     fclose(logfile);
     fclose(events);
+    fclose(rate);
     system("pause");
     return 0;
 }

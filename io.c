@@ -104,7 +104,7 @@ uint64_t read_current_int16(FILE *input, double *current, uint64_t position, uin
     return read;
 }
 
-void initialize_events_file(FILE *events)
+void initialize_events_file(FILE *events, FILE *rate)
 {
     fprintf(events,"id,\
 type,\
@@ -129,10 +129,21 @@ level_current_pA,\
 level_duration_us,\
 blockages_pA,\
 stdev_pA\n");
+
+fprintf(rate,"id,\
+type,\
+start_time_s\n");
 }
 
-void print_event_line(FILE *events, event *current, double timestep, uint64_t lasttime)
+void print_event_line(FILE *events, FILE *rate, event *current, double timestep, uint64_t lasttime)
 {
+    fprintf(rate,"%"PRId64",\
+            %d,\
+            %.6f\n",\
+            current->index, \
+            current->type, \
+            current->start * timestep);
+
     if (current->type == CUSUM || current->type == STEPRESPONSE)
     {
         cusumlevel *level = current->first_level;

@@ -39,7 +39,7 @@ inline void progressbar(uint64_t pos, uint64_t finish)
     int   c     = (int) (ratio * 40)+1;
 
     // Show the percentage complete.
-    printf("%3d%% [", (int)(ratio*100+1) );
+    printf("%3d%% [", (int)(ratio*100) );
 
     // Show the load bar.
     int i;

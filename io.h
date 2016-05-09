@@ -9,8 +9,8 @@
 #include<stdlib.h>
 
 
-void initialize_events_file(FILE *events);
-void print_event_line(FILE *events, event *current, double timestep, uint64_t lasttime);
+void initialize_events_file(FILE *events, FILE *rate);
+void print_event_line(FILE *events, FILE *rate, event *current, double timestep, uint64_t );
 
 
 //void print_events(event *current, double timestep);
