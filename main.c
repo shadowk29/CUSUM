@@ -292,10 +292,6 @@ int main()
     }
 
 
-    uint64_t start;
-    uint64_t finish;
-    start = 0;
-    finish = 0;
     uint64_t index = 0;
     uint64_t edgecount;
     uint64_t edgenum = 0;
@@ -306,28 +302,10 @@ int main()
 
 
     uint64_t lasttime = config->start;
-    uint64_t lasttime_rate = 0;
     printf("Processing %"PRIu64" edges\n", edgecount);
     while (current_edge)
     {
         progressbar(edgenum, edgecount);
-        /*while (current_edge->type != 0 && current_edge->next) //if for some reason there are multiple of the same type in a row, skip them.
-        {
-            current_edge = current_edge->next;
-            edgenum++;
-        }
-        start = current_edge->location;
-        while (current_edge->type != 1 && current_edge->next) //if for some reason there are multiple of the same type in a row, skip them.
-        {
-            current_edge = current_edge->next;
-            edgenum++;
-        }
-        finish = current_edge->location;
-        if (finish > start)
-        {
-            current_event = add_event(current_event, start, finish, index);
-            index++;
-        }*/
         edges = get_next_event(current_event, current_edge, index);
         edgenum += edges;
         for (i=0; i<edges; i++)
@@ -350,16 +328,9 @@ int main()
         event_area(current_event, 1.0/samplingfreq);
         print_event_signal(current_event->index, current_event, 1.0/samplingfreq*1e6);
         print_event_line(events, rate, current_event, 1.0/samplingfreq, lasttime);
-
-
         lasttime = current_event->start;
-        lasttime_rate = current_event->start;
-
-
         current_edge = current_edge->next;
         edgenum++;
-
-
         free_single_event(current_event);
     }
     progressbar(edgenum, edgecount);
