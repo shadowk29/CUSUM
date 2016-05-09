@@ -8,7 +8,7 @@
 #include<stdio.h>
 #include<stdlib.h>
 
-
+void print_error_summary(FILE *logfile, uint64_t *error_summary, uint64_t numevents);
 void initialize_events_file(FILE *events, FILE *rate);
 void print_event_line(FILE *events, FILE *rate, event *current, double timestep, uint64_t );
 

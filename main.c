@@ -59,6 +59,8 @@ int main()
     bessel *lpfilter = NULL;
     double *filtered = NULL;
 
+    uint64_t *error_summary = calloc_and_check(NUMTYPES, sizeof(uint64_t), 5);
+
     //initialize the low-pass filter and allocate necessary memory
     if (config->usefilter || config->eventfilter)
     {
@@ -157,6 +159,7 @@ int main()
 
 
     uint64_t index = 0;
+    uint64_t numevents = 0;
     uint64_t edgecount;
     uint64_t edgenum = 0;
     uint64_t edges;
@@ -193,9 +196,13 @@ int main()
         lasttime = current_event->start;
         current_edge = current_edge->next;
         edgenum++;
+        error_summary[current_event->type]++;
+        numevents++;
         free_single_event(current_event);
     }
     progressbar(edgenum, edgecount);
+
+    print_error_summary(logfile, error_summary, numevents);
 
 
     printf("\nCleaning up memory usage...\n");
@@ -213,6 +220,7 @@ int main()
     fclose(input);
     free(config->daqsetup);
     free(config);
+    free(error_summary);
 
 
     if (config->usefilter)

@@ -20,6 +20,18 @@
 */
 #include"io.h"
 
+void print_error_summary(FILE *logfile, uint64_t *error_summary, uint64_t numevents)
+{
+    int i;
+    printf("\nEvent Summary: %"PRIu64" events detected\nEvent Type\tCount\tPercentage\n",numevents);
+    fprintf(logfile,"\nEvent Summary: %"PRIu64" events detected\nEvent Type\tCount\tPercentage\n",numevents);
+    for (i=0; i<NUMTYPES; i++)
+    {
+        printf("%d\t\t%"PRIu64"\t%.3g %%\n",i,error_summary[i],100.0*error_summary[i]/(double)numevents);
+        fprintf(logfile,"%d\t\t%"PRIu64"\t%.3g %%\n",i,error_summary[i],100.0*error_summary[i]/(double)numevents);
+    }
+}
+
 uint64_t read_current(FILE *input, double *signal, uint64_t position, uint64_t length, int datatype, chimera *daqsetup)
 {
     uint64_t read = 0;

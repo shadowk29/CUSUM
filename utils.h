@@ -8,18 +8,19 @@
 #define EPS 1e-50
 #define STRLENGTH 1024
 #define HEAD -1000
-#define STEPRESPONSE 1
+#define NUMTYPES 12
 #define CUSUM 0
-#define BADBASELINE -1
-#define TOOLONG -2
-#define TOOSHORT -3
-#define BADLEVELS -4
-#define BADTRACE -5
-#define BADFIT -6
-#define FITRANGE -7
-#define FITSIGN -8
-#define FITSTEP -9
-#define FITDIR -10
+#define STEPRESPONSE 1
+#define BADBASELINE 2
+#define TOOLONG 3
+#define TOOSHORT 4
+#define BADLEVELS 5
+#define BADTRACE 6
+#define BADFIT 7
+#define FITRANGE 8
+#define FITSIGN 9
+#define FITSTEP 10
+#define FITDIR 11
 
 struct Chimera
 {
