@@ -20,6 +20,24 @@
 */
 #include"io.h"
 
+uint64_t read_current(FILE *input, double *signal, uint64_t position, uint64_t length, int datatype, chimera *daqsetup)
+{
+    uint64_t read = 0;
+    if (datatype == 64)
+    {
+        read = read_current_double(input, signal, position, length);
+    }
+    else if (datatype == 16)
+    {
+        read = read_current_int16(input, signal, position, length);
+    }
+    else if (datatype == 0)
+    {
+        read = read_current_chimera(input, signal, position, length, daqsetup);
+    }
+    return read;
+}
+
 double chimera_gain(uint64_t sample, chimera *daqsetup)
 {
     double current = 0;
@@ -233,172 +251,6 @@ void print_event_line(FILE *events, FILE *rate, event *current, double timestep,
 }
 
 
-
-/*void print_events(event *current, double timestep)
-{
-    FILE *events;
-    if ((events = fopen("output/events.csv","w"))==NULL)
-    {
-        printf("Cannot open event summary file\n");
-        exit(21);
-    }
-    FILE *rejected;
-    if ((rejected = fopen("output/rejected.csv","w"))==NULL)
-    {
-        printf("Cannot open event rejected events file\n");
-        exit(22);
-    }
-    FILE *rate;
-    if ((rate = fopen("output/rate.csv","w"))==NULL)
-    {
-        printf("Cannot open event rate events file\n");
-        exit(23);
-    }
-    uint64_t lasttime = 0;
-    uint64_t lasttime_rate = 0;
-    fprintf(events,"id,\
-type,\
-start_time_s,\
-event_delay_s,\
-duration_us,\
-threshold,\
-baseline_before_pA,\
-baseline_after_pA,\
-effective_baseline_pA,\
-area_pC,\
-average_blockage_pA,\
-relative_average_blockage,\
-max_blockage_pA,\
-relative_max_blockage,\
-max_blockage_duration_us,\
-n_levels,\
-rc_const1_us,\
-rc_const2_us,\
-residual_pA,\
-level_current_pA,\
-level_duration_us,\
-blockages_pA,\
-stdev_pA\n");
-
-fprintf(rejected,"id,\
-type,\
-start_time_s\n");
-    while (current)
-    {
-        fprintf(rate,"%"PRId64",\
-                %d,\
-                %.6f,\
-                %.6f,\
-                %.6f\n", \
-                current->index, \
-                current->type, \
-                current->start * timestep,\
-                current->finish * timestep,\
-                (current->start - lasttime_rate) * timestep);
-        lasttime_rate = current->start;
-        if (current->type == CUSUM || current->type == STEPRESPONSE)
-        {
-            cusumlevel *level = current->first_level;
-            fprintf(events,"%"PRId64",\
-                    %d,\
-                    %.6f,\
-                    %.6f,\
-                    %g,\
-                    %g,\
-                    %g,\
-                    %g,\
-                    %g,\
-                    %g,\
-                    %g,\
-                    %g,\
-                    %g,\
-                    %g,\
-                    %g,\
-                    %d,\
-                    %g,\
-                    %g,\
-                    %g,",\
-                    current->index, \
-                    current->type, \
-                    current->start * timestep, \
-                    (current->start - lasttime) * timestep, \
-                    current->length * timestep * 1e6, \
-                    current->threshold, \
-                    current->baseline_before, \
-                    current->baseline_after, \
-                    0.5 * (current->baseline_after + current->baseline_before),\
-                    current->area, \
-                    current->average_blockage, \
-                    d_abs(current->average_blockage / (0.5 * (current->baseline_before + current->baseline_after))), \
-                    current->max_blockage, \
-                    d_abs(current->max_blockage / (0.5 * (current->baseline_before + current->baseline_after))), \
-                    current->max_length * timestep * 1e6, \
-                    current->numlevels, \
-                    current->rc1 * timestep * 1e6, \
-                    current->rc2 * timestep * 1e6, \
-                    current->residual);
-            lasttime = current->start;
-            while (level)
-            {
-                fprintf(events,"%g",level->current);
-                if (level->next)
-                {
-                    fprintf(events,";");
-                }
-                level = level->next;
-            }
-            fprintf(events,",");
-            level = current->first_level;
-            while (level)
-            {
-                fprintf(events,"%g",level->length * timestep * 1e6);
-                if (level->next)
-                {
-                    fprintf(events,";");
-                }
-                level = level->next;
-            }
-            fprintf(events,",");
-            level = current->first_level;
-            while (level)
-            {
-                fprintf(events,"%g",level->current-0.5*(current->baseline_after+current->baseline_before));
-                if (level->next)
-                {
-                    fprintf(events,";");
-                }
-                level = level->next;
-            }
-            fprintf(events,",");
-            level = current->first_level;
-            while (level)
-            {
-                fprintf(events,"%g",level->stdev);
-                if (level->next)
-                {
-                    fprintf(events,";");
-                }
-                level = level->next;
-            }
-            fprintf(events,"\n");
-        }
-        else
-        {
-            fprintf(rejected,"%"PRId64",\
-                    %d,\
-                    %.6f\n", \
-                    current->index, \
-                    current->type, \
-                    current->start * timestep);
-        }
-        current = current->next;
-    }
-    fclose(events);
-    fclose(rejected);
-    fclose(rate);
-}*/
-
-
 void print_signal(event *current, int length, char *filename, double timestep)
 {
     FILE *output; //a test file for plotting output
@@ -480,7 +332,7 @@ inline void swapByteOrder(uint64_t *ull)
 }
 
 
-uint64_t read_current(FILE *input, double *current, uint64_t position, uint64_t length)
+uint64_t read_current_double(FILE *input, double *current, uint64_t position, uint64_t length)
 {
     uint64_t test;
     double iv[2];

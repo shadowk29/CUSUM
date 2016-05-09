@@ -145,9 +145,6 @@ void filter_signal(double *signal, bessel *lpfilter, uint64_t length)
 
 void filter_event_length(event *current, uint64_t maxpoints, uint64_t minpoints, uint64_t stepfit_samples)
 {
-    uint64_t toolong = 0;
-    uint64_t tooshort = 0;
-    uint64_t stepresponse = 0;
     if (current->length > maxpoints)
     {
         current->type = TOOLONG;
@@ -548,8 +545,9 @@ void generate_trace(FILE *input, event *current, int datatype, FILE *logfile, be
         uint64_t position;
         uint64_t read;
 
-        if (!current || current->length == 0 || current->index == HEAD)
+        if (current->length == 0)
         {
+            current->type = BADTRACE;
             return;
         }
 
@@ -598,7 +596,7 @@ void generate_trace(FILE *input, event *current, int datatype, FILE *logfile, be
 
         if (datatype==64)
         {
-            read = read_current(input, current->signal, position, current->length + current->padding_before + current->padding_after);
+            read = read_current_double(input, current->signal, position, current->length + current->padding_before + current->padding_after);
         }
         else if (datatype==16)
         {

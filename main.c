@@ -38,7 +38,7 @@ int main()
 
     read_config(config, logfile);
 
-        if (config->datatype != 16 && config->datatype != 64 && config->datatype !=0)
+    if (config->datatype != 16 && config->datatype != 64 && config->datatype !=0)
     {
         printf("datatype currently can only be 0, 16, or 64\n");
         exit(43);
@@ -106,33 +106,15 @@ int main()
     for (pos = config->start; pos < config->finish; pos += read)
     {
         progressbar(pos-config->start,config->finish-config->start);
-        if (config->datatype == 64)
-        {
-            read = read_current(input, signal, pos, intmin(config->readlength,config->finish - pos));
-        }
-        else if (config->datatype == 16)
-        {
-            read = read_current_int16(input, signal, pos, intmin(config->readlength,config->finish - pos));
-        }
-        else if (config->datatype == 0)
-        {
-            read = read_current_chimera(input, signal, pos, intmin(config->readlength,config->finish - pos), config->daqsetup);
-        }
-
+        read = read_current(input, signal, pos, intmin(config->readlength,config->finish - pos), config->datatype, config->daqsetup);
         if (read < config->readlength || feof(input))
         {
             endflag = 1;
         }
-
-
-
-
         if (config->usefilter)
         {
             filter_signal(signal, lpfilter, read);
         }
-
-        //baseline = baseline_averaging(signal, read, config->baseline_min, config->baseline_max);
         baseline = build_histogram(signal, histogram, read, config->binsize, config->baseline_max, config->baseline_min);
         if (baseline < config->baseline_min || baseline > config->baseline_max)
         {
@@ -143,7 +125,6 @@ int main()
             goodbaseline += read;
             current_edge = detect_edges(signal, baseline, read, current_edge, config->threshold, config->hysteresis, pos, config->event_direction);
         }
-
         if (endflag)
         {
             pos += read;
