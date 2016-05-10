@@ -141,6 +141,7 @@ int main()
         }
         memset(signal,'0',(config->readlength)*sizeof(double));
     }
+    sprintf(progressmsg," %g seconds processed",(pos-config->start)/(double) config->samplingfreq);
     progressbar(pos-config->start,config->finish-config->start,progressmsg);
     printf("\nRead %g seconds of good baseline\nRead %g seconds of bad baseline\n", goodbaseline/(double) config->samplingfreq, badbaseline / (double) config->samplingfreq);
     fprintf(logfile, "\nRead %g seconds of good baseline\nRead %g seconds of bad baseline\n", goodbaseline/(double) config->samplingfreq, badbaseline / (double) config->samplingfreq);
@@ -181,7 +182,6 @@ int main()
     printf("Processing %"PRIu64" edges\n", edgecount);
     while (current_edge)
     {
-        numevents++;
         sprintf(progressmsg," %"PRIu64" events processed",numevents);
         progressbar(edgenum, edgecount, progressmsg);
         edges = get_next_event(current_event, current_edge, index);
@@ -208,9 +208,11 @@ int main()
         last_end = current_event->finish;
         current_edge = current_edge->next;
         edgenum++;
+        numevents++;
         error_summary[current_event->type]++;
         free_single_event(current_event);
     }
+    sprintf(progressmsg," %"PRIu64" events processed",numevents);
     progressbar(edgenum, edgecount, progressmsg);
 
     print_error_summary(logfile, error_summary, numevents);
