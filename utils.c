@@ -73,7 +73,7 @@ inline void progressbar(uint64_t pos, uint64_t finish, const char *msg)
 
     // ANSI Control codes to go back to the
     // previous line and clear it.
-    printf("]%s\r",msg);
+    printf("]%s\t\r",msg);
     fflush(stdout);
 }
 
