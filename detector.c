@@ -565,16 +565,13 @@ void generate_trace(FILE *input, event *current, int datatype, FILE *logfile, be
         padding = (uint64_t) (100e-6*samplingfreq);
         current->padding_before = padding;
         current->padding_after = padding;
-        printf("Padding is %"PRIu64"\n",padding);
         if (current->padding_before + last_end > current->start)
         {
             current->padding_before = current->start - last_end;
-            printf("Changing padding before to %"PRIu64"\n",current->padding_before);
         }
         else if (current->padding_after + current->finish > next_start && current->finish != next_start)
         {
             current->padding_after = next_start - current->finish;
-            printf("Changing padding after to %"PRIu64"\n",current->padding_after);
         }
         position = current->start - current->padding_before;
         if (position > current->start)
