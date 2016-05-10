@@ -24,6 +24,66 @@
 
 #include"bessel.h"
 
+void filter_signal(double *signal, bessel *lpfilter, uint64_t length)
+{
+    uint64_t i;
+    uint64_t p;
+    uint64_t end;
+    uint64_t order = lpfilter->order;
+    uint64_t padding = lpfilter->padding;
+    double *paddedsignal = lpfilter->paddedsignal;
+    double *temp = lpfilter->temp;
+    double *tempback = lpfilter->tempback;
+    double *dcof = lpfilter->dcof;
+    double *ccof = lpfilter->ccof;
+    end = length+2*(order+padding);
+
+
+    memcpy(&paddedsignal[order+padding],signal,length*sizeof(double));
+    for (i=0; i<order+padding; i++)
+    {
+        temp[i] = signal_average(signal,padding);
+        paddedsignal[i] = signal_average(signal,padding);
+        paddedsignal[end-1-i]=signal_average(signal,padding);
+        temp[end-1-i]=signal_average(signal,padding);
+    }
+
+
+
+
+    for (i=order; i<end; i++)
+    {
+        temp[i] = ccof[0]*paddedsignal[i];
+        for (p=1; p<=order; p++)
+        {
+            temp[i] += ccof[p]*paddedsignal[i-p] - dcof[p]*temp[i-p];
+        }
+    }
+
+
+
+
+    for (i=0; i<order+padding; i++)
+    {
+        tempback[end-1-i] = signal_average(&temp[order],padding);
+        tempback[i] = signal_average(&temp[order],padding);
+    }
+    for (i=order; i<end; i++)
+    {
+        tempback[end-1-i] = ccof[0]*temp[end-1-i];
+        for (p=1; p<=order; p++)
+        {
+            tempback[end-1-i] += ccof[p]*temp[end-1-i+p] - dcof[p]*tempback[end-1-i+p];
+        }
+    }
+
+
+
+
+    memcpy(signal,&tempback[order+padding],length*sizeof(double));
+}
+
+
 void besselap(uint64_t N, double complex *poles, double complex *zeros)
 {
     switch(N)

@@ -5,6 +5,7 @@
 #include<inttypes.h>
 #include<stdint.h>
 #include<math.h>
+#include<string.h>
 #define EPS 1e-50
 #define STRLENGTH 1024
 #define HEAD -1000
@@ -166,6 +167,12 @@ void free_single_event(event *current);
 cusumlevel *add_cusum_level(cusumlevel *lastlevel, double current, uint64_t length);
 void free_levels(cusumlevel *current);
 cusumlevel *initialize_levels(void);
+
+double signal_max(double *signal, uint64_t length);
+double signal_min(double *signal, uint64_t length);
+double signal_average(double *signal, uint64_t length);
+double signal_extreme(double *signal, uint64_t length, double sign);
+double signal_variance(double *signal, uint64_t length);
 
 
 uint64_t get_filesize(FILE *input, int datatype);

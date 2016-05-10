@@ -584,7 +584,6 @@ void read_config(configuration *config, FILE *logfile)
         {
             config->daqsetup->preADCgain = strtod(value,NULL);
         }
-
     }
     fprintf(logfile, "<----CONFIGURATION ENDS---->\n\n");
     if (config->usefilter == 0 && config->eventfilter == 0)

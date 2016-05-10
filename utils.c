@@ -20,6 +20,79 @@
 */
 #include"utils.h"
 
+double signal_max(double *signal, uint64_t length)
+{
+    uint64_t i;
+    double maximum = signal[0];
+    for (i=0; i<length; i++)
+    {
+        if (signal[i] > maximum)
+        {
+            maximum = signal[i];
+        }
+    }
+    return maximum;
+}
+//get the smallest (most negative) value for the signal
+double signal_min(double *signal, uint64_t length)
+{
+    uint64_t i;
+    double minimum = signal[0];
+    for (i=0; i<length; i++)
+    {
+        if (signal[i] < minimum)
+        {
+            minimum = signal[i];
+        }
+    }
+    return minimum;
+}
+
+double signal_average(double *signal, uint64_t length)
+{
+    uint64_t i;
+    double average;
+    average = 0;
+    for (i=0; i<length; i++)
+    {
+        average += signal[i];
+    }
+    return average/length;
+}
+
+double signal_extreme(double *signal, uint64_t length, double sign)
+{
+    uint64_t i;
+    double tempmax;
+    tempmax = 0;
+    for (i=0; i<length; i++)
+    {
+        if (signal[i]*sign > tempmax)
+        tempmax = signal[i]*sign;
+    }
+    return tempmax;
+}
+
+double signal_variance(double *signal, uint64_t length)
+{
+    if (length < 2)
+    {
+        printf("Cannot calculate variance with less than 2 samples\n");
+        return 0;
+    }
+    uint64_t i;
+    double variance;
+    variance = 0;
+    double average;
+    average = signal_average(signal, length);
+    for (i=0; i<length; i++)
+    {
+        variance += (signal[i] - average)*(signal[i] - average);
+    }
+    variance = variance / (length - 1);
+    return variance;
+}
+
 FILE *fopen64_and_check(const char *fname, const char *mode, int error)
 {
     FILE *buffer;

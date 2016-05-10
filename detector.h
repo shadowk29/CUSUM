@@ -2,6 +2,7 @@
 #define DETECTOR_H_INCLUDED
 #include"utils.h"
 #include"io.h"
+#include"bessel.h"
 #include<inttypes.h>
 #include<stdint.h>
 #include<string.h>
@@ -19,7 +20,7 @@ void calculate_level_noise(event *current, uint64_t minpoints);
 void populate_event_levels(event *current);
 
 
-void filter_signal(double *signal, bessel *lpfilter, uint64_t length);
+
 
 void filter_event_length(event *current, uint64_t maxpoints, uint64_t minpoints, uint64_t stepfit_samples);
 uint64_t locate_min(double *signal, uint64_t length);
@@ -40,11 +41,7 @@ double baseline_averaging(double *signal, uint64_t length, double baseline_min, 
 void generate_trace(FILE *input, event *current, int datatype, FILE *logfile, bessel *lpfilter, int eventfilter, chimera *daqsetup, uint64_t samplingfreq, edge *current_edge, uint64_t last_end);
 
 
-double signal_max(double *signal, uint64_t length);
-double signal_min(double *signal, uint64_t length);
-double signal_average(double *signal, uint64_t length);
-double signal_extreme(double *signal, uint64_t length, double sign);
-double signal_variance(double *signal, uint64_t length);
+
 
 void event_baseline(event *current_event, double baseline_min, double baseline_max);
 void event_area(event *current_event, double timestep);
