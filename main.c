@@ -24,17 +24,22 @@
 #include"detector.h"
 #include"bessel.h"
 #include"stepfit.h"
+#define _VERSION_ "1.9.0"
 
 
 int main()
 {
     //read the configuration file
+
     configuration *config;
     config = calloc_and_check(1,sizeof(configuration),1);
     config->daqsetup = calloc_and_check(1,sizeof(chimera),2);
 
     FILE *logfile;
     logfile = fopen64_and_check("output/summary.txt","w",3);
+
+    printf("#### Using CUSUM Version %s ####\n",_VERSION_);
+    fprintf(logfile,"#### Using CUSUM Version %s ####\n",_VERSION_);
 
     read_config(config, logfile);
 
