@@ -17,7 +17,6 @@ void print_event_line(FILE *events, FILE *rate, event *current, double timestep,
 //void print_events(event *current, double timestep);
 void print_histogram(char *filename, histostruct *histogram);
 void read_config(configuration *config, FILE *logfile);
-void export_trace(double *signal, uint64_t length, char *file, double timestep, double start_time);
 inline void swapByteOrder(uint64_t *ull);
 inline void swapByteOrder_int16(uint16_t *ull);
 double chimera_gain(uint64_t sample, chimera *daqsetup);
