@@ -38,7 +38,7 @@ int main()
     FILE *logfile;
     logfile = fopen64_and_check("output/summary.txt","w",3);
 
-    printf("#### Using CUSUM Version %s ####\n",_VERSION_);
+    printf("#### Using CUSUM Version %s ####\n\n",_VERSION_);
     fprintf(logfile,"#### Using CUSUM Version %s ####\n",_VERSION_);
 
     read_config(config, logfile);
@@ -81,7 +81,15 @@ int main()
 
     //find out how big the file is for use in a progressbar
     uint64_t filesize = get_filesize(input, config->datatype);
-    config->finish = filesize < config->finish ? filesize : config->finish;
+    if (config->finish == 0)
+    {
+        config->finish = filesize;
+    }
+    else
+    {
+        config->finish = filesize < config->finish ? filesize : config->finish;
+    }
+
 
     //initialize linked list to store the locations of edges in the input file
     edge *head_edge;
@@ -113,7 +121,7 @@ int main()
     char progressmsg[STRLENGTH];
     for (pos = config->start; pos < config->finish; pos += read)
     {
-        sprintf(progressmsg," %g seconds processed",(pos-config->start)/(double) config->samplingfreq);
+        snprintf(progressmsg,STRLENGTH*sizeof(char)," %g seconds processed",(pos-config->start)/(double) config->samplingfreq);
         progressbar(pos-config->start,config->finish-config->start,progressmsg);
         read = read_current(input, signal, pos, intmin(config->readlength,config->finish - pos), config->datatype, config->daqsetup);
         if (read < config->readlength || feof(input))
@@ -141,7 +149,7 @@ int main()
         }
         memset(signal,'0',(config->readlength)*sizeof(double));
     }
-    sprintf(progressmsg," %g seconds processed",(pos-config->start)/(double) config->samplingfreq);
+    snprintf(progressmsg,STRLENGTH*sizeof(char)," %g seconds processed",(pos-config->start)/(double) config->samplingfreq);
     progressbar(pos-config->start,config->finish-config->start,progressmsg);
     printf("\nRead %g seconds of good baseline\nRead %g seconds of bad baseline\n", goodbaseline/(double) config->samplingfreq, badbaseline / (double) config->samplingfreq);
     fprintf(logfile, "\nRead %g seconds of good baseline\nRead %g seconds of bad baseline\n", goodbaseline/(double) config->samplingfreq, badbaseline / (double) config->samplingfreq);
@@ -182,7 +190,7 @@ int main()
     printf("Processing %"PRIu64" edges\n", edgecount);
     while (current_edge)
     {
-        sprintf(progressmsg," %"PRIu64" events processed",numevents);
+        snprintf(progressmsg,STRLENGTH*sizeof(char)," %"PRIu64" events processed",numevents);
         progressbar(edgenum, edgecount, progressmsg);
         edges = get_next_event(current_event, current_edge, index);
         edgenum += edges;
@@ -212,7 +220,7 @@ int main()
         error_summary[current_event->type]++;
         free_single_event(current_event);
     }
-    sprintf(progressmsg," %"PRIu64" events processed",numevents);
+    snprintf(progressmsg,STRLENGTH*sizeof(char)," %"PRIu64" events processed",numevents);
     progressbar(edgenum, edgecount, progressmsg);
 
     print_error_summary(logfile, error_summary, numevents);

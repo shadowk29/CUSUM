@@ -7,7 +7,8 @@
 #include<stdint.h>
 #include<stdio.h>
 #include<stdlib.h>
-
+void configure_defaults(configuration *config);
+void config_sanity_check(configuration *config, FILE *logfile);
 void print_error_summary(FILE *logfile, uint64_t *error_summary, uint64_t numevents);
 void initialize_events_file(FILE *events, FILE *rate);
 void print_event_line(FILE *events, FILE *rate, event *current, double timestep, uint64_t );

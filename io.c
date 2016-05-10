@@ -23,8 +23,8 @@
 void print_error_summary(FILE *logfile, uint64_t *error_summary, uint64_t numevents)
 {
     int i;
-    printf("\nEvent Summary: %"PRIu64" events detected\nEvent Type\tCount\tPercentage\n",numevents);
-    fprintf(logfile,"\nEvent Summary: %"PRIu64" events detected\nEvent Type\tCount\tPercentage\n",numevents);
+    printf("\n\nEvent Summary: %"PRIu64" events detected\n\nEvent Type\tCount\tPercentage\n\n",numevents);
+    fprintf(logfile,"\n\nEvent Summary: %"PRIu64" events detected\n\nEvent Type\tCount\tPercentage\n\n",numevents);
     for (i=0; i<NUMTYPES; i++)
     {
         printf("%d\t\t%"PRIu64"\t%.3g %%\n",i,error_summary[i],100.0*error_summary[i]/(double)numevents);
@@ -394,9 +394,61 @@ void export_trace(double *signal, uint64_t length, char *file, double timestep, 
     fclose(output);
 }
 
+void configure_defaults(configuration *config)
+{
+    //deaults for config file, can be overwritten if provided
+    config->start = 0;
+    config->finish = 0;
+    config->usefilter = 0;
+    config->eventfilter = 0;
+    config->binsize = 10;
+    config->event_direction = 0;
+    config->cusum_min_threshold = 0.1;
+    config->cusum_max_threshold = 100.0;
+    config->maxiters = 5000;
+    config->stepfit_samples = 0;
+    config->attempt_recovery = 0;
+}
+
+void config_sanity_check(configuration *config, FILE *logfile)
+{
+    if (config->readlength < 2 * config->event_maxpoints)
+    {
+        printf("Corrected config error: readlength should be at least 2 times event_maxpoints");
+        fprintf(logfile,"Corrected config error: readlength should be at least 2 times event_maxpoints");
+        config->readlength = 2 * config->event_maxpoints;
+    }
+
+    if (config->order > 10)
+    {
+        printf("Bessel filters of order >10 are not supported, defaulting to 10\n");
+        fprintf(logfile,"Bessel filters of order >10 are not supported, defaulting to 10\n");
+        config->order = 10;
+    }
+    else if (config->order < 2)
+    {
+        printf("Bessel filters of order <2 are not supported, defaulting to 2\n");
+        fprintf(logfile,"Bessel filters of order >10 are not supported, defaulting to 10\n");
+        config->order = 2;
+    }
+    else if (config->order % 2 == 1)
+    {
+        printf("Bessel filters of odd order are not supported, defaulting to %"PRIu64"\n",config->order + 1);
+        fprintf(logfile,"Bessel filters of order >10 are not supported, defaulting to 10\n");
+        config->order += 1;
+    }
+    if (config->datatype==0)
+    {
+        config->samplingfreq = (uint64_t) config->daqsetup->samplerate;
+        printf("Using VC100 sampling rate of %"PRIu64"\n",config->samplingfreq);
+        fprintf(logfile,"Using VC100 sampling rate of %"PRIu64"\n",config->samplingfreq);
+    }
+}
+
 
 void read_config(configuration *config, FILE *logfile)
 {
+    configure_defaults(config);
     char configline[STRLENGTH];
     char *name;
     char *value;
@@ -508,19 +560,6 @@ void read_config(configuration *config, FILE *logfile)
             strncpy(config->filepath,value,STRLENGTH-1);
             config->filepath[STRLENGTH-1]='\0';
         }
-        else if (strcmp(name,"tracefile") == 0)
-        {
-            strncpy(config->tracefile,value,STRLENGTH-1);
-            config->tracefile[STRLENGTH-1]='\0';
-        }
-        else if (strcmp(name,"export_trace_start") == 0)
-        {
-            config->export_trace_start = strtoull(value,NULL,10);
-        }
-        else if (strcmp(name,"export_trace_end") == 0)
-        {
-            config->export_trace_end = strtoull(value,NULL,10);
-        }
         else if (strcmp(name,"datatype") == 0)
         {
             config->datatype = strtol(value,NULL,10);
@@ -563,37 +602,17 @@ void read_config(configuration *config, FILE *logfile)
         }
 
     }
-    if (config->datatype==0)
-    {
-        config->samplingfreq = (uint64_t) config->daqsetup->samplerate;
-        printf("Using VC100 sampling rate of %"PRIu64"\n",config->samplingfreq);
-    }
     fprintf(logfile, "<----CONFIGURATION ENDS---->\n\n");
     if (config->usefilter == 0 && config->eventfilter == 0)
     {
         config->order = 0;
-        cutoff = 0;
+        config->cutoff = 0;
     }
     else
     {
         config->cutoff = 2.0 *(double) cutoff/(double) config->samplingfreq;
-        if (config->order > 10)
-        {
-            printf("Bessel filters of order >10 are not supported, defaulting to 10\n");
-            config->order = 10;
-        }
-        else if (config->order < 2)
-        {
-            printf("Bessel filters of order <2 are not supported, defaulting to 2\n");
-            config->order = 2;
-        }
-        else if (config->order % 2 == 1)
-        {
-            printf("Bessel filters of odd order are not supported, defaulting to %"PRIu64"\n",config->order + 1);
-            config->order += 1;
-        }
     }
-
+    config_sanity_check(config, logfile);
     fclose(configfile);
 }
 

@@ -104,7 +104,6 @@ typedef struct Edge edge;
 struct Configuration
 {
     char filepath[STRLENGTH]; //input file
-    char tracefile[STRLENGTH];
     //file reading parameters
     uint64_t start;
     uint64_t finish;
@@ -120,15 +119,10 @@ struct Configuration
     //detection parameters
     double threshold;
     double hysteresis;
-
-    double binsize;
-
     uint64_t event_minpoints;
     uint64_t event_maxpoints;
-    uint64_t subevent_minpoints;
 
-    uint64_t export_trace_start;
-    uint64_t export_trace_end;
+    double binsize;
 
     double baseline_min;
     double baseline_max;
@@ -139,14 +133,13 @@ struct Configuration
     double cusum_max_threshold;
     double cusum_delta;
     double cusum_minstep;
+    uint64_t subevent_minpoints;
+
     uint64_t stepfit_samples;
     uint64_t maxiters;
     int attempt_recovery;
-
     int datatype;
-
     chimera *daqsetup;
-
 };
 typedef struct Configuration configuration;
 
