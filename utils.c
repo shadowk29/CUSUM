@@ -54,7 +54,7 @@ uint64_t count_edges(edge *current_edge)
     return count;
 }
 
-inline void progressbar(uint64_t pos, uint64_t finish)
+inline void progressbar(uint64_t pos, uint64_t finish, const char *msg)
 {
     // Calculuate the ratio of complete-to-incomplete.
     double ratio = pos/(double)finish;
@@ -73,7 +73,7 @@ inline void progressbar(uint64_t pos, uint64_t finish)
 
     // ANSI Control codes to go back to the
     // previous line and clear it.
-    printf("]\r");
+    printf("]%s\r",msg);
     fflush(stdout);
 }
 

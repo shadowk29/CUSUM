@@ -176,5 +176,5 @@ cusumlevel *initialize_levels(void);
 
 
 uint64_t get_filesize(FILE *input, int datatype);
-inline void progressbar(uint64_t pos, uint64_t finish);
+inline void progressbar(uint64_t pos, uint64_t finish, const char *msg);
 #endif // UTILS_H_INCLUDED

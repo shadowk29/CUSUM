@@ -105,9 +105,11 @@ int main()
     endflag = 0;
     read = 0;
     pos = 0;
+    char progressmsg[STRLENGTH];
     for (pos = config->start; pos < config->finish; pos += read)
     {
-        progressbar(pos-config->start,config->finish-config->start);
+        sprintf(progressmsg," %g seconds processed",(pos-config->start)/(double) config->samplingfreq);
+        progressbar(pos-config->start,config->finish-config->start,progressmsg);
         read = read_current(input, signal, pos, intmin(config->readlength,config->finish - pos), config->datatype, config->daqsetup);
         if (read < config->readlength || feof(input))
         {
@@ -134,7 +136,7 @@ int main()
         }
         memset(signal,'0',(config->readlength)*sizeof(double));
     }
-    progressbar(pos-config->start,config->finish-config->start);
+    progressbar(pos-config->start,config->finish-config->start,progressmsg);
     printf("\nRead %g seconds of good baseline\nRead %g seconds of bad baseline\n", goodbaseline/(double) config->samplingfreq, badbaseline / (double) config->samplingfreq);
     fprintf(logfile, "\nRead %g seconds of good baseline\nRead %g seconds of bad baseline\n", goodbaseline/(double) config->samplingfreq, badbaseline / (double) config->samplingfreq);
 
@@ -164,15 +166,19 @@ int main()
     uint64_t edgenum = 0;
     uint64_t edges;
 
+
     edgecount = count_edges(current_edge);
     current_edge = head_edge;
 
 
     uint64_t lasttime = config->start;
+    uint64_t last_end = config->start;
     printf("Processing %"PRIu64" edges\n", edgecount);
     while (current_edge)
     {
-        progressbar(edgenum, edgecount);
+        numevents++;
+        sprintf(progressmsg," %"PRIu64" events processed",numevents);
+        progressbar(edgenum, edgecount, progressmsg);
         edges = get_next_event(current_event, current_edge, index);
         edgenum += edges;
         for (i=0; i<edges; i++)
@@ -181,7 +187,7 @@ int main()
         }
         index++;
         filter_event_length(current_event, config->event_maxpoints, config->event_minpoints, config->stepfit_samples);
-        generate_trace(input, current_event, config->datatype, logfile, lpfilter, config->eventfilter, config->daqsetup, config->samplingfreq);
+        generate_trace(input, current_event, config->datatype, logfile, lpfilter, config->eventfilter, config->daqsetup, config->samplingfreq, current_edge, last_end);
         cusum(current_event, config->cusum_delta, config->cusum_min_threshold, config->cusum_max_threshold, config->subevent_minpoints);
         typeswitch += average_cusum_levels(current_event, config->subevent_minpoints, config->cusum_minstep, config->attempt_recovery);
         step_response(current_event, risetime, config->maxiters, config->cusum_minstep);
@@ -194,13 +200,13 @@ int main()
         print_event_signal(current_event->index, current_event, 1.0/config->samplingfreq*1e6);
         print_event_line(events, rate, current_event, 1.0/config->samplingfreq, lasttime);
         lasttime = current_event->start;
+        last_end = current_event->finish;
         current_edge = current_edge->next;
         edgenum++;
         error_summary[current_event->type]++;
-        numevents++;
         free_single_event(current_event);
     }
-    progressbar(edgenum, edgecount);
+    progressbar(edgenum, edgecount, progressmsg);
 
     print_error_summary(logfile, error_summary, numevents);
 

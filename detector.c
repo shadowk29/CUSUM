@@ -20,6 +20,15 @@
 */
 #include"detector.h"
 
+uint64_t get_next_event_start(edge *current_edge)
+{
+    while (current_edge->type != 0 && current_edge->next) //if for some reason there are multiple of the same type in a row, skip them.
+    {
+        current_edge = current_edge->next;
+    }
+    return current_edge->location;
+}
+
 uint64_t get_next_event(event *current_event, edge *current_edge, uint64_t index)
 {
     uint64_t edges = 0;
@@ -537,13 +546,14 @@ void event_baseline(event *current_event, double baseline_min, double baseline_m
 
 
 
-void generate_trace(FILE *input, event *current, int datatype, FILE *logfile, bessel *lpfilter, int eventfilter, chimera *daqsetup, uint64_t samplingfreq)
+void generate_trace(FILE *input, event *current, int datatype, FILE *logfile, bessel *lpfilter, int eventfilter, chimera *daqsetup, uint64_t samplingfreq, edge *current_edge, uint64_t last_end)
 {
     if (current->type == CUSUM || current->type == STEPRESPONSE)
     {
         uint64_t padding;
         uint64_t position;
         uint64_t read;
+        uint64_t next_start = get_next_event_start(current_edge);
 
         if (current->length == 0)
         {
@@ -552,13 +562,21 @@ void generate_trace(FILE *input, event *current, int datatype, FILE *logfile, be
         }
 
 
-        padding = 100e-6*(double) samplingfreq;//intmin(current->length,100);
-        if (padding > current->start)
+        padding = (uint64_t) (100e-6*samplingfreq);
+        current->padding_before = padding;
+        current->padding_after = padding;
+        printf("Padding is %"PRIu64"\n",padding);
+        if (current->padding_before + last_end > current->start)
         {
-            padding = current->start;
+            current->padding_before = current->start - last_end;
+            printf("Changing padding before to %"PRIu64"\n",current->padding_before);
         }
-
-        position = current->start - padding;
+        else if (current->padding_after + current->finish > next_start && current->finish != next_start)
+        {
+            current->padding_after = next_start - current->finish;
+            printf("Changing padding after to %"PRIu64"\n",current->padding_after);
+        }
+        position = current->start - current->padding_before;
         if (position > current->start)
         {
             printf("Attempting to access negative file index, increase your start time past %" PRIu64 "\n",current->start);
@@ -566,8 +584,7 @@ void generate_trace(FILE *input, event *current, int datatype, FILE *logfile, be
             fflush(logfile);
             exit(14);
         }
-        current->padding_before = padding;
-        current->padding_after = padding;
+
 
 
         current->signal = calloc_and_check(current->length + current->padding_before + current->padding_after,sizeof(double),15);
