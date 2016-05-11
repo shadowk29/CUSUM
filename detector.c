@@ -330,36 +330,16 @@ void cusum(event *current_event, double delta, double minthreshold, double maxth
         current_event->threshold = threshold;
 
         double *cpos;//cumulative log-likelihood for positive jumps
-        if ((cpos = calloc(length, sizeof(double)))==NULL)
-        {
-            printf("Cannot allocate cpos\n");
-            fflush(stdout);
-            exit(10);
-        }
+        cpos = calloc_and_check(length, sizeof(double),10);
         cpos[0] = 0;
         double *cneg;//cumulative log-likelihood for negative jumps
-        if ((cneg = calloc(length, sizeof(double)))==NULL)
-        {
-            printf("Cannot allocate cneg\n");
-            fflush(stdout);
-            exit(11);
-        }
+        cneg = calloc_and_check(length, sizeof(double),11);
         cneg[0] = 0;
         double *gpos;//decision function for positive jumps
-        if ((gpos = calloc(length, sizeof(double)))==NULL)
-        {
-            printf("Cannot allocate gpos\n");
-            fflush(stdout);
-            exit(12);
-        }
+        gpos = calloc_and_check(length, sizeof(double),12);
         gpos[0] = 0;
         double *gneg;//decision function for negative jumps
-        if ((gneg = calloc(length, sizeof(double)))==NULL)
-        {
-            printf("Cannot allocate gneg\n");
-            fflush(stdout);
-            exit(13);
-        }
+        gneg = calloc_and_check(length, sizeof(double),13);
         gneg[0] = 0;
 
 
@@ -504,10 +484,11 @@ void generate_trace(FILE *input, event *current, int datatype, FILE *logfile, be
         position = current->start - current->padding_before;
         if (position > current->start)
         {
-            printf("Attempting to access negative file index, increase your start time past %" PRIu64 "\n",current->start);
-            fprintf(logfile,"Attempting to access negative file index, increase your start time past %" PRIu64 "\n",current->start);
-            fflush(logfile);
-            exit(14);
+            printf("Padding is %"PRIu64"\n",current->padding_before);
+            printf("Start is %"PRIu64"\n",current->start);
+            printf("Position is %"PRIu64"\n",position);
+            current->type = BADPADDING;
+            return;
         }
 
 
@@ -669,11 +650,7 @@ double build_histogram(double *signal, histostruct *histogram, uint64_t length, 
         }
         for (i=histogram->numbins; i<numbins; i++)
         {
-            if ((histogram->histogram[i] = calloc(3,sizeof(double)))==NULL)
-            {
-                printf("Cannot allocate level 2\n");
-                exit(20);
-            }
+            histogram->histogram[i] = calloc_and_check(3,sizeof(double),20);
         }
         histogram->numbins = numbins;
     }

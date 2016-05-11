@@ -9,7 +9,7 @@
 #define EPS 1e-50
 #define STRLENGTH 1024
 #define HEAD -1000
-#define NUMTYPES 12
+#define NUMTYPES 13
 #define CUSUM 0
 #define STEPRESPONSE 1
 #define BADBASELINE 2
@@ -22,6 +22,7 @@
 #define FITSIGN 9
 #define FITSTEP 10
 #define FITDIR 11
+#define BADPADDING 12
 
 struct Chimera
 {

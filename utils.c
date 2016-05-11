@@ -146,7 +146,7 @@ inline void progressbar(uint64_t pos, uint64_t finish, const char *msg)
 
     // ANSI Control codes to go back to the
     // previous line and clear it.
-    printf("]%s\t\r",msg);
+    printf("]%s  \r",msg);
     fflush(stdout);
 }
 
@@ -202,11 +202,7 @@ inline int64_t intmax(int64_t a, int64_t b)
 edge *initialize_edges(void)
 {
     edge *head;
-    if ((head = malloc(sizeof(edge)))==NULL)
-    {
-        printf("Cannot allocate head node\n");
-        exit(28);
-    }
+    head = calloc_and_check(1,sizeof(edge),28);
     head->next = NULL;
     head->location = 0;
     head->type = HEAD;
@@ -223,11 +219,7 @@ edge *add_edge(edge *current, uint64_t location, int type)
     }
     else
     {//if the current node is filled with useful information and we actually need more memory
-        if ((current->next = malloc(sizeof(edge)))==NULL)
-        {
-            printf("Cannot allocate new node after %" PRIu64 "\n",current->location);
-            exit(29);
-        }
+        current->next = calloc_and_check(1,sizeof(edge),29);
         current->next->location = location;
         current->next->type = type;
         current->next->next = NULL;
@@ -262,11 +254,7 @@ void free_levels(cusumlevel *current)
 event *initialize_events(void)
 {
     event *head;
-    if ((head = malloc(sizeof(event)))==NULL)
-    {
-        printf("Cannot allocate head node for event list\n");
-        exit(30);
-    }
+    head = calloc_and_check(1,sizeof(event),20);
     head->type = 0;
     head->threshold = 0;
     head->rc1 = 0;
@@ -321,11 +309,7 @@ void free_single_event(event *current)
 cusumlevel *initialize_levels(void)
 {
     cusumlevel *head;
-    if ((head=malloc(sizeof(cusumlevel)))==NULL)
-    {
-        printf("Cannot allocate head level node\n");
-        exit(32);
-    }
+    head=calloc_and_check(1,sizeof(cusumlevel),32);
     head->current = 0;
     head->length = 0;
     head->next = NULL;
@@ -337,11 +321,7 @@ cusumlevel *add_cusum_level(cusumlevel *lastlevel, double current, uint64_t leng
     cusumlevel *temp;
     if (lastlevel && lastlevel->length > 0)
     {
-        if ((lastlevel->next=malloc(sizeof(cusumlevel)))==NULL)
-        {
-            printf("Cannot allocate level node\n");
-            exit(33);
-        }
+        lastlevel->next=calloc_and_check(1,sizeof(cusumlevel),33);
         lastlevel->next->current = current;
         lastlevel->next->length = length;
         lastlevel->next->next = NULL;

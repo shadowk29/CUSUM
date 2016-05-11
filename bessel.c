@@ -165,11 +165,7 @@ void polymult(double complex *roots, uint64_t N, double *rcoefs)
 {
     uint64_t i, j;
     double complex *polycoefs;
-    if ((polycoefs = calloc(N+1, sizeof(double complex)))==NULL)
-    {
-        printf("Cannot allocate coefficient array\n");
-        exit(35);
-    }
+    polycoefs = calloc_and_check(N+1, sizeof(double complex),35);
     polycoefs[N]=1.0;
     for (i=0; i<N; i++)
     {
@@ -241,26 +237,14 @@ bessel *initialize_filter(bessel *lpfilter, uint64_t order, double cutoff, uint6
     double complex *poles;
     double complex *zeros;
 
-    if ((poles = calloc(order,sizeof(double complex)))==NULL)
-    {
-        printf("Cannot allocate complex poles array\n");
-        exit(37);
-    }
-    if ((zeros = calloc(order,sizeof(double complex)))==NULL)
-    {
-        printf("Cannot allocate zeros array\n");
-        exit(38);
-    }
-    if ((lpfilter->ccof = calloc(order+1,sizeof(double)))==NULL)
-    {
-        printf("Cannot allocate b array\n");
-        exit(39);
-    }
-    if ((lpfilter->dcof = calloc(order+1,sizeof(double)))==NULL)
-    {
-        printf("Cannot allocate zeros array\n");
-        exit(1);
-    }
+    poles = calloc_and_check(order,sizeof(double complex),37);
+
+    zeros = calloc_and_check(order,sizeof(double complex),38);
+
+    lpfilter->ccof = calloc_and_check(order+1,sizeof(double complex),39);
+
+    lpfilter->dcof = calloc_and_check(order+1,sizeof(double complex),40);
+
 
     double fs = 2.0;
     double warped = 2.0 * fs * tan(M_PI * cutoff / fs);
@@ -271,41 +255,16 @@ bessel *initialize_filter(bessel *lpfilter, uint64_t order, double cutoff, uint6
     scale = bilinear(poles, order, scale, fs);
     transform_filter(poles, zeros, order, scale, lpfilter->ccof, lpfilter->dcof);
 
-
-    /*
-    uint64_t i;
-    printf("b: \n");
-    for (i=0; i<order+1; i++)
-    {
-        printf("%g\n",lpfilter->ccof[i]);
-    }
-    printf("a: \n");
-    for (i=0; i<order+1; i++)
-    {
-        printf("%g\n",lpfilter->dcof[i]);
-    }*/
-
-
-
     lpfilter->temp = NULL;
     lpfilter->tempback = NULL;
     lpfilter->paddedsignal = NULL;
 
-    if ((lpfilter->temp = calloc(length+2*(order+lpfilter->padding), sizeof(double)))==NULL)
-    {
-        printf("Cannot allocate temp filter array\n");
-        exit(40);
-    }
-    if ((lpfilter->tempback = calloc(length+2*(order+lpfilter->padding), sizeof(double)))==NULL)
-    {
-        printf("Cannot allocate tempback array\n");
-        exit(41);
-    }
-    if ((lpfilter->paddedsignal = calloc(length+2*(order+lpfilter->padding),sizeof(double)))==NULL)
-    {
-        printf("Cannot allocate padded signal\n");
-        exit(42);
-    }
+    lpfilter->temp = calloc_and_check(length+2*(order+lpfilter->padding), sizeof(double),41);
+
+    lpfilter->tempback = calloc_and_check(length+2*(order+lpfilter->padding), sizeof(double),42);
+
+    lpfilter->paddedsignal = calloc_and_check(length+2*(order+lpfilter->padding), sizeof(double),43);
+
     free(poles);
     free(zeros);
     return lpfilter;

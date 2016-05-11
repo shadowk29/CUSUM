@@ -104,11 +104,7 @@ void step_response(event *current, double risetime, uint64_t maxiters, double mi
         uint64_t p = 7;
         uint64_t n = current->length + current->padding_before + current->padding_after;
         double *weight;
-        if ((weight = malloc(n*sizeof(double)))==NULL)
-        {
-            printf("Cannot allocate error array\n");
-            exit(34);
-        }
+        weight = calloc_and_check(n,sizeof(double),34);
 
         gsl_matrix *covar = gsl_matrix_alloc (p, p);
 
