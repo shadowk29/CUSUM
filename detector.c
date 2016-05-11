@@ -454,7 +454,7 @@ void event_baseline(event *current_event, double baseline_min, double baseline_m
 
 
 
-void generate_trace(FILE *input, event *current, int datatype, FILE *logfile, bessel *lpfilter, int eventfilter, chimera *daqsetup, uint64_t samplingfreq, edge *current_edge, uint64_t last_end, uint64_t start)
+void generate_trace(FILE *input, event *current, int datatype, FILE *logfile, bessel *lpfilter, int eventfilter, chimera *daqsetup, uint64_t samplingfreq, edge *current_edge, uint64_t last_end, uint64_t start, uint64_t subevent_minpoints)
 {
     if (current->type == CUSUM || current->type == STEPRESPONSE)
     {
@@ -487,7 +487,7 @@ void generate_trace(FILE *input, event *current, int datatype, FILE *logfile, be
             current->padding_after = next_start - current->finish;
         }
         position = current->start - current->padding_before;
-        if (position > current->start)
+        if (position > current->start || current->padding_before < subevent_minpoints || current->padding_after < subevent_minpoints)
         {
             current->type = BADPADDING;
             return;
