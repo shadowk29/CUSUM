@@ -436,7 +436,7 @@ void config_sanity_check(configuration *config, FILE *logfile)
             printf("Warning: subevent_minpoints is less than 4RC, levels might be underestimated. Suggest increaseing subevent_minpoints to %"PRIu64"\n",(uint64_t) (8.0/config->cutoff));
             fprintf(logfile,"Warning: subevent_minpoints is less than 4RC, levels might be underestimated. Suggest increaseing subevent_minpoints to %"PRIu64"\n",(uint64_t) (8.0/config->cutoff));
         }
-        if (config->event_minpoints < 8.0/config->cutoff)
+        if (config->event_minpoints < 8.0/config->cutoff && config->stepfit_samples == 0)
         {
             printf("Warning: event_minpoints is less than 4RC, short events will not be fit accurately. Suggest increaseing event_minpoints to %"PRIu64"\n",(uint64_t) (8.0/config->cutoff));
             fprintf(logfile,"Warning: event_minpoints is less than 4RC, short events will not be fit accurately. Suggest increaseing event_minpoints to %"PRIu64"\n",(uint64_t) (8.0/config->cutoff));
