@@ -18,11 +18,12 @@ uint64_t get_next_event_start(edge *current_edge);
 
 void calculate_level_noise(event *current, uint64_t minpoints);
 void populate_event_levels(event *current);
+void identify_step_events(event *current, uint64_t stepfit_samples);
 
 
 
-
-void filter_event_length(event *current, uint64_t maxpoints, uint64_t minpoints, uint64_t stepfit_samples);
+void filter_short_events(event *current, uint64_t minpoints);
+void filter_long_events(event *current, uint64_t event_maxpoints);
 uint64_t locate_min(double *signal, uint64_t length);
 
 uint64_t average_cusum_levels(event *current, uint64_t subevent_minpoints, double cusum_minstep, int attempt_recovery);

@@ -76,23 +76,27 @@ void calculate_level_noise(event *current, uint64_t minpoints)
 }
 
 
+void identify_step_events(event *current, uint64_t stepfit_samples)
+{
+    if (current->length < stepfit_samples)
+    {
+        current->type = STEPRESPONSE;
+    }
+}
 
-
-
-
-void filter_event_length(event *current, uint64_t maxpoints, uint64_t minpoints, uint64_t stepfit_samples)
+void filter_long_events(event *current, uint64_t maxpoints)
 {
     if (current->length > maxpoints)
     {
         current->type = TOOLONG;
     }
-    else if (current->length < minpoints)
+}
+
+void filter_short_events(event *current, uint64_t minpoints)
+{
+    if (current->length < minpoints)
     {
         current->type = TOOSHORT;
-    }
-    else if (current->length < stepfit_samples)
-    {
-        current->type = STEPRESPONSE;
     }
 }
 
