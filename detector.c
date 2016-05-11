@@ -330,16 +330,16 @@ void cusum(event *current_event, double delta, double minthreshold, double maxth
         current_event->threshold = threshold;
 
         double *cpos;//cumulative log-likelihood for positive jumps
-        cpos = calloc_and_check(length, sizeof(double),10);
+        cpos = calloc_and_check(length, sizeof(double),"Cannot allocate cpos");
         cpos[0] = 0;
         double *cneg;//cumulative log-likelihood for negative jumps
-        cneg = calloc_and_check(length, sizeof(double),11);
+        cneg = calloc_and_check(length, sizeof(double),"Cannot allocate cneg");
         cneg[0] = 0;
         double *gpos;//decision function for positive jumps
-        gpos = calloc_and_check(length, sizeof(double),12);
+        gpos = calloc_and_check(length, sizeof(double),"Cannot allocate gpos");
         gpos[0] = 0;
         double *gneg;//decision function for negative jumps
-        gneg = calloc_and_check(length, sizeof(double),13);
+        gneg = calloc_and_check(length, sizeof(double),"Cannot allocate cneg");
         gneg[0] = 0;
 
 
@@ -495,8 +495,8 @@ void generate_trace(FILE *input, event *current, int datatype, FILE *logfile, be
 
 
 
-        current->signal = calloc_and_check(current->length + current->padding_before + current->padding_after,sizeof(double),15);
-        current->filtered_signal = calloc_and_check(current->length + current->padding_before + current->padding_after,sizeof(double),16);
+        current->signal = calloc_and_check(current->length + current->padding_before + current->padding_after,sizeof(double),"Cannot allocate event signal array");
+        current->filtered_signal = calloc_and_check(current->length + current->padding_before + current->padding_after,sizeof(double),"Cannot allocate event filtered signal array");
 
 
 
@@ -647,12 +647,12 @@ double build_histogram(double *signal, histostruct *histogram, uint64_t length, 
     {
         if ((histogram->histogram = realloc(histogram->histogram,numbins*sizeof(double *)))==NULL)
         {
-            printf("Cannot allocate level 1 with %" PRIu64" using range: %.2lf and delta: %.2lf, min: %.2lf and max: %.2lf\n",numbins, range, delta, minimum, maximum);
-            exit(19);
+            printf("Cannot allocate histogram");
+            exit(1);
         }
         for (i=histogram->numbins; i<numbins; i++)
         {
-            histogram->histogram[i] = calloc_and_check(3,sizeof(double),20);
+            histogram->histogram[i] = calloc_and_check(3,sizeof(double),"Cannot allocate histogram bin");
         }
         histogram->numbins = numbins;
     }

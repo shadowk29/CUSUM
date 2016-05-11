@@ -32,8 +32,8 @@ int main()
     //read the configuration file
 
     configuration *config;
-    config = calloc_and_check(1,sizeof(configuration),1);
-    config->daqsetup = calloc_and_check(1,sizeof(chimera),2);
+    config = calloc_and_check(1,sizeof(configuration),"Cannot allocate config struct");
+    config->daqsetup = calloc_and_check(1,sizeof(chimera),"Cannot allocate DAQ struct");
 
     FILE *logfile;
     logfile = fopen64_and_check("output/summary.txt","w",3);
@@ -64,7 +64,7 @@ int main()
     bessel *lpfilter = NULL;
     double *filtered = NULL;
 
-    uint64_t *error_summary = calloc_and_check(NUMTYPES, sizeof(uint64_t), 5);
+    uint64_t *error_summary = calloc_and_check(NUMTYPES, sizeof(uint64_t), "Cannot allocate error array");
 
     //initialize the low-pass filter and allocate necessary memory
     if (config->usefilter || config->eventfilter)
@@ -72,10 +72,10 @@ int main()
         lpfilter = initialize_filter(lpfilter, config->order, config->cutoff, config->readlength, config->samplingfreq);
     }
     //allocate memory for file reading
-    double *signal = calloc_and_check(config->readlength,sizeof(double), 6);
+    double *signal = calloc_and_check(config->readlength,sizeof(double), "Cannot allocate file reading signal array");
 
     histostruct *histogram;
-    histogram = calloc_and_check(1,sizeof(histostruct),7);
+    histogram = calloc_and_check(1,sizeof(histostruct),"Cannot allocate histogram structure");
     histogram->histogram = NULL;
     histogram->numbins = 0;
 

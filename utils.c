@@ -104,13 +104,13 @@ FILE *fopen64_and_check(const char *fname, const char *mode, int error)
     return buffer;
 }
 
-void *calloc_and_check(size_t num, size_t size, int error)
+void *calloc_and_check(size_t num, size_t size, char *msg)
 {
     void *block;
     if ((block=calloc(num,size))==NULL)
     {
-        printf("Failed to allocate memory block\n");
-        exit(error);
+        printf("%s\n",msg);
+        exit(1);
     }
     return block;
 }
@@ -202,7 +202,7 @@ inline int64_t intmax(int64_t a, int64_t b)
 edge *initialize_edges(void)
 {
     edge *head;
-    head = calloc_and_check(1,sizeof(edge),28);
+    head = calloc_and_check(1,sizeof(edge),"Cannot initialize edge list");
     head->next = NULL;
     head->location = 0;
     head->type = HEAD;

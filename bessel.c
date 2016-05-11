@@ -165,7 +165,7 @@ void polymult(double complex *roots, uint64_t N, double *rcoefs)
 {
     uint64_t i, j;
     double complex *polycoefs;
-    polycoefs = calloc_and_check(N+1, sizeof(double complex),35);
+    polycoefs = calloc_and_check(N+1, sizeof(double complex),"Cannot allocate polynomial coefficients");
     polycoefs[N]=1.0;
     for (i=0; i<N; i++)
     {
@@ -237,13 +237,13 @@ bessel *initialize_filter(bessel *lpfilter, uint64_t order, double cutoff, uint6
     double complex *poles;
     double complex *zeros;
 
-    poles = calloc_and_check(order,sizeof(double complex),37);
+    poles = calloc_and_check(order,sizeof(double complex),"Cannot allocate Bessel poles");
 
-    zeros = calloc_and_check(order,sizeof(double complex),38);
+    zeros = calloc_and_check(order,sizeof(double complex),"Cannot allocate Bessel zeros");
 
-    lpfilter->ccof = calloc_and_check(order+1,sizeof(double complex),39);
+    lpfilter->ccof = calloc_and_check(order+1,sizeof(double complex),"Cannot allocate ccof");
 
-    lpfilter->dcof = calloc_and_check(order+1,sizeof(double complex),40);
+    lpfilter->dcof = calloc_and_check(order+1,sizeof(double complex),"Cannot allocate dcof");
 
 
     double fs = 2.0;
@@ -259,11 +259,11 @@ bessel *initialize_filter(bessel *lpfilter, uint64_t order, double cutoff, uint6
     lpfilter->tempback = NULL;
     lpfilter->paddedsignal = NULL;
 
-    lpfilter->temp = calloc_and_check(length+2*(order+lpfilter->padding), sizeof(double),41);
+    lpfilter->temp = calloc_and_check(length+2*(order+lpfilter->padding), sizeof(double),"Cannot allocate filter temp");
 
-    lpfilter->tempback = calloc_and_check(length+2*(order+lpfilter->padding), sizeof(double),42);
+    lpfilter->tempback = calloc_and_check(length+2*(order+lpfilter->padding), sizeof(double),"Cannot allocate filter tempback");
 
-    lpfilter->paddedsignal = calloc_and_check(length+2*(order+lpfilter->padding), sizeof(double),43);
+    lpfilter->paddedsignal = calloc_and_check(length+2*(order+lpfilter->padding), sizeof(double),"Cannot allocate paddedsignal");
 
     free(poles);
     free(zeros);
