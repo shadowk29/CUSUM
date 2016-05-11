@@ -111,14 +111,12 @@ void step_response(event *current, double risetime, uint64_t maxiters, double mi
         gsl_multifit_function_fdf f;
 
 
-
         double maxsignal = signal_max(current->signal, current->length + current->padding_before + current->padding_after);
         double minsignal = signal_min(current->signal, current->length + current->padding_before + current->padding_after);
         double baseline = signal_average(current->signal,current->padding_before);
         int sign = signum(baseline);
         uint64_t start = current->padding_before - intmin(current->length/2, current->padding_before/4);
         uint64_t end = current->padding_before+current->length;
-
 
 
         for (i=0; i<n; i++)
@@ -159,6 +157,7 @@ void step_response(event *current, double risetime, uint64_t maxiters, double mi
         s = gsl_multifit_fdfsolver_alloc (T, n, p);
         gsl_multifit_fdfsolver_set (s, &f, x);
 
+
         while (iter < maxiters && status == GSL_CONTINUE)
         {
             iter++;
@@ -197,24 +196,26 @@ void step_response(event *current, double risetime, uint64_t maxiters, double mi
             rc2 = dtemp;
         }
 
-        if (u2 > n || u1 <= 0) //if for some reason we are out of range
+        if (u2 >= n || u1 <= 0) //if for some reason we are out of range
         {
             current->type = FITRANGE;
+            return;
         }
         else if (signum(a) != signum(b)) //if it is not a step-and-return event
         {
             current->type = FITSIGN;
+            return;
         }
         else if (d_abs(b) < minstep || d_abs(b) < minstep)
         {
             current->type = FITSTEP;
+            return;
         }
         else if (signum(a) != sign || signum(b) != sign)
         {
             current->type = FITDIR;
+            return;
         }
-
-
 
         double t;
         for (i=0; i<u1; i++) //if all went well, populate the filtered trace
@@ -237,8 +238,6 @@ void step_response(event *current, double risetime, uint64_t maxiters, double mi
         current->rc1 = rc1;
         current->rc2 = rc2;
         current->residual = sqrt(residual/(current->length + current->padding_before + current->padding_after));
-
-
 
         gsl_multifit_fdfsolver_free (s);
         gsl_matrix_free (covar);
