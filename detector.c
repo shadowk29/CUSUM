@@ -454,7 +454,7 @@ void event_baseline(event *current_event, double baseline_min, double baseline_m
 
 
 
-void generate_trace(FILE *input, event *current, int datatype, FILE *logfile, bessel *lpfilter, int eventfilter, chimera *daqsetup, uint64_t samplingfreq, edge *current_edge, uint64_t last_end)
+void generate_trace(FILE *input, event *current, int datatype, FILE *logfile, bessel *lpfilter, int eventfilter, chimera *daqsetup, uint64_t samplingfreq, edge *current_edge, uint64_t last_end, uint64_t start)
 {
     if (current->type == CUSUM || current->type == STEPRESPONSE)
     {
@@ -470,10 +470,15 @@ void generate_trace(FILE *input, event *current, int datatype, FILE *logfile, be
         }
 
 
+
         padding = (uint64_t) (100e-6*samplingfreq);
         current->padding_before = padding;
         current->padding_after = padding;
-        if (current->padding_before + last_end > current->start)
+        if (current->start - start < current->padding_before)
+        {
+            current->padding_before = current->start;
+        }
+        else if (current->start - current->padding_before < last_end)
         {
             current->padding_before = current->start - last_end;
         }
@@ -484,9 +489,6 @@ void generate_trace(FILE *input, event *current, int datatype, FILE *logfile, be
         position = current->start - current->padding_before;
         if (position > current->start)
         {
-            printf("Padding is %"PRIu64"\n",current->padding_before);
-            printf("Start is %"PRIu64"\n",current->start);
-            printf("Position is %"PRIu64"\n",position);
             current->type = BADPADDING;
             return;
         }

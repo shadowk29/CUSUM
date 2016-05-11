@@ -200,7 +200,8 @@ int main()
         }
         index++;
         filter_event_length(current_event, config->event_maxpoints, config->event_minpoints, config->stepfit_samples);
-        generate_trace(input, current_event, config->datatype, logfile, lpfilter, config->eventfilter, config->daqsetup, config->samplingfreq, current_edge, last_end);
+        generate_trace(input, current_event, config->datatype, logfile, lpfilter, config->eventfilter, config->daqsetup, config->samplingfreq, current_edge, last_end, config->start);
+        last_end = current_event->finish;
         cusum(current_event, config->cusum_delta, config->cusum_min_threshold, config->cusum_max_threshold, config->subevent_minpoints);
         typeswitch += average_cusum_levels(current_event, config->subevent_minpoints, config->cusum_minstep, config->attempt_recovery);
         step_response(current_event, risetime, config->maxiters, config->cusum_minstep);
@@ -213,7 +214,6 @@ int main()
         print_event_signal(current_event->index, current_event, 1.0/config->samplingfreq*1e6);
         print_event_line(events, rate, current_event, 1.0/config->samplingfreq, lasttime);
         lasttime = current_event->start;
-        last_end = current_event->finish;
         current_edge = current_edge->next;
         edgenum++;
         numevents++;

@@ -396,6 +396,8 @@ void configure_defaults(configuration *config)
 
 void config_sanity_check(configuration *config, FILE *logfile)
 {
+    printf("Verifying config parameters\n");
+    fprintf(logfile,"Verifying config parameters\n");
     if (config->readlength < 2 * config->event_maxpoints)
     {
         printf("Corrected config error: readlength should be at least 2 times event_maxpoints");
@@ -405,20 +407,20 @@ void config_sanity_check(configuration *config, FILE *logfile)
 
     if (config->order > 10)
     {
-        printf("Bessel filters of order >10 are not supported, defaulting to 10\n");
-        fprintf(logfile,"Bessel filters of order >10 are not supported, defaulting to 10\n");
+        printf("Bessel filters of order >10 are not supported, correcting to 10\n");
+        fprintf(logfile,"Bessel filters of order >10 are not supported, correcting to 10\n");
         config->order = 10;
     }
     else if (config->order < 2)
     {
-        printf("Bessel filters of order <2 are not supported, defaulting to 2\n");
-        fprintf(logfile,"Bessel filters of order >10 are not supported, defaulting to 10\n");
+        printf("Bessel filters of order <2 are not supported, correcting to 2\n");
+        fprintf(logfile,"Bessel filters of order >10 are not supported, correcting to 10\n");
         config->order = 2;
     }
     else if (config->order % 2 == 1)
     {
-        printf("Bessel filters of odd order are not supported, defaulting to %"PRIu64"\n",config->order + 1);
-        fprintf(logfile,"Bessel filters of order >10 are not supported, defaulting to 10\n");
+        printf("Bessel filters of odd order are not supported, correcting to %"PRIu64"\n",config->order + 1);
+        fprintf(logfile,"Bessel filters of order >10 are not supported, correcting to 10\n");
         config->order += 1;
     }
     if (config->datatype==0)
@@ -427,6 +429,21 @@ void config_sanity_check(configuration *config, FILE *logfile)
         printf("Using VC100 sampling rate of %"PRIu64"\n",config->samplingfreq);
         fprintf(logfile,"Using VC100 sampling rate of %"PRIu64"\n",config->samplingfreq);
     }
+    if (config->usefilter || config->eventfilter)
+    {
+        if (config->subevent_minpoints < 8.0/config->cutoff)
+        {
+            printf("Warning: subevent_minpoints is less than 4RC, levels might be underestimated. Suggest increaseing subevent_minpoints to %"PRIu64"\n",(uint64_t) (8.0/config->cutoff));
+            fprintf(logfile,"Warning: subevent_minpoints is less than 4RC, levels might be underestimated. Suggest increaseing subevent_minpoints to %"PRIu64"\n",(uint64_t) (8.0/config->cutoff));
+        }
+        if (config->event_minpoints < 8.0/config->cutoff)
+        {
+            printf("Warning: event_minpoints is less than 4RC, short events will not be fit accurately. Suggest increaseing event_minpoints to %"PRIu64"\n",(uint64_t) (8.0/config->cutoff));
+            fprintf(logfile,"Warning: event_minpoints is less than 4RC, short events will not be fit accurately. Suggest increaseing event_minpoints to %"PRIu64"\n",(uint64_t) (8.0/config->cutoff));
+        }
+    }
+    printf("Done config check\n\n");
+    fprintf(logfile,"Done config check\n\n");
 }
 
 
