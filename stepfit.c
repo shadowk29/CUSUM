@@ -104,7 +104,7 @@ void step_response(event *current, double risetime, uint64_t maxiters, double mi
         uint64_t p = 7;
         uint64_t n = current->length + current->padding_before + current->padding_after;
         double *weight;
-        weight = calloc_and_check(n,sizeof(double),34);
+        weight = calloc_and_check(n,sizeof(double),"Cannot allocate weight array");
 
         gsl_matrix *covar = gsl_matrix_alloc (p, p);
 
@@ -167,7 +167,7 @@ void step_response(event *current, double risetime, uint64_t maxiters, double mi
             {
                 break;
             }
-            status = gsl_multifit_test_delta (s->dx, s->x,1e-4, 1e-4);
+            status = gsl_multifit_test_delta (s->dx, s->x,1e-3, 1e-3);
         }
 
 

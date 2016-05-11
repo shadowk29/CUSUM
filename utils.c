@@ -219,7 +219,7 @@ edge *add_edge(edge *current, uint64_t location, int type)
     }
     else
     {//if the current node is filled with useful information and we actually need more memory
-        current->next = calloc_and_check(1,sizeof(edge),29);
+        current->next = calloc_and_check(1,sizeof(edge),"Cannot allocate next edge");
         current->next->location = location;
         current->next->type = type;
         current->next->next = NULL;
@@ -254,7 +254,7 @@ void free_levels(cusumlevel *current)
 event *initialize_events(void)
 {
     event *head;
-    head = calloc_and_check(1,sizeof(event),20);
+    head = calloc_and_check(1,sizeof(event),"Cannot allocate head event");
     head->type = 0;
     head->threshold = 0;
     head->rc1 = 0;
@@ -309,7 +309,7 @@ void free_single_event(event *current)
 cusumlevel *initialize_levels(void)
 {
     cusumlevel *head;
-    head=calloc_and_check(1,sizeof(cusumlevel),32);
+    head=calloc_and_check(1,sizeof(cusumlevel),"Cannot allocate head level");
     head->current = 0;
     head->length = 0;
     head->next = NULL;
@@ -321,7 +321,7 @@ cusumlevel *add_cusum_level(cusumlevel *lastlevel, double current, uint64_t leng
     cusumlevel *temp;
     if (lastlevel && lastlevel->length > 0)
     {
-        lastlevel->next=calloc_and_check(1,sizeof(cusumlevel),33);
+        lastlevel->next=calloc_and_check(1,sizeof(cusumlevel),"Cannot allocate next level");
         lastlevel->next->current = current;
         lastlevel->next->length = length;
         lastlevel->next->next = NULL;
