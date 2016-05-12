@@ -201,6 +201,7 @@ int main()
         index++;
         identify_step_events(current_event, config->stepfit_samples);
         filter_long_events(current_event, config->event_maxpoints);
+        filter_short_events(current_event, config->event_minpoints);
         generate_trace(input, current_event, config->datatype, logfile, lpfilter, config->eventfilter, config->daqsetup, config->samplingfreq, current_edge, last_end, config->start, config->subevent_minpoints);
         last_end = current_event->finish;
         cusum(current_event, config->cusum_delta, config->cusum_min_threshold, config->cusum_max_threshold, config->subevent_minpoints);
@@ -209,7 +210,6 @@ int main()
         populate_event_levels(current_event);
         calculate_level_noise(current_event, config->subevent_minpoints);
         refine_event_estimates(current_event);
-        filter_short_events(current_event, config->event_minpoints);
         event_baseline(current_event, config->baseline_min, config->baseline_max);
         event_max_blockage(current_event);
         event_area(current_event, 1.0/config->samplingfreq);
