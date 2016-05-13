@@ -686,7 +686,7 @@ double build_histogram(double *signal, histostruct *histogram, uint64_t length, 
     {
         return 0;
     }
-    numbins = intmax(numbins, (uint64_t) sqrt(length));
+    //numbins = intmax(numbins, (uint64_t) sqrt(length));
 
     double baseline = 0;
     uint64_t i,j;
