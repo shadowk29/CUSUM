@@ -404,78 +404,78 @@ void configure_defaults(configuration *config)
 
 void config_sanity_check(configuration *config, FILE *logfile)
 {
-    printf("Verifying config parameters\n");
-    fprintf(logfile,"Verifying config parameters\n");
+    printf("Verifying config parameters\nAny notes below will modify the config file above for the actual run\n\n");
+    fprintf(logfile,"Verifying config parameters\nAny notes below will modify the config file above for the actual run\n\n");
     if (config->readlength < 2 * config->event_maxpoints)
     {
-        printf("Corrected config error: readlength should be at least 2 times event_maxpoints");
-        fprintf(logfile,"Corrected config error: readlength should be at least 2 times event_maxpoints");
+        printf("Readlength should be at least 2 times event_maxpoints. Correction:\nreadlength=%"PRIu64"\n",2 * config->event_maxpoints);
+        fprintf(logfile,"Readlength should be at least 2 times event_maxpoints. Correction:\nreadlength=%"PRIu64"\n",2 * config->event_maxpoints);
         config->readlength = 2 * config->event_maxpoints;
     }
 
     if (config->order > 10)
     {
-        printf("Bessel filters of order >10 are not supported, correcting to 10\n");
-        fprintf(logfile,"Bessel filters of order >10 are not supported, correcting to 10\n");
+        printf("Bessel filters of order >10 are not supported. Correction:\npoles=10\n");
+        fprintf(logfile,"Bessel filters of order >10 are not supported. Correction:\npoles=10\n");
         config->order = 10;
     }
     else if (config->order < 2)
     {
-        printf("Bessel filters of order <2 are not supported, correcting to 2\n");
-        fprintf(logfile,"Bessel filters of order >10 are not supported, correcting to 10\n");
+        printf("Bessel filters of order >10 are not supported. Correction:\npoles=2\n");
+        fprintf(logfile,"Bessel filters of order >10 are not supported. Correction:\npoles=2\n");
         config->order = 2;
     }
     else if (config->order % 2 == 1)
     {
-        printf("Bessel filters of odd order are not supported, correcting to %"PRIu64"\n",config->order + 1);
-        fprintf(logfile,"Bessel filters of order >10 are not supported, correcting to 10\n");
+        printf("Bessel filters of order >10 are not supported. Correction:\npoles=%"PRIu64"\n",config->order + 1);
+        fprintf(logfile,"Bessel filters of order >10 are not supported. Correction:\npoles=%"PRIu64"\n",config->order + 1);
         config->order += 1;
     }
-    if (config->datatype==0)
+    if (config->datatype==0 && config->samplingfreq != (uint64_t) config->daqsetup->samplerate)
     {
+        printf("Sampling rate does not match Chimera setup. Correction:\nsamplingfreq=%"PRIu64"\n",config->samplingfreq);
+        fprintf(logfile,"Sampling rate does not match Chimera setup. Correction:\nsamplingfreq=%"PRIu64"\n",config->samplingfreq);
         config->samplingfreq = (uint64_t) config->daqsetup->samplerate;
-        printf("Using VC100 sampling rate of %"PRIu64"\n",config->samplingfreq);
-        fprintf(logfile,"Using VC100 sampling rate of %"PRIu64"\n",config->samplingfreq);
     }
     if (config->stepfit_samples > 0 && config->stepfit_samples < config->subevent_minpoints)
     {
-        printf("Stepfit samples should be at least as large as subevent_minpoints, correcting to %"PRIu64"\n",config->subevent_minpoints);
-        fprintf(logfile,"Stepfit samples should be at least as large as subevent_minpoints, correcting to %"PRIu64"\n",config->subevent_minpoints);
+        printf("Stepfit samples should be at least as large as subevent_minpoints. Correction:\nstepfit_samples=%"PRIu64"\n",config->subevent_minpoints);
+        fprintf(logfile,"Stepfit samples should be at least as large as subevent_minpoints. Correction:\nstepfit_samples=%"PRIu64"\n",config->subevent_minpoints);
         config->stepfit_samples = config->subevent_minpoints;
     }
     if (config->stepfit_samples && !config->attempt_recovery)
     {
-        printf("Stepfit_samples is on, but attempt_recovery is off: turning on attempt_recovery");
-        fprintf(logfile,"Stepfit samples is on, but attempt_recovery is off: turning on attempt_recovery");
+        printf("Stepfit_samples is on, but attempt_recovery is off. Correction:\nattempt_recovery=1\n");
+        fprintf(logfile,"Stepfit_samples is on, but attempt_recovery is off. Correction:\nattempt_recovery=1\n");
         config->attempt_recovery = 1;
     }
     if (!config->stepfit_samples && config->attempt_recovery)
     {
-        printf("Attempt_recovery is on, but step_fit samples is off: correcting stepfit_samples to be equal to subevent_minpoints: %"PRIu64"\n",config->subevent_minpoints);
-        fprintf(logfile,"Attempt_recovery is on, but step_fit samples is off: correcting stepfit_samples to be equal to subevent_minpoints: %"PRIu64"\n",config->subevent_minpoints);
+        printf("Attempt_recovery is on, but step_fit samples is off. Correction:\nstepfit_samples=%"PRIu64"\n",config->subevent_minpoints);
+        fprintf(logfile,"Attempt_recovery is on, but step_fit samples is off. Correction:\nstepfit_samples=%"PRIu64"\n",config->subevent_minpoints);
         config->stepfit_samples = config->subevent_minpoints;
     }
     if (!config->stepfit_samples && !config->attempt_recovery && config->event_minpoints < config->subevent_minpoints)
     {
-        printf("Stepfit is off, and event_minpoints is less than subevent_minpoints. Correcting event_minpoints to be equal to subevent_minpoints: %"PRIu64"\n",config->subevent_minpoints);
-        fprintf(logfile,"Stepfit is off, and event_minpoints is less than subevent_minpoints. Correcting event_minpoints to be equal to subevent_minpoints: %"PRIu64"\n",config->subevent_minpoints);
+        printf("Stepfit is off, and event_minpoints is less than subevent_minpoints. Correction:\nevent_minpoints=%"PRIu64"\n",config->subevent_minpoints);
+        fprintf(logfile,"Stepfit is off, and event_minpoints is less than subevent_minpoints. Correction:\nevent_minpoints=%"PRIu64"\n",config->subevent_minpoints);
         config->event_minpoints = config->subevent_minpoints;
     }
     if (config->usefilter || config->eventfilter)
     {
         if (config->subevent_minpoints < 8.0/config->cutoff)
         {
-            printf("Warning: subevent_minpoints is less than 4RC, levels might be underestimated. Suggest increaseing subevent_minpoints to %"PRIu64"\n",(uint64_t) (8.0/config->cutoff));
-            fprintf(logfile,"Warning: subevent_minpoints is less than 4RC, levels might be underestimated. Suggest increaseing subevent_minpoints to %"PRIu64"\n",(uint64_t) (8.0/config->cutoff));
+            printf("Warning: subevent_minpoints is less than 4RC, levels might be underestimated. Suggest increaseing subevent_minpoints to %"PRIu64"\nNo Correction\n",(uint64_t) (8.0/config->cutoff));
+            fprintf(logfile,"Warning: subevent_minpoints is less than 4RC, levels might be underestimated. Suggest increaseing subevent_minpoints to %"PRIu64"\nNo Correction\n",(uint64_t) (8.0/config->cutoff));
         }
         if (config->event_minpoints < 8.0/config->cutoff && config->stepfit_samples == 0)
         {
-            printf("Warning: event_minpoints is less than 4RC, short events will not be fit accurately. Suggest increaseing event_minpoints to %"PRIu64"\n",(uint64_t) (8.0/config->cutoff));
-            fprintf(logfile,"Warning: event_minpoints is less than 4RC, short events will not be fit accurately. Suggest increaseing event_minpoints to %"PRIu64"\n",(uint64_t) (8.0/config->cutoff));
+            printf("Warning: event_minpoints is less than 4RC, short events will not be fit accurately. Suggest increaseing event_minpoints to %"PRIu64"\nNo Correction\n",(uint64_t) (8.0/config->cutoff));
+            fprintf(logfile,"Warning: event_minpoints is less than 4RC, short events will not be fit accurately. Suggest increaseing event_minpoints to %"PRIu64"\nNo Correction\n",(uint64_t) (8.0/config->cutoff));
         }
     }
-    printf("Done config check\n\n");
-    fprintf(logfile,"Done config check\n\n");
+    printf("\nDone config check\n\n");
+    fprintf(logfile,"\nDone config check\n\n");
 }
 
 
