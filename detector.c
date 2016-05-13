@@ -749,7 +749,7 @@ double build_histogram(double *signal, histostruct *histogram, uint64_t length, 
 
     sign = signum(histogram->histogram[0][FIRST_DERIV]);
     average = length/numbins;
-    for (i=0; i<numbins; i++) //we ignore the endpoints
+    for (i=1; i<numbins-1; i++) //we ignore the endpoints
     {
         newsign = signum(histogram->histogram[i][FIRST_DERIV]);
         if (newsign != sign)//derivative crosses 0
