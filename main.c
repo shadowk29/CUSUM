@@ -190,6 +190,10 @@ int main()
     printf("Processing %"PRIu64" edges\n", edgecount);
     while (current_edge)
     {
+#ifdef DEBUG
+    printf("Main Loop\n");
+    fflush(stdout);
+#endif // DEBUG
         snprintf(progressmsg,STRLENGTH*sizeof(char)," %"PRIu64" events processed",numevents);
         progressbar(edgenum, edgecount, progressmsg);
         edges = get_next_event(current_event, current_edge, index);
@@ -221,6 +225,10 @@ int main()
         numevents++;
         error_summary[current_event->type]++;
         free_single_event(current_event);
+#ifdef DEBUG
+    printf("Done\n");
+    fflush(stdout);
+#endif // DEBUG
     }
     snprintf(progressmsg,STRLENGTH*sizeof(char)," %"PRIu64" events processed",numevents);
     progressbar(edgenum, edgecount, progressmsg);

@@ -23,6 +23,7 @@
 #define FITSTEP 10
 #define FITDIR 11
 #define BADPADDING 12
+#define DEBUG
 
 struct Chimera
 {

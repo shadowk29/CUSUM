@@ -287,21 +287,42 @@ event *add_event(event *current, uint64_t start, uint64_t finish, uint64_t index
 
 void free_single_event(event *current)
 {
+#ifdef DEBUG
+    printf("Free event\n");
+    fflush(stdout);
+#endif // DEBUG
+    printf("%"PRIu64"\t%d\t%"PRIu64"\n",current->index,current->type,current->length);
     if (current->signal)
     {
+        printf("Free signal\n");
+        fflush(stdout);
         free(current->signal);
+        printf("Free done\n");
+        fflush(stdout);
     }
     if (current->filtered_signal)
     {
+        printf("Free filtered\n");
+        fflush(stdout);
         free(current->filtered_signal);
+        printf("Free done\n");
+        fflush(stdout);
     }
     if (current->first_edge)
     {
+        printf("Free edge\n");
+        fflush(stdout);
         free_edges(current->first_edge);
+        printf("Free done\n");
+        fflush(stdout);
     }
     if (current->first_level)
     {
+        printf("Free level\n");
+        fflush(stdout);
         free_levels(current->first_level);
+        printf("Free done\n");
+        fflush(stdout);
     }
 }
 

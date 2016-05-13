@@ -95,6 +95,10 @@ int expb_fdf (const gsl_vector * x, void *data, gsl_vector * f, gsl_matrix * J)
 
 void step_response(event *current, double risetime, uint64_t maxiters, double minstep)
 {
+#ifdef DEBUG
+    printf("StepResponse\n");
+    fflush(stdout);
+#endif // DEBUG
     if (current->type == STEPRESPONSE)
     {
         const gsl_multifit_fdfsolver_type *T;

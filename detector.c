@@ -55,6 +55,10 @@ uint64_t get_next_event(event *current_event, edge *current_edge, uint64_t index
 
 void calculate_level_noise(event *current, uint64_t minpoints)
 {
+#ifdef DEBUG
+    printf("Noise\n");
+    fflush(stdout);
+#endif // DEBUG
     if (current->type == CUSUM || current->type == STEPRESPONSE)
     {
         cusumlevel *level = current->first_level;
@@ -78,6 +82,10 @@ void calculate_level_noise(event *current, uint64_t minpoints)
 
 void identify_step_events(event *current, uint64_t stepfit_samples)
 {
+#ifdef DEBUG
+    printf("Step Events\n");
+    fflush(stdout);
+#endif // DEBUG
     if (current->length < stepfit_samples)
     {
         current->type = STEPRESPONSE;
@@ -86,6 +94,10 @@ void identify_step_events(event *current, uint64_t stepfit_samples)
 
 void filter_long_events(event *current, uint64_t maxpoints)
 {
+#ifdef DEBUG
+    printf("Long Filter\n");
+    fflush(stdout);
+#endif // DEBUG
     if (current->length > maxpoints)
     {
         current->type = TOOLONG;
@@ -94,6 +106,10 @@ void filter_long_events(event *current, uint64_t maxpoints)
 
 void filter_short_events(event *current, uint64_t minpoints)
 {
+#ifdef DEBUG
+    printf("Short Filter\n");
+    fflush(stdout);
+#endif // DEBUG
     if (current->length < minpoints)
     {
         current->type = TOOSHORT;
@@ -103,6 +119,10 @@ void filter_short_events(event *current, uint64_t minpoints)
 
 uint64_t average_cusum_levels(event *current, uint64_t subevent_minpoints, double cusum_minstep, int attempt_recovery)
 {
+#ifdef DEBUG
+    printf("Average CUSUM levels\n");
+    fflush(stdout);
+#endif // DEBUG
     if (current->type == CUSUM)
     {
         edge *first_edge = current->first_edge;
@@ -168,6 +188,10 @@ uint64_t average_cusum_levels(event *current, uint64_t subevent_minpoints, doubl
 
 void populate_event_levels(event *current)
 {
+#ifdef DEBUG
+    printf("Populate Levels\n");
+    fflush(stdout);
+#endif // DEBUG'
     if (current->type == CUSUM || current->type == STEPRESPONSE)
     {
         uint64_t i;
@@ -205,6 +229,10 @@ void populate_event_levels(event *current)
 
 void event_max_blockage(event *current)
 {
+#ifdef DEBUG
+    printf("Max Blockage\n");
+    fflush(stdout);
+#endif // DEBUG
     if (current->type == CUSUM || current->type == STEPRESPONSE)
     {
         cusumlevel *current_level = current->first_level;
@@ -230,6 +258,10 @@ void event_max_blockage(event *current)
 
 void refine_event_estimates(event *current)
 {
+#ifdef DEBUG
+    printf("Refine\n");
+    fflush(stdout);
+#endif // DEBUG
     if (current->type == CUSUM || current->type == STEPRESPONSE)
     {
         cusumlevel *level = current->first_level;
@@ -307,6 +339,10 @@ double get_cusum_threshold(uint64_t length, double minthreshold, double maxthres
 
 void cusum(event *current_event, double delta, double minthreshold, double maxthreshold, uint64_t subevent_minpoints)
 {
+#ifdef DEBUG
+    printf("cusum\n");
+    fflush(stdout);
+#endif // DEBUG
     if (current_event->type == CUSUM)
     {
         double *signal = current_event->signal;
@@ -405,6 +441,10 @@ void cusum(event *current_event, double delta, double minthreshold, double maxth
 
 void event_area(event *current_event, double timestep)
 {
+#ifdef DEBUG
+    printf("Area\n");
+    fflush(stdout);
+#endif // DEBUG
     if (current_event->type == CUSUM || current_event->type == STEPRESPONSE)
     {
         uint64_t i;
@@ -427,6 +467,10 @@ void event_area(event *current_event, double timestep)
 
 void event_baseline(event *current_event, double baseline_min, double baseline_max)
 {
+#ifdef DEBUG
+    printf("Baseline\n");
+    fflush(stdout);
+#endif // DEBUG
     if (current_event->type == CUSUM || current_event->type == STEPRESPONSE)
     {
         double stdev;
@@ -460,6 +504,10 @@ void event_baseline(event *current_event, double baseline_min, double baseline_m
 
 void generate_trace(FILE *input, event *current, int datatype, FILE *logfile, bessel *lpfilter, int eventfilter, chimera *daqsetup, uint64_t samplingfreq, edge *current_edge, uint64_t last_end, uint64_t start, uint64_t subevent_minpoints)
 {
+#ifdef DEBUG
+    printf("Generate Trace\n");
+    fflush(stdout);
+#endif // DEBUG
     if (current->type == CUSUM || current->type == STEPRESPONSE)
     {
         uint64_t padding;

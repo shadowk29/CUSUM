@@ -167,6 +167,10 @@ start_time_s\n");
 
 void print_event_line(FILE *events, FILE *rate, event *current, double timestep, uint64_t lasttime)
 {
+#ifdef DEBUG
+    printf("Print Line\n");
+    fflush(stdout);
+#endif // DEBUG
     fprintf(rate,"%"PRId64",\
             %d,\
             %.6f\n",\
@@ -304,6 +308,10 @@ void print_signal(event *current, int length, char *filename, double timestep)
 
 void print_event_signal(int index, event *current, double timestep)
 {
+#ifdef DEBUG
+    printf("Print Signal\n");
+    fflush(stdout);
+#endif // DEBUG
     if (current->type == CUSUM || current->type == STEPRESPONSE)
     {
         char eventname[1024];
