@@ -203,7 +203,7 @@ int main()
             current_edge = current_edge->next;
         }
         index++;
-        identify_step_events(current_event, config->stepfit_samples);
+        identify_step_events(current_event, config->stepfit_samples, config->subevent_minpoints, config->attempt_recovery);
         filter_long_events(current_event, config->event_maxpoints);
         filter_short_events(current_event, config->event_minpoints);
         generate_trace(input, current_event, config->datatype, logfile, lpfilter, config->eventfilter, config->daqsetup, config->samplingfreq, current_edge, last_end, config->start, config->subevent_minpoints);

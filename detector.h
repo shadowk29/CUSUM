@@ -18,7 +18,7 @@ uint64_t get_next_event_start(edge *current_edge);
 
 void calculate_level_noise(event *current, uint64_t minpoints);
 void populate_event_levels(event *current);
-void identify_step_events(event *current, uint64_t stepfit_samples);
+void identify_step_events(event *current, uint64_t stepfit_samples, uint64_t subevent_minpoints, int attempt_recovery);
 
 
 

@@ -80,15 +80,22 @@ void calculate_level_noise(event *current, uint64_t minpoints)
 }
 
 
-void identify_step_events(event *current, uint64_t stepfit_samples)
+void identify_step_events(event *current, uint64_t stepfit_samples, uint64_t subevent_minpoints, int attempt_recovery)
 {
 #ifdef DEBUG
     printf("Step Events\n");
     fflush(stdout);
 #endif // DEBUG
-    if (current->length < stepfit_samples)
+    if (current->length < stepfit_samples || current->length < subevent_minpoints)
     {
-        current->type = STEPRESPONSE;
+        if (attempt_recovery || stepfit_samples)
+        {
+            current->type = STEPRESPONSE;
+        }
+        else
+        {
+            current->type = TOOSHORT;
+        }
     }
 }
 

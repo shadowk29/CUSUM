@@ -437,6 +437,12 @@ void config_sanity_check(configuration *config, FILE *logfile)
         printf("Using VC100 sampling rate of %"PRIu64"\n",config->samplingfreq);
         fprintf(logfile,"Using VC100 sampling rate of %"PRIu64"\n",config->samplingfreq);
     }
+    if (config->stepfit_samples > 0 && (config->stepfit_samples < config->subevent_minpoints || config->attempt_recovery))
+    {
+        printf("Stepfit samples should be at least as large as subevent_minpoints, correcting to %"PRIu64"\n",config->subevent_minpoints);
+        fprintf(logfile,"Stepfit samples should be at least as large as subevent_minpoints, correcting to %"PRIu64"\n",config->subevent_minpoints);
+        config->stepfit_samples = config->subevent_minpoints;
+    }
     if (config->usefilter || config->eventfilter)
     {
         if (config->subevent_minpoints < 8.0/config->cutoff)
