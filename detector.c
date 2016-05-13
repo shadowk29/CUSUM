@@ -682,10 +682,11 @@ double build_histogram(double *signal, histostruct *histogram, uint64_t length, 
         return 0;
     }
     uint64_t numbins = range / delta;
-    if (numbins == 0)
+    if (numbins == 0 || numbins == 1)
     {
-        numbins = (uint64_t) sqrt(length);
+        return 0;
     }
+    numbins = intmax(numbins, (uint64_t) sqrt(length));
 
     double baseline = 0;
     uint64_t i,j;
@@ -716,7 +717,6 @@ double build_histogram(double *signal, histostruct *histogram, uint64_t length, 
         histogram->numbins = numbins;
     }
 
-
     //populate the current level histogram for the data chunk
     if (length <= 0)
     {
@@ -725,7 +725,7 @@ double build_histogram(double *signal, histostruct *histogram, uint64_t length, 
     }
     for (i=0; i<length; i++)
     {
-        histogram->histogram[(int) ((signal[i]-minimum)/delta)][0] += 1;
+        histogram->histogram[(uint64_t) ((signal[i]-minimum)/delta)][0] += 1;
     }
 
 
@@ -746,7 +746,6 @@ double build_histogram(double *signal, histostruct *histogram, uint64_t length, 
     {
         histogram->histogram[i][SCND_DERIV] = (histogram->histogram[i+1][HISTOGRAM]-2*histogram->histogram[i][HISTOGRAM]+histogram->histogram[i-1][HISTOGRAM])/(delta*delta);
     }
-
     sign = signum(histogram->histogram[0][FIRST_DERIV]);
     average = length/numbins;
     for (i=1; i<numbins-1; i++) //we ignore the endpoints
