@@ -437,11 +437,29 @@ void config_sanity_check(configuration *config, FILE *logfile)
         printf("Using VC100 sampling rate of %"PRIu64"\n",config->samplingfreq);
         fprintf(logfile,"Using VC100 sampling rate of %"PRIu64"\n",config->samplingfreq);
     }
-    if (config->stepfit_samples > 0 && (config->stepfit_samples < config->subevent_minpoints || config->attempt_recovery))
+    if (config->stepfit_samples > 0 && config->stepfit_samples < config->subevent_minpoints)
     {
         printf("Stepfit samples should be at least as large as subevent_minpoints, correcting to %"PRIu64"\n",config->subevent_minpoints);
         fprintf(logfile,"Stepfit samples should be at least as large as subevent_minpoints, correcting to %"PRIu64"\n",config->subevent_minpoints);
         config->stepfit_samples = config->subevent_minpoints;
+    }
+    if (config->stepfit_samples && !config->attempt_recovery)
+    {
+        printf("Stepfit_samples is on, but attempt_recovery is off: turning on attempt_recovery");
+        fprintf(logfile,"Stepfit samples is on, but attempt_recovery is off: turning on attempt_recovery");
+        config->attempt_recovery = 1;
+    }
+    if (!config->stepfit_samples && config->attempt_recovery)
+    {
+        printf("Attempt_recovery is on, but step_fit samples is off: correcting stepfit_samples to be equal to subevent_minpoints: %"PRIu64"\n",config->subevent_minpoints);
+        fprintf(logfile,"Attempt_recovery is on, but step_fit samples is off: correcting stepfit_samples to be equal to subevent_minpoints: %"PRIu64"\n",config->subevent_minpoints);
+        config->stepfit_samples = config->subevent_minpoints;
+    }
+    if (!config->stepfit_samples && !config->attempt_recovery && config->event_minpoints < config->subevent_minpoints)
+    {
+        printf("Stepfit is off, and event_minpoints is less than subevent_minpoints. Correcting event_minpoints to be equal to subevent_minpoints: %"PRIu64"\n",config->subevent_minpoints);
+        fprintf(logfile,"Stepfit is off, and event_minpoints is less than subevent_minpoints. Correcting event_minpoints to be equal to subevent_minpoints: %"PRIu64"\n",config->subevent_minpoints);
+        config->event_minpoints = config->subevent_minpoints;
     }
     if (config->usefilter || config->eventfilter)
     {
