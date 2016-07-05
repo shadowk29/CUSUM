@@ -162,7 +162,8 @@ stdev_pA\n");
 
 fprintf(rate,"id,\
 type,\
-start_time_s\n");
+start_time_s,\
+end_time_s\n");
 }
 
 void print_event_line(FILE *events, FILE *rate, event *current, double timestep, uint64_t lasttime)
