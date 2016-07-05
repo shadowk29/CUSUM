@@ -81,6 +81,9 @@ void filter_signal(double *signal, bessel *lpfilter, uint64_t length)
 
 
     memcpy(signal,&tempback[order+padding],length*sizeof(double));
+    memset(paddedsignal,'0',(length+2*(order+padding))*sizeof(double));
+    memset(temp,'0',(length+2*(order+padding))*sizeof(double));
+    memset(tempback,'0',(length+2*(order+padding))*sizeof(double));
 }
 
 

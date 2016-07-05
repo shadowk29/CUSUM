@@ -173,10 +173,12 @@ void print_event_line(FILE *events, FILE *rate, event *current, double timestep,
 #endif // DEBUG
     fprintf(rate,"%"PRId64",\
             %d,\
+            %.6f,\
             %.6f\n",\
             current->index, \
             current->type, \
-            current->start * timestep);
+            current->start * timestep, \
+            current->finish * timestep);
 
     if (current->type == CUSUM || current->type == STEPRESPONSE)
     {
