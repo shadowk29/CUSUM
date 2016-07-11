@@ -54,7 +54,7 @@ double chimera_gain(uint64_t sample, chimera *daqsetup)
 {
     double current = 0;
     double closed_loop_gain = daqsetup->TIAgain*daqsetup->preADCgain;
-    uint16_t bitmask = (uint16_t) (1 << 16) - (uint16_t) ((1 << (16-daqsetup->ADCbits)) - 1);
+    uint16_t bitmask = (uint16_t) ((1 << 16)-1) - (uint16_t) ((1 << (16-daqsetup->ADCbits)) - 1);
     sample = (uint16_t) (sample & bitmask);
     current = daqsetup->ADCvref - (2.0 * daqsetup->ADCvref) * (double) sample / (double) (1<<16);
     current = -current / closed_loop_gain + daqsetup->currentoffset;
