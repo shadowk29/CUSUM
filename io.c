@@ -424,8 +424,8 @@ void config_sanity_check(configuration *config, FILE *logfile)
     }
     else if (config->order < 2)
     {
-        printf("Bessel filters of order >10 are not supported. Correction:\npoles=2\n");
-        fprintf(logfile,"Bessel filters of order >10 are not supported. Correction:\npoles=2\n");
+        printf("Bessel filters of order <2 are not supported. Correction:\npoles=2\n");
+        fprintf(logfile,"Bessel filters of order <2 are not supported. Correction:\npoles=2\n");
         config->order = 2;
     }
     else if (config->order % 2 == 1)
