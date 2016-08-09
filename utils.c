@@ -148,7 +148,7 @@ inline void progressbar(uint64_t pos, uint64_t finish, const char *msg, double e
     uint64_t minutes = rhours / 60;
     uint64_t seconds = rhours % 60;
     printf("%3d%%\t", (int)(ratio*100) );
-    printf("%02"PRIu64":%02"PRIu64":%02"PRIu64" remaining\t%s  \r",hours,minutes,seconds,msg);
+    printf("%02"PRIu64":%02"PRIu64":%02"PRIu64" remaining\t%s       \r",hours,minutes,seconds,msg);
     fflush(stdout);
 }
 

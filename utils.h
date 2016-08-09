@@ -108,6 +108,12 @@ typedef struct Edge edge;
 struct Configuration
 {
     char filepath[STRLENGTH]; //input file
+    char outputfolder[STRLENGTH];
+    char eventsfolder[STRLENGTH];
+    char eventsfile[STRLENGTH];
+    char ratefile[STRLENGTH];
+    char logfile[STRLENGTH];
+
     //file reading parameters
     uint64_t start;
     uint64_t finish;

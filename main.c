@@ -37,12 +37,7 @@ int main()
     config->daqsetup = calloc_and_check(1,sizeof(chimera),"Cannot allocate DAQ struct");
 
     FILE *logfile;
-    logfile = fopen64_and_check("output/summary.txt","w",3);
-
-    printf("#### Using CUSUM Version %s ####\n\n",_VERSION_);
-    fprintf(logfile,"#### Using CUSUM Version %s ####\n",_VERSION_);
-
-    read_config(config, logfile);
+    logfile = read_config(config);
 
     if (config->datatype != 16 && config->datatype != 64 && config->datatype !=0)
     {
@@ -55,10 +50,10 @@ int main()
     input = fopen64_and_check(config->filepath,"rb", 4);
 
     FILE *events;
-    events = fopen64_and_check("output/events.csv","w",21);
+    events = fopen64_and_check(config->eventsfile,"w",21);
 
     FILE *rate;
-    rate = fopen64_and_check("output/rate.csv","w",21);
+    rate = fopen64_and_check(config->ratefile,"w",21);
 
     initialize_events_file(events, rate);
 
@@ -221,7 +216,7 @@ int main()
         event_baseline(current_event, config->baseline_min, config->baseline_max);
         event_max_blockage(current_event);
         event_area(current_event, 1.0/config->samplingfreq);
-        print_event_signal(current_event->index, current_event, 1.0/config->samplingfreq*1e6);
+        print_event_signal(current_event->index, current_event, 1.0/config->samplingfreq*1e6,config->eventsfolder);
         print_event_line(events, rate, current_event, 1.0/config->samplingfreq, lasttime);
         lasttime = current_event->start;
         current_edge = current_edge->next;
