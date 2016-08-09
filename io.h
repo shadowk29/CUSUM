@@ -24,7 +24,7 @@ uint64_t read_current_chimera(FILE *input, double *current, uint64_t position, u
 uint64_t read_current_double(FILE *input, double *current, uint64_t position, uint64_t length);
 uint64_t read_current_int16(FILE *input, double *current, uint64_t position, uint64_t length);
 uint64_t read_current(FILE *input, double *signal, uint64_t position, uint64_t length, int datatype, chimera *daqsetup);
-void print_event_signal(int index, event *current, double timestep);
-void print_signal(event *current, int length, char *filename, double timestep);
+void print_event_signal(int64_t index, event *current, double timestep);
+void print_signal(event *current, uint64_t length, char *filename, double timestep);
 //void print_error_summary(event *current, FILE *logfile);
 #endif // IO_H_INCLUDED

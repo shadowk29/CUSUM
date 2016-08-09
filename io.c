@@ -270,7 +270,7 @@ void print_event_line(FILE *events, FILE *rate, event *current, double timestep,
 }
 
 
-void print_signal(event *current, int length, char *filename, double timestep)
+void print_signal(event *current, uint64_t length, char *filename, double timestep)
 {
     FILE *output; //a test file for plotting output
     if ((output = fopen(filename,"w"))==NULL)
@@ -278,7 +278,7 @@ void print_signal(event *current, int length, char *filename, double timestep)
         printf("Cannot open output file\n");
         exit(24);
     }
-    int i;
+    uint64_t i;
     if (current->type == STEPRESPONSE)
     {
         double stepfit;
@@ -309,7 +309,7 @@ void print_signal(event *current, int length, char *filename, double timestep)
     fclose(output);
 }
 
-void print_event_signal(int index, event *current, double timestep)
+void print_event_signal(int64_t index, event *current, double timestep)
 {
 #ifdef DEBUG
     printf("Print Signal\n");
@@ -318,7 +318,7 @@ void print_event_signal(int index, event *current, double timestep)
     if (current->type == CUSUM || current->type == STEPRESPONSE)
     {
         char eventname[1024];
-        sprintf(eventname,"output/events/event_%05d.csv",index);
+        sprintf(eventname,"output/events/event_%08"PRId64".csv",index);
         print_signal(current, current->length + current->padding_before + current->padding_after, eventname, timestep);
     }
 }
