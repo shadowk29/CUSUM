@@ -6,6 +6,7 @@
 #include<stdint.h>
 #include<math.h>
 #include<string.h>
+#include<time.h>
 #define EPS 1e-50
 #define STRLENGTH 1024
 #define HEAD -1000
@@ -178,5 +179,5 @@ double signal_variance(double *signal, uint64_t length);
 
 
 uint64_t get_filesize(FILE *input, int datatype);
-inline void progressbar(uint64_t pos, uint64_t finish, const char *msg);
+inline void progressbar(uint64_t pos, uint64_t finish, const char *msg, double elapsed);
 #endif // UTILS_H_INCLUDED

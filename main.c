@@ -27,6 +27,7 @@
 #define _VERSION_ "2.0.0"
 
 
+
 int main()
 {
     //read the configuration file
@@ -119,10 +120,13 @@ int main()
     read = 0;
     pos = 0;
     char progressmsg[STRLENGTH];
+    time_t start_time;
+    time_t curr_time;
+    time(&start_time);
     for (pos = config->start; pos < config->finish; pos += read)
     {
         snprintf(progressmsg,STRLENGTH*sizeof(char)," %g seconds processed",(pos-config->start)/(double) config->samplingfreq);
-        progressbar(pos-config->start,config->finish-config->start,progressmsg);
+        progressbar(pos-config->start,config->finish-config->start,progressmsg,difftime(time(&curr_time),start_time));
         read = read_current(input, signal, pos, intmin(config->readlength,config->finish - pos), config->datatype, config->daqsetup);
         if (read < config->readlength || feof(input))
         {
@@ -150,7 +154,7 @@ int main()
         memset(signal,'0',(config->readlength)*sizeof(double));
     }
     snprintf(progressmsg,STRLENGTH*sizeof(char)," %g seconds processed",(pos-config->start)/(double) config->samplingfreq);
-    progressbar(pos-config->start,config->finish-config->start,progressmsg);
+    progressbar(pos-config->start,config->finish-config->start,progressmsg,difftime(time(&curr_time),start_time));
     printf("\nRead %g seconds of good baseline\nRead %g seconds of bad baseline\n", goodbaseline/(double) config->samplingfreq, badbaseline / (double) config->samplingfreq);
     fprintf(logfile, "\nRead %g seconds of good baseline\nRead %g seconds of bad baseline\n", goodbaseline/(double) config->samplingfreq, badbaseline / (double) config->samplingfreq);
 
@@ -187,6 +191,7 @@ int main()
     uint64_t lasttime = config->start;
     uint64_t last_end = config->start;
     printf("Processing %"PRIu64" edges\n", edgecount);
+    time(&start_time);
     while (current_edge)
     {
 #ifdef DEBUG
@@ -194,7 +199,7 @@ int main()
     fflush(stdout);
 #endif // DEBUG
         snprintf(progressmsg,STRLENGTH*sizeof(char)," %"PRIu64" events processed",numevents);
-        progressbar(edgenum, edgecount, progressmsg);
+        progressbar(edgenum, edgecount, progressmsg,difftime(time(&curr_time),start_time));
         edges = get_next_event(current_event, current_edge, index);
         edgenum += edges;
         for (i=0; i<edges; i++)
@@ -230,7 +235,7 @@ int main()
 #endif // DEBUG
     }
     snprintf(progressmsg,STRLENGTH*sizeof(char)," %"PRIu64" events processed",numevents);
-    progressbar(edgenum, edgecount, progressmsg);
+    progressbar(edgenum, edgecount, progressmsg,difftime(time(&curr_time),start_time));
 
     print_error_summary(logfile, error_summary, numevents);
 

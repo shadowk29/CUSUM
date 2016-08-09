@@ -127,26 +127,28 @@ uint64_t count_edges(edge *current_edge)
     return count;
 }
 
-inline void progressbar(uint64_t pos, uint64_t finish, const char *msg)
+inline void progressbar(uint64_t pos, uint64_t finish, const char *msg, double elapsed)
 {
-    // Calculuate the ratio of complete-to-incomplete.
     double ratio = pos/(double)finish;
-    int   c     = (int) (ratio * 40)+1;
+    double remaining;
 
-    // Show the percentage complete.
-    printf("%3d%% [", (int)(ratio*100) );
 
-    // Show the load bar.
-    int i;
-    for (i=0; i<c; i++)
-       printf("=");
+    if (pos == 0)
+    {
+        remaining = 0;
+    }
+    else
+    {
+        remaining = elapsed * (double) (finish - pos) / (double) pos;
+    }
 
-    for (i=c; i<40; i++)
-       printf(" ");
 
-    // ANSI Control codes to go back to the
-    // previous line and clear it.
-    printf("]%s  \r",msg);
+    uint64_t hours = (uint64_t) remaining / 3600;
+    uint64_t rhours = (uint64_t) remaining % 3600;
+    uint64_t minutes = rhours / 60;
+    uint64_t seconds = rhours % 60;
+    printf("%3d%%\t", (int)(ratio*100) );
+    printf("%02"PRIu64":%02"PRIu64":%02"PRIu64" remaining\t%s  \r",hours,minutes,seconds,msg);
     fflush(stdout);
 }
 
