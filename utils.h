@@ -42,8 +42,8 @@ struct Bessel
     double *dcof;
     double *ccof;
     double cutoff;
-    uint64_t order;
-    uint64_t padding;
+    int64_t order;
+    int64_t padding;
     double *paddedsignal;
     double *temp;
     double *tempback;
@@ -54,7 +54,7 @@ struct Cusumlevel
 {
     double current;
     double stdev;
-    uint64_t length;
+    int64_t length;
     struct Cusumlevel *next;
 };
 typedef struct Cusumlevel cusumlevel;
@@ -62,7 +62,7 @@ typedef struct Cusumlevel cusumlevel;
 struct Histostruct
 {
     double **histogram;
-    uint64_t numbins;
+    int64_t numbins;
     double offset;
     double delta;
 };
@@ -71,21 +71,21 @@ typedef struct Histostruct histostruct;
 struct Event
 {
     int64_t index;
-    uint64_t start;
-    uint64_t finish;
-    uint64_t length;
+    int64_t start;
+    int64_t finish;
+    int64_t length;
     int type;
     double area;
     double baseline_before;
     double baseline_after;
     double average_blockage;
     double max_blockage;
-    uint64_t max_length;
+    int64_t max_length;
     double *signal;
     double *filtered_signal;
     double binsize;
-    uint64_t padding_before;
-    uint64_t padding_after;
+    int64_t padding_before;
+    int64_t padding_after;
     int numlevels;
     double threshold;
     double rc1;
@@ -98,7 +98,7 @@ typedef struct Event event;
 
 struct Edge
 {
-    uint64_t location;
+    int64_t location;
     int64_t type;
     struct Edge *next;
 };
@@ -115,22 +115,22 @@ struct Configuration
     char logfile[STRLENGTH];
 
     //file reading parameters
-    uint64_t start;
-    uint64_t finish;
-    uint64_t readlength;
+    int64_t start;
+    int64_t finish;
+    int64_t readlength;
 
     //filter parameters
     int usefilter;
     int eventfilter;
     double cutoff;
-    uint64_t samplingfreq;
-    uint64_t order; //must be even
+    int64_t samplingfreq;
+    int64_t order; //must be even
 
     //detection parameters
     double threshold;
     double hysteresis;
-    uint64_t event_minpoints;
-    uint64_t event_maxpoints;
+    int64_t event_minpoints;
+    int64_t event_maxpoints;
 
     double binsize;
 
@@ -143,10 +143,10 @@ struct Configuration
     double cusum_max_threshold;
     double cusum_delta;
     double cusum_minstep;
-    uint64_t subevent_minpoints;
+    int64_t subevent_minpoints;
 
-    uint64_t stepfit_samples;
-    uint64_t maxiters;
+    int64_t stepfit_samples;
+    int64_t maxiters;
     int attempt_recovery;
     int datatype;
     chimera *daqsetup;
@@ -162,28 +162,28 @@ inline int64_t intmin(int64_t a, int64_t b);
 inline int64_t intmax(int64_t a, int64_t b);
 inline double d_abs(double num); //absolute value of a number
 
-double ARL(uint64_t length, double sigma, double mun, double h);
+double ARL(int64_t length, double sigma, double mun, double h);
 
-uint64_t count_edges(edge *head_edge);
+int64_t count_edges(edge *head_edge);
 edge *initialize_edges(void);
-edge *add_edge(edge *current, uint64_t location, int type);
+edge *add_edge(edge *current, int64_t location, int type);
 void free_edges(edge *current);
 
 event *initialize_events(void);
-event *add_event(event *current, uint64_t start, uint64_t finish, uint64_t index);
+event *add_event(event *current, int64_t start, int64_t finish, int64_t index);
 void free_single_event(event *current);
 
-cusumlevel *add_cusum_level(cusumlevel *lastlevel, double current, uint64_t length);
+cusumlevel *add_cusum_level(cusumlevel *lastlevel, double current, int64_t length);
 void free_levels(cusumlevel *current);
 cusumlevel *initialize_levels(void);
 
-double signal_max(double *signal, uint64_t length);
-double signal_min(double *signal, uint64_t length);
-double signal_average(double *signal, uint64_t length);
-double signal_extreme(double *signal, uint64_t length, double sign);
-double signal_variance(double *signal, uint64_t length);
+double signal_max(double *signal, int64_t length);
+double signal_min(double *signal, int64_t length);
+double signal_average(double *signal, int64_t length);
+double signal_extreme(double *signal, int64_t length, double sign);
+double signal_variance(double *signal, int64_t length);
 
 
-uint64_t get_filesize(FILE *input, int datatype);
-inline void progressbar(uint64_t pos, uint64_t finish, const char *msg, double elapsed);
+int64_t get_filesize(FILE *input, int datatype);
+inline void progressbar(int64_t pos, int64_t finish, const char *msg, double elapsed);
 #endif // UTILS_H_INCLUDED

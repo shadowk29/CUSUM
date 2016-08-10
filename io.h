@@ -9,22 +9,22 @@
 #include<stdlib.h>
 void configure_defaults(configuration *config);
 void config_sanity_check(configuration *config, FILE *logfile);
-void print_error_summary(FILE *logfile, uint64_t *error_summary, uint64_t numevents);
+void print_error_summary(FILE *logfile, int64_t *error_summary, int64_t numevents);
 void initialize_events_file(FILE *events, FILE *rate);
-void print_event_line(FILE *events, FILE *rate, event *current, double timestep, uint64_t );
+void print_event_line(FILE *events, FILE *rate, event *current, double timestep, int64_t );
 
 
 //void print_events(event *current, double timestep);
 void print_histogram(char *filename, histostruct *histogram);
 FILE *read_config(configuration *config);
-inline void swapByteOrder(uint64_t *ull);
+inline void swapByteOrder(int64_t *ull);
 inline void swapByteOrder_int16(uint16_t *ull);
-double chimera_gain(uint64_t sample, chimera *daqsetup);
-uint64_t read_current_chimera(FILE *input, double *current, uint64_t position, uint64_t length, chimera *daqsetup);
-uint64_t read_current_double(FILE *input, double *current, uint64_t position, uint64_t length);
-uint64_t read_current_int16(FILE *input, double *current, uint64_t position, uint64_t length);
-uint64_t read_current(FILE *input, double *signal, uint64_t position, uint64_t length, int datatype, chimera *daqsetup);
+double chimera_gain(int64_t sample, chimera *daqsetup);
+int64_t read_current_chimera(FILE *input, double *current, int64_t position, int64_t length, chimera *daqsetup);
+int64_t read_current_double(FILE *input, double *current, int64_t position, int64_t length);
+int64_t read_current_int16(FILE *input, double *current, int64_t position, int64_t length);
+int64_t read_current(FILE *input, double *signal, int64_t position, int64_t length, int datatype, chimera *daqsetup);
 void print_event_signal(int64_t index, event *current, double timestep, char *eventsfolder);
-void print_signal(event *current, uint64_t length, char *filename, double timestep);
+void print_signal(event *current, int64_t length, char *filename, double timestep);
 //void print_error_summary(event *current, FILE *logfile);
 #endif // IO_H_INCLUDED

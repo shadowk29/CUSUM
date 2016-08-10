@@ -20,21 +20,21 @@
 */
 #include"io.h"
 
-void print_error_summary(FILE *logfile, uint64_t *error_summary, uint64_t numevents)
+void print_error_summary(FILE *logfile, int64_t *error_summary, int64_t numevents)
 {
     int i;
-    printf("\n\nEvent Summary: %"PRIu64" events detected\n\nEvent Type\tCount\tPercentage\n\n",numevents);
-    fprintf(logfile,"\n\nEvent Summary: %"PRIu64" events detected\n\nEvent Type\tCount\tPercentage\n\n",numevents);
+    printf("\n\nEvent Summary: %"PRId64" events detected\n\nEvent Type\tCount\tPercentage\n\n",numevents);
+    fprintf(logfile,"\n\nEvent Summary: %"PRId64" events detected\n\nEvent Type\tCount\tPercentage\n\n",numevents);
     for (i=0; i<NUMTYPES; i++)
     {
-        printf("%d\t\t%"PRIu64"\t%.3g %%\n",i,error_summary[i],100.0*error_summary[i]/(double)numevents);
-        fprintf(logfile,"%d\t\t%"PRIu64"\t%.3g %%\n",i,error_summary[i],100.0*error_summary[i]/(double)numevents);
+        printf("%d\t\t%"PRId64"\t%.3g %%\n",i,error_summary[i],100.0*error_summary[i]/(double)numevents);
+        fprintf(logfile,"%d\t\t%"PRId64"\t%.3g %%\n",i,error_summary[i],100.0*error_summary[i]/(double)numevents);
     }
 }
 
-uint64_t read_current(FILE *input, double *signal, uint64_t position, uint64_t length, int datatype, chimera *daqsetup)
+int64_t read_current(FILE *input, double *signal, int64_t position, int64_t length, int datatype, chimera *daqsetup)
 {
-    uint64_t read = 0;
+    int64_t read = 0;
     if (datatype == 64)
     {
         read = read_current_double(input, signal, position, length);
@@ -50,7 +50,7 @@ uint64_t read_current(FILE *input, double *signal, uint64_t position, uint64_t l
     return read;
 }
 
-double chimera_gain(uint64_t sample, chimera *daqsetup)
+double chimera_gain(int64_t sample, chimera *daqsetup)
 {
     double current = 0;
     double closed_loop_gain = daqsetup->TIAgain*daqsetup->preADCgain;
@@ -61,13 +61,13 @@ double chimera_gain(uint64_t sample, chimera *daqsetup)
     return current * 1e12;
 }
 
-uint64_t read_current_chimera(FILE *input, double *current, uint64_t position, uint64_t length, chimera *daqsetup)
+int64_t read_current_chimera(FILE *input, double *current, int64_t position, int64_t length, chimera *daqsetup)
 {
-    uint64_t test;
+    int64_t test;
     uint16_t iv;
 
-    uint64_t i;
-    uint64_t read = 0;
+    int64_t i;
+    int64_t read = 0;
 
     if (fseeko64(input,(off64_t) position*sizeof(uint16_t),SEEK_SET))
     {
@@ -101,13 +101,13 @@ inline void swapByteOrder_int16(uint16_t *ull)
 }
 
 
-uint64_t read_current_int16(FILE *input, double *current, uint64_t position, uint64_t length)
+int64_t read_current_int16(FILE *input, double *current, int64_t position, int64_t length)
 {
-    uint64_t test;
+    int64_t test;
     int16_t iv[2];
 
-    uint64_t i;
-    uint64_t read = 0;
+    int64_t i;
+    int64_t read = 0;
 
     if (fseeko64(input,(off64_t) position*2*sizeof(int16_t),SEEK_SET))
     {
@@ -166,7 +166,7 @@ start_time_s,\
 end_time_s\n");
 }
 
-void print_event_line(FILE *events, FILE *rate, event *current, double timestep, uint64_t lasttime)
+void print_event_line(FILE *events, FILE *rate, event *current, double timestep, int64_t lasttime)
 {
 #ifdef DEBUG
     printf("Print Line\n");
@@ -270,7 +270,7 @@ void print_event_line(FILE *events, FILE *rate, event *current, double timestep,
 }
 
 
-void print_signal(event *current, uint64_t length, char *filename, double timestep)
+void print_signal(event *current, int64_t length, char *filename, double timestep)
 {
     FILE *output; //a test file for plotting output
     if ((output = fopen(filename,"w"))==NULL)
@@ -278,7 +278,7 @@ void print_signal(event *current, uint64_t length, char *filename, double timest
         printf("Cannot open output file\n");
         exit(24);
     }
-    uint64_t i;
+    int64_t i;
     if (current->type == STEPRESPONSE)
     {
         double stepfit;
@@ -327,7 +327,7 @@ void print_event_signal(int64_t index, event *current, double timestep, char *ev
 
 void print_histogram(char *filename, histostruct *histogram)
 {
-    uint64_t i;
+    int64_t i;
     FILE *output;
     if ((output = fopen(filename, "w"))==NULL)
     {
@@ -342,7 +342,7 @@ void print_histogram(char *filename, histostruct *histogram)
 }
 
 
-inline void swapByteOrder(uint64_t *ull)
+inline void swapByteOrder(int64_t *ull)
 {
     *ull = (*ull >> 56) |
           ((*ull<<40) & 0x00FF000000000000) |
@@ -355,13 +355,13 @@ inline void swapByteOrder(uint64_t *ull)
 }
 
 
-uint64_t read_current_double(FILE *input, double *current, uint64_t position, uint64_t length)
+int64_t read_current_double(FILE *input, double *current, int64_t position, int64_t length)
 {
-    uint64_t test;
+    int64_t test;
     double iv[2];
 
-    uint64_t i;
-    uint64_t read = 0;
+    int64_t i;
+    int64_t read = 0;
 
     if (fseeko64(input,(off64_t) position*2*sizeof(double),SEEK_SET))
     {
@@ -375,7 +375,7 @@ uint64_t read_current_double(FILE *input, double *current, uint64_t position, ui
         if (test == 2)
         {
             read++;
-            swapByteOrder((uint64_t *) &iv[0]);
+            swapByteOrder((int64_t *) &iv[0]);
             current[i] = iv[0];
         }
         else
@@ -411,8 +411,8 @@ void config_sanity_check(configuration *config, FILE *logfile)
     fprintf(logfile,"Verifying config parameters\nAny notes below will modify the config file above for the actual run\n\n");
     if (config->readlength < 2 * config->event_maxpoints)
     {
-        printf("Readlength should be at least 2 times event_maxpoints. Correction:\nreadlength=%"PRIu64"\n",2 * config->event_maxpoints);
-        fprintf(logfile,"Readlength should be at least 2 times event_maxpoints. Correction:\nreadlength=%"PRIu64"\n",2 * config->event_maxpoints);
+        printf("Readlength should be at least 2 times event_maxpoints. Correction:\nreadlength=%"PRId64"\n",2 * config->event_maxpoints);
+        fprintf(logfile,"Readlength should be at least 2 times event_maxpoints. Correction:\nreadlength=%"PRId64"\n",2 * config->event_maxpoints);
         config->readlength = 2 * config->event_maxpoints;
     }
 
@@ -430,20 +430,20 @@ void config_sanity_check(configuration *config, FILE *logfile)
     }
     else if (config->order % 2 == 1)
     {
-        printf("Bessel filters of order >10 are not supported. Correction:\npoles=%"PRIu64"\n",config->order + 1);
-        fprintf(logfile,"Bessel filters of order >10 are not supported. Correction:\npoles=%"PRIu64"\n",config->order + 1);
+        printf("Bessel filters of order >10 are not supported. Correction:\npoles=%"PRId64"\n",config->order + 1);
+        fprintf(logfile,"Bessel filters of order >10 are not supported. Correction:\npoles=%"PRId64"\n",config->order + 1);
         config->order += 1;
     }
-    if (config->datatype==0 && config->samplingfreq != (uint64_t) config->daqsetup->samplerate)
+    if (config->datatype==0 && config->samplingfreq != (int64_t) config->daqsetup->samplerate)
     {
-        printf("Sampling rate does not match Chimera setup. Correction:\nsamplingfreq=%"PRIu64"\n",config->samplingfreq);
-        fprintf(logfile,"Sampling rate does not match Chimera setup. Correction:\nsamplingfreq=%"PRIu64"\n",config->samplingfreq);
-        config->samplingfreq = (uint64_t) config->daqsetup->samplerate;
+        printf("Sampling rate does not match Chimera setup. Correction:\nsamplingfreq=%"PRId64"\n",config->samplingfreq);
+        fprintf(logfile,"Sampling rate does not match Chimera setup. Correction:\nsamplingfreq=%"PRId64"\n",config->samplingfreq);
+        config->samplingfreq = (int64_t) config->daqsetup->samplerate;
     }
     if (config->stepfit_samples > 0 && config->stepfit_samples < config->subevent_minpoints)
     {
-        printf("Stepfit samples should be at least as large as subevent_minpoints. Correction:\nstepfit_samples=%"PRIu64"\n",config->subevent_minpoints);
-        fprintf(logfile,"Stepfit samples should be at least as large as subevent_minpoints. Correction:\nstepfit_samples=%"PRIu64"\n",config->subevent_minpoints);
+        printf("Stepfit samples should be at least as large as subevent_minpoints. Correction:\nstepfit_samples=%"PRId64"\n",config->subevent_minpoints);
+        fprintf(logfile,"Stepfit samples should be at least as large as subevent_minpoints. Correction:\nstepfit_samples=%"PRId64"\n",config->subevent_minpoints);
         config->stepfit_samples = config->subevent_minpoints;
     }
     if (config->stepfit_samples && !config->attempt_recovery)
@@ -454,27 +454,27 @@ void config_sanity_check(configuration *config, FILE *logfile)
     }
     if (!config->stepfit_samples && config->attempt_recovery)
     {
-        printf("Attempt_recovery is on, but step_fit samples is off. Correction:\nstepfit_samples=%"PRIu64"\n",config->subevent_minpoints);
-        fprintf(logfile,"Attempt_recovery is on, but step_fit samples is off. Correction:\nstepfit_samples=%"PRIu64"\n",config->subevent_minpoints);
+        printf("Attempt_recovery is on, but step_fit samples is off. Correction:\nstepfit_samples=%"PRId64"\n",config->subevent_minpoints);
+        fprintf(logfile,"Attempt_recovery is on, but step_fit samples is off. Correction:\nstepfit_samples=%"PRId64"\n",config->subevent_minpoints);
         config->stepfit_samples = config->subevent_minpoints;
     }
     if (!config->stepfit_samples && !config->attempt_recovery && config->event_minpoints < config->subevent_minpoints)
     {
-        printf("Stepfit is off, and event_minpoints is less than subevent_minpoints. Correction:\nevent_minpoints=%"PRIu64"\n",config->subevent_minpoints);
-        fprintf(logfile,"Stepfit is off, and event_minpoints is less than subevent_minpoints. Correction:\nevent_minpoints=%"PRIu64"\n",config->subevent_minpoints);
+        printf("Stepfit is off, and event_minpoints is less than subevent_minpoints. Correction:\nevent_minpoints=%"PRId64"\n",config->subevent_minpoints);
+        fprintf(logfile,"Stepfit is off, and event_minpoints is less than subevent_minpoints. Correction:\nevent_minpoints=%"PRId64"\n",config->subevent_minpoints);
         config->event_minpoints = config->subevent_minpoints;
     }
     if (config->usefilter || config->eventfilter)
     {
         if (config->subevent_minpoints < 8.0/config->cutoff)
         {
-            printf("Warning: subevent_minpoints is less than 4RC, levels might be underestimated. Suggest increaseing subevent_minpoints to %"PRIu64"\nNo Correction\n",(uint64_t) (8.0/config->cutoff));
-            fprintf(logfile,"Warning: subevent_minpoints is less than 4RC, levels might be underestimated. Suggest increaseing subevent_minpoints to %"PRIu64"\nNo Correction\n",(uint64_t) (8.0/config->cutoff));
+            printf("Warning: subevent_minpoints is less than 4RC, levels might be underestimated. Suggest increaseing subevent_minpoints to %"PRId64"\nNo Correction\n",(int64_t) (8.0/config->cutoff));
+            fprintf(logfile,"Warning: subevent_minpoints is less than 4RC, levels might be underestimated. Suggest increaseing subevent_minpoints to %"PRId64"\nNo Correction\n",(int64_t) (8.0/config->cutoff));
         }
         if (config->event_minpoints < 8.0/config->cutoff && config->stepfit_samples == 0)
         {
-            printf("Warning: event_minpoints is less than 4RC, short events will not be fit accurately. Suggest increaseing event_minpoints to %"PRIu64"\nNo Correction\n",(uint64_t) (8.0/config->cutoff));
-            fprintf(logfile,"Warning: event_minpoints is less than 4RC, short events will not be fit accurately. Suggest increaseing event_minpoints to %"PRIu64"\nNo Correction\n",(uint64_t) (8.0/config->cutoff));
+            printf("Warning: event_minpoints is less than 4RC, short events will not be fit accurately. Suggest increaseing event_minpoints to %"PRId64"\nNo Correction\n",(int64_t) (8.0/config->cutoff));
+            fprintf(logfile,"Warning: event_minpoints is less than 4RC, short events will not be fit accurately. Suggest increaseing event_minpoints to %"PRId64"\nNo Correction\n",(int64_t) (8.0/config->cutoff));
         }
     }
     printf("\nDone config check\n\n");

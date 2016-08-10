@@ -20,7 +20,7 @@
 */
 #include"detector.h"
 
-uint64_t get_next_event_start(edge *current_edge)
+int64_t get_next_event_start(edge *current_edge)
 {
     while (current_edge->type != 0 && current_edge->next) //if for some reason there are multiple of the same type in a row, skip them.
     {
@@ -29,11 +29,11 @@ uint64_t get_next_event_start(edge *current_edge)
     return current_edge->location;
 }
 
-uint64_t get_next_event(event *current_event, edge *current_edge, uint64_t index)
+int64_t get_next_event(event *current_event, edge *current_edge, int64_t index)
 {
-    uint64_t edges = 0;
-    uint64_t start;
-    uint64_t finish;
+    int64_t edges = 0;
+    int64_t start;
+    int64_t finish;
     while (current_edge->type != 0 && current_edge->next) //if for some reason there are multiple of the same type in a row, skip them.
     {
         current_edge = current_edge->next;
@@ -53,7 +53,7 @@ uint64_t get_next_event(event *current_event, edge *current_edge, uint64_t index
     return edges;
 }
 
-void calculate_level_noise(event *current, uint64_t minpoints)
+void calculate_level_noise(event *current, int64_t minpoints)
 {
 #ifdef DEBUG
     printf("Noise\n");
@@ -62,7 +62,7 @@ void calculate_level_noise(event *current, uint64_t minpoints)
     if (current->type == CUSUM || current->type == STEPRESPONSE)
     {
         cusumlevel *level = current->first_level;
-        uint64_t start = minpoints;
+        int64_t start = minpoints;
         while (level)
         {
             if (minpoints + 2 > level->length)
@@ -80,7 +80,7 @@ void calculate_level_noise(event *current, uint64_t minpoints)
 }
 
 
-void identify_step_events(event *current, uint64_t stepfit_samples, uint64_t subevent_minpoints, int attempt_recovery)
+void identify_step_events(event *current, int64_t stepfit_samples, int64_t subevent_minpoints, int attempt_recovery)
 {
 #ifdef DEBUG
     printf("Step Events\n");
@@ -99,7 +99,7 @@ void identify_step_events(event *current, uint64_t stepfit_samples, uint64_t sub
     }
 }
 
-void filter_long_events(event *current, uint64_t maxpoints)
+void filter_long_events(event *current, int64_t maxpoints)
 {
 #ifdef DEBUG
     printf("Long Filter\n");
@@ -111,7 +111,7 @@ void filter_long_events(event *current, uint64_t maxpoints)
     }
 }
 
-void filter_short_events(event *current, uint64_t minpoints)
+void filter_short_events(event *current, int64_t minpoints)
 {
 #ifdef DEBUG
     printf("Short Filter\n");
@@ -124,7 +124,7 @@ void filter_short_events(event *current, uint64_t minpoints)
 }
 
 
-uint64_t average_cusum_levels(event *current, uint64_t subevent_minpoints, double cusum_minstep, int attempt_recovery)
+int64_t average_cusum_levels(event *current, int64_t subevent_minpoints, double cusum_minstep, int attempt_recovery)
 {
 #ifdef DEBUG
     printf("Average CUSUM levels\n");
@@ -136,14 +136,14 @@ uint64_t average_cusum_levels(event *current, uint64_t subevent_minpoints, doubl
         edge *current_edge = first_edge;
         double baseline = signal_average(current->signal, current->padding_before);
         double lastlevel = baseline;
-        uint64_t j, nStates = 0;
-        uint64_t typeswitch = 0;
+        int64_t j, nStates = 0;
+        int64_t typeswitch = 0;
         int passflag = 1;
-        uint64_t anchor = 0;
-        uint64_t prev_anchor = anchor;
+        int64_t anchor = 0;
+        int64_t prev_anchor = anchor;
         double average;
         double residual = 0;
-        uint64_t totallength = current->length + current->padding_before + current->padding_after;
+        int64_t totallength = current->length + current->padding_before + current->padding_after;
         while (current_edge)
         {
             average = signal_average(&current->signal[anchor + subevent_minpoints], current_edge->location - anchor - subevent_minpoints);
@@ -201,13 +201,13 @@ void populate_event_levels(event *current)
 #endif // DEBUG'
     if (current->type == CUSUM || current->type == STEPRESPONSE)
     {
-        uint64_t i;
-        uint64_t eventlength = current->length;
-        uint64_t padding = current->padding_before + current->padding_after;
+        int64_t i;
+        int64_t eventlength = current->length;
+        int64_t padding = current->padding_before + current->padding_after;
         double *filtered_signal = current->filtered_signal;
         double lastlevel = filtered_signal[0];
-        uint64_t anchor = 0;
-        uint64_t numlevels = 0;
+        int64_t anchor = 0;
+        int64_t numlevels = 0;
         current->first_level = initialize_levels();
         cusumlevel *current_level = current->first_level;
 
@@ -246,7 +246,7 @@ void event_max_blockage(event *current)
         double baseline = 0.5*(current->baseline_before + current->baseline_after);
         double blockage;
         double maxblockage = 0;
-        uint64_t maxsamples = 0;
+        int64_t maxsamples = 0;
         while (current_level)
         {
             blockage = d_abs(baseline - current_level->current);
@@ -272,7 +272,7 @@ void refine_event_estimates(event *current)
     if (current->type == CUSUM || current->type == STEPRESPONSE)
     {
         cusumlevel *level = current->first_level;
-        uint64_t newstart = current->start + level->length - current->padding_before;
+        int64_t newstart = current->start + level->length - current->padding_before;
         current->padding_before = level->length;
         while (level)
         {
@@ -285,7 +285,7 @@ void refine_event_estimates(event *current)
                 break;
             }
         }
-        uint64_t newfinish = current->finish - level->length + current->padding_after;
+        int64_t newfinish = current->finish - level->length + current->padding_after;
         current->padding_after = level->length;
         current->start = newstart;
         current->finish = newfinish;
@@ -293,11 +293,11 @@ void refine_event_estimates(event *current)
     }
 }
 
-uint64_t locate_min(double *signal, uint64_t length)
+int64_t locate_min(double *signal, int64_t length)
 {
     double minval = signal[0];
-    uint64_t location = 0;
-    uint64_t i;
+    int64_t location = 0;
+    int64_t i;
     for (i=0; i<length; i++)
     {
         if (signal[i] < minval)
@@ -311,7 +311,7 @@ uint64_t locate_min(double *signal, uint64_t length)
 
 
 
-double get_cusum_threshold(uint64_t length, double minthreshold, double maxthreshold, double sigma, double mun)
+double get_cusum_threshold(int64_t length, double minthreshold, double maxthreshold, double sigma, double mun)
 {
     length *= 2;
     double arlmin;
@@ -344,7 +344,7 @@ double get_cusum_threshold(uint64_t length, double minthreshold, double maxthres
 }
 
 
-void cusum(event *current_event, double delta, double minthreshold, double maxthreshold, uint64_t subevent_minpoints)
+void cusum(event *current_event, double delta, double minthreshold, double maxthreshold, int64_t subevent_minpoints)
 {
 #ifdef DEBUG
     printf("cusum\n");
@@ -353,22 +353,22 @@ void cusum(event *current_event, double delta, double minthreshold, double maxth
     if (current_event->type == CUSUM)
     {
         double *signal = current_event->signal;
-        uint64_t length = current_event->length + current_event->padding_before + current_event->padding_after;
+        int64_t length = current_event->length + current_event->padding_before + current_event->padding_after;
         current_event->first_edge = initialize_edges();
         edge *first_edge = current_event->first_edge;
         edge *current_edge = first_edge;
         double threshold = minthreshold;
-        uint64_t anchor = 0;//initial position
+        int64_t anchor = 0;//initial position
         double mean = signal[anchor];//initial mean value guess
         double variance = 0;//initial variance estimation
         double logp = 0;//log-likelihood ratio for positive jumps
         double logn = 0;//log-likelihood ratio for negative jumps
         double stdev = sqrt(signal_variance(signal, current_event->padding_before));
         double jumpsizestdev = delta/stdev;
-        uint64_t k = 0;//loop index
-        uint64_t numjumps = 0;
-        uint64_t jumppos = 0;
-        uint64_t jumpneg = 0;
+        int64_t k = 0;//loop index
+        int64_t numjumps = 0;
+        int64_t jumppos = 0;
+        int64_t jumpneg = 0;
         double varM = signal[0];
         double varS = 0;
         double oldVarM;
@@ -454,10 +454,10 @@ void event_area(event *current_event, double timestep)
 #endif // DEBUG
     if (current_event->type == CUSUM || current_event->type == STEPRESPONSE)
     {
-        uint64_t i;
+        int64_t i;
         double area = 0;
-        uint64_t padding = current_event->padding_before;
-        uint64_t length = current_event->length;
+        int64_t padding = current_event->padding_before;
+        int64_t length = current_event->length;
         double *signal = current_event->signal;
 
         double baseline = 0.5 * (current_event->baseline_before + current_event->baseline_after);
@@ -482,7 +482,7 @@ void event_baseline(event *current_event, double baseline_min, double baseline_m
     {
         double stdev;
         double baseline_before = 0;
-        uint64_t baseline_before_length = 0;
+        int64_t baseline_before_length = 0;
         double baseline_after = 0;
         double *signal = current_event->signal;
         cusumlevel *current_level = current_event->first_level;
@@ -509,7 +509,7 @@ void event_baseline(event *current_event, double baseline_min, double baseline_m
 
 
 
-void generate_trace(FILE *input, event *current, int datatype, FILE *logfile, bessel *lpfilter, int eventfilter, chimera *daqsetup, uint64_t samplingfreq, edge *current_edge, uint64_t last_end, uint64_t start, uint64_t subevent_minpoints)
+void generate_trace(FILE *input, event *current, int datatype, FILE *logfile, bessel *lpfilter, int eventfilter, chimera *daqsetup, int64_t samplingfreq, edge *current_edge, int64_t last_end, int64_t start, int64_t subevent_minpoints)
 {
 #ifdef DEBUG
     printf("Generate Trace\n");
@@ -517,10 +517,10 @@ void generate_trace(FILE *input, event *current, int datatype, FILE *logfile, be
 #endif // DEBUG
     if (current->type == CUSUM || current->type == STEPRESPONSE)
     {
-        uint64_t padding;
-        uint64_t position;
-        uint64_t read;
-        uint64_t next_start = get_next_event_start(current_edge);
+        int64_t padding;
+        int64_t position;
+        int64_t read;
+        int64_t next_start = get_next_event_start(current_edge);
 
         if (current->length == 0)
         {
@@ -530,7 +530,7 @@ void generate_trace(FILE *input, event *current, int datatype, FILE *logfile, be
 
 
 
-        padding = (uint64_t) (100e-6*samplingfreq);
+        padding = (int64_t) (100e-6*samplingfreq);
         current->padding_before = padding;
         current->padding_after = padding;
         if (current->start - start < current->padding_before)
@@ -561,8 +561,8 @@ void generate_trace(FILE *input, event *current, int datatype, FILE *logfile, be
 
         if (fseeko64(input,(off64_t) position*2*sizeof(double),SEEK_SET))
         {
-            printf("Cannot locate file position at sample %" PRIu64 "\n",position);
-            fprintf(logfile,"Cannot locate file position at sample %" PRIu64 "\n",position);
+            printf("Cannot locate file position at sample %" PRId64 "\n",position);
+            fprintf(logfile,"Cannot locate file position at sample %" PRId64 "\n",position);
             fflush(logfile);
             exit(17);
         }
@@ -572,8 +572,8 @@ void generate_trace(FILE *input, event *current, int datatype, FILE *logfile, be
 
         if (read != current->length + current->padding_before + current->padding_after)
         {
-            printf("Unable to read %" PRIu64 " samples for event %" PRId64 ": obtained %" PRId64 "\n",current->length + + current->padding_before + current->padding_after,current->index,read);
-            fprintf(logfile,"Unable to read %" PRIu64 " samples for event %" PRId64 ": obtained %" PRId64 "\n",current->length + + current->padding_before + current->padding_after,current->index,read);
+            printf("Unable to read %" PRId64 " samples for event %" PRId64 ": obtained %" PRId64 "\n",current->length + + current->padding_before + current->padding_after,current->index,read);
+            fprintf(logfile,"Unable to read %" PRId64 " samples for event %" PRId64 ": obtained %" PRId64 "\n",current->length + + current->padding_before + current->padding_after,current->index,read);
             fflush(logfile);
             current->type = BADTRACE;
         }
@@ -587,10 +587,10 @@ void generate_trace(FILE *input, event *current, int datatype, FILE *logfile, be
 
 
 
-edge *detect_edges(double *signal, double baseline, uint64_t length, edge *current, double threshold, double hysteresis, uint64_t position, int event_direction)
+edge *detect_edges(double *signal, double baseline, int64_t length, edge *current, double threshold, double hysteresis, int64_t position, int event_direction)
 {
 
-    uint64_t i = 0;
+    int64_t i = 0;
     double sign;
     double down_threshold;
     double up_threshold;
@@ -645,10 +645,10 @@ edge *detect_edges(double *signal, double baseline, uint64_t length, edge *curre
     return current;
 }
 
-double baseline_averaging(double *signal, uint64_t length, double baseline_min, double baseline_max)
+double baseline_averaging(double *signal, int64_t length, double baseline_min, double baseline_max)
 {
-    uint64_t i;
-    uint64_t numsamples = 0;
+    int64_t i;
+    int64_t numsamples = 0;
     double baseline = 0;
     for (i=0; i<length; i++)
     {
@@ -671,7 +671,7 @@ double baseline_averaging(double *signal, uint64_t length, double baseline_min, 
 }
 
 
-double build_histogram(double *signal, histostruct *histogram, uint64_t length, double delta, double baseline_max, double baseline_min)
+double build_histogram(double *signal, histostruct *histogram, int64_t length, double delta, double baseline_max, double baseline_min)
 {
     double maximum = signal_max(signal, length);
     double minimum = signal_min(signal, length);
@@ -681,19 +681,19 @@ double build_histogram(double *signal, histostruct *histogram, uint64_t length, 
     {
         return 0;
     }
-    uint64_t numbins = range / delta;
+    int64_t numbins = range / delta;
     if (numbins == 0 || numbins == 1)
     {
         return 0;
     }
-    //numbins = intmax(numbins, (uint64_t) sqrt(length));
+    //numbins = intmax(numbins, (int64_t) sqrt(length));
 
     double baseline = 0;
-    uint64_t i,j;
+    int64_t i,j;
     int sign;
     int newsign;
     double tempbase = 0;
-    uint64_t average;
+    int64_t average;
 
     for (i=0; i<histogram->numbins; i++)
     {
@@ -725,7 +725,7 @@ double build_histogram(double *signal, histostruct *histogram, uint64_t length, 
     }
     for (i=0; i<length; i++)
     {
-        histogram->histogram[(uint64_t) ((signal[i]-minimum)/delta)][0] += 1;
+        histogram->histogram[(int64_t) ((signal[i]-minimum)/delta)][0] += 1;
     }
 
 

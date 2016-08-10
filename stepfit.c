@@ -27,7 +27,7 @@
 
 int expb_f (const gsl_vector * x, void *data, gsl_vector * f)
 {
-    uint64_t n = ((struct data *)data)->n;
+    int64_t n = ((struct data *)data)->n;
     double *y = ((struct data *)data)->y;
     double *weight = ((struct data *)data)->weight;
 
@@ -38,7 +38,7 @@ int expb_f (const gsl_vector * x, void *data, gsl_vector * f)
     double b = gsl_vector_get (x, 4);
     double u2 = gsl_vector_get (x, 5);
     double tau2 = gsl_vector_get (x, 6);
-    uint64_t i;
+    int64_t i;
     for (i = 0; i < n; i++)
     {
         double t = i;
@@ -58,7 +58,7 @@ int expb_f (const gsl_vector * x, void *data, gsl_vector * f)
 
 int expb_df (const gsl_vector * x, void *data, gsl_matrix * J)
 {
-    uint64_t n = ((struct data *)data)->n;
+    int64_t n = ((struct data *)data)->n;
     double *weight = ((struct data *)data)->weight;
     double a = gsl_vector_get (x, 1);
     double u1 = gsl_vector_get (x, 2);
@@ -67,7 +67,7 @@ int expb_df (const gsl_vector * x, void *data, gsl_matrix * J)
     double u2 = gsl_vector_get (x, 5);
     double tau2 = gsl_vector_get (x, 6);
 
-    uint64_t i;
+    int64_t i;
 
     for (i = 0; i < n; i++)
     {
@@ -93,7 +93,7 @@ int expb_fdf (const gsl_vector * x, void *data, gsl_vector * f, gsl_matrix * J)
 }
 
 
-void step_response(event *current, double risetime, uint64_t maxiters, double minstep)
+void step_response(event *current, double risetime, int64_t maxiters, double minstep)
 {
 #ifdef DEBUG
     printf("StepResponse\n");
@@ -104,9 +104,9 @@ void step_response(event *current, double risetime, uint64_t maxiters, double mi
         const gsl_multifit_fdfsolver_type *T;
         gsl_multifit_fdfsolver *s;
         int status = GSL_CONTINUE;
-        uint64_t i,iter = 0;
-        uint64_t p = 7;
-        uint64_t n = current->length + current->padding_before + current->padding_after;
+        int64_t i,iter = 0;
+        int64_t p = 7;
+        int64_t n = current->length + current->padding_before + current->padding_after;
         double *weight;
         weight = calloc_and_check(n,sizeof(double),"Cannot allocate weight array");
 
@@ -119,8 +119,8 @@ void step_response(event *current, double risetime, uint64_t maxiters, double mi
         double minsignal = signal_min(current->signal, current->length + current->padding_before + current->padding_after);
         double baseline = signal_average(current->signal,current->padding_before);
         int sign = signum(baseline);
-        uint64_t start = current->padding_before - intmin(current->length/2, current->padding_before/4);
-        uint64_t end = current->padding_before+current->length;
+        int64_t start = current->padding_before - intmin(current->length/2, current->padding_before/4);
+        int64_t end = current->padding_before+current->length;
 
 
         for (i=0; i<n; i++)
@@ -176,18 +176,18 @@ void step_response(event *current, double risetime, uint64_t maxiters, double mi
 
         double i0 = FIT(0);
         double a = FIT(1);
-        uint64_t u1 = FIT(2);
+        int64_t u1 = FIT(2);
         double rc1 = FIT(3);
         double b = FIT(4);
-        uint64_t u2 = FIT(5);
+        int64_t u2 = FIT(5);
         double rc2 = FIT(6);
         double residual = 0;
 
-        //printf("i0 = %g\na=%g\nu1=%"PRIu64"\nb=%g\nu2=%"PRIu64"\n",i0,a,u1,b,u2);
+        //printf("i0 = %g\na=%g\nu1=%"PRId64"\nb=%g\nu2=%"PRId64"\n",i0,a,u1,b,u2);
 
         if (u1 > u2) //if the fit got stuck in a variable swapped equivalent minimum, we can just reverse the paramters
         {
-            uint64_t temp;
+            int64_t temp;
             double dtemp;
             temp = u1;
             u1 = u2;

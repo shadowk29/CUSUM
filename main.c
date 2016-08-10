@@ -60,7 +60,7 @@ int main()
     bessel *lpfilter = NULL;
     double *filtered = NULL;
 
-    uint64_t *error_summary = calloc_and_check(NUMTYPES, sizeof(uint64_t), "Cannot allocate error array");
+    int64_t *error_summary = calloc_and_check(NUMTYPES, sizeof(int64_t), "Cannot allocate error array");
 
     //initialize the low-pass filter and allocate necessary memory
     if (config->usefilter || config->eventfilter)
@@ -76,7 +76,7 @@ int main()
     histogram->numbins = 0;
 
     //find out how big the file is for use in a progressbar
-    uint64_t filesize = get_filesize(input, config->datatype);
+    int64_t filesize = get_filesize(input, config->datatype);
     if (config->finish == 0)
     {
         config->finish = filesize;
@@ -103,13 +103,13 @@ int main()
     fflush(stdout);
 
     double risetime = 5; //FIXME
-    uint64_t typeswitch = 0;
+    int64_t typeswitch = 0;
     double baseline;
     double badbaseline = 0;
     double goodbaseline = 0;
-    uint64_t i;
-    uint64_t read;
-    uint64_t pos;
+    int64_t i;
+    int64_t read;
+    int64_t pos;
     int endflag;
     endflag = 0;
     read = 0;
@@ -172,20 +172,20 @@ int main()
     }
 
 
-    uint64_t index = 0;
-    uint64_t numevents = 0;
-    uint64_t edgecount;
-    uint64_t edgenum = 0;
-    uint64_t edges;
+    int64_t index = 0;
+    int64_t numevents = 0;
+    int64_t edgecount;
+    int64_t edgenum = 0;
+    int64_t edges;
 
 
     edgecount = count_edges(current_edge);
     current_edge = head_edge;
 
 
-    uint64_t lasttime = config->start;
-    uint64_t last_end = config->start;
-    printf("Processing %"PRIu64" edges\n", edgecount);
+    int64_t lasttime = config->start;
+    int64_t last_end = config->start;
+    printf("Processing %"PRId64" edges\n", edgecount);
     time(&start_time);
     while (current_edge)
     {
@@ -193,7 +193,7 @@ int main()
     printf("Main Loop\n");
     fflush(stdout);
 #endif // DEBUG
-        snprintf(progressmsg,STRLENGTH*sizeof(char)," %"PRIu64" events processed",numevents);
+        snprintf(progressmsg,STRLENGTH*sizeof(char)," %"PRId64" events processed",numevents);
         progressbar(edgenum, edgecount, progressmsg,difftime(time(&curr_time),start_time));
         edges = get_next_event(current_event, current_edge, index);
         edgenum += edges;
@@ -229,7 +229,7 @@ int main()
     fflush(stdout);
 #endif // DEBUG
     }
-    snprintf(progressmsg,STRLENGTH*sizeof(char)," %"PRIu64" events processed",numevents);
+    snprintf(progressmsg,STRLENGTH*sizeof(char)," %"PRId64" events processed",numevents);
     progressbar(edgenum, edgecount, progressmsg,difftime(time(&curr_time),start_time));
 
     print_error_summary(logfile, error_summary, numevents);

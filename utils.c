@@ -20,9 +20,9 @@
 */
 #include"utils.h"
 
-double signal_max(double *signal, uint64_t length)
+double signal_max(double *signal, int64_t length)
 {
-    uint64_t i;
+    int64_t i;
     double maximum = signal[0];
     for (i=0; i<length; i++)
     {
@@ -34,9 +34,9 @@ double signal_max(double *signal, uint64_t length)
     return maximum;
 }
 //get the smallest (most negative) value for the signal
-double signal_min(double *signal, uint64_t length)
+double signal_min(double *signal, int64_t length)
 {
-    uint64_t i;
+    int64_t i;
     double minimum = signal[0];
     for (i=0; i<length; i++)
     {
@@ -48,9 +48,9 @@ double signal_min(double *signal, uint64_t length)
     return minimum;
 }
 
-double signal_average(double *signal, uint64_t length)
+double signal_average(double *signal, int64_t length)
 {
-    uint64_t i;
+    int64_t i;
     double average;
     average = 0;
     for (i=0; i<length; i++)
@@ -60,9 +60,9 @@ double signal_average(double *signal, uint64_t length)
     return average/length;
 }
 
-double signal_extreme(double *signal, uint64_t length, double sign)
+double signal_extreme(double *signal, int64_t length, double sign)
 {
-    uint64_t i;
+    int64_t i;
     double tempmax;
     tempmax = 0;
     for (i=0; i<length; i++)
@@ -73,14 +73,14 @@ double signal_extreme(double *signal, uint64_t length, double sign)
     return tempmax;
 }
 
-double signal_variance(double *signal, uint64_t length)
+double signal_variance(double *signal, int64_t length)
 {
     if (length < 2)
     {
         printf("Cannot calculate variance with less than 2 samples\n");
         return 0;
     }
-    uint64_t i;
+    int64_t i;
     double variance;
     variance = 0;
     double average;
@@ -116,9 +116,9 @@ void *calloc_and_check(size_t num, size_t size, char *msg)
 }
 
 
-uint64_t count_edges(edge *current_edge)
+int64_t count_edges(edge *current_edge)
 {
-    uint64_t count = 0;
+    int64_t count = 0;
     while (current_edge)
     {
         count++;
@@ -127,7 +127,7 @@ uint64_t count_edges(edge *current_edge)
     return count;
 }
 
-inline void progressbar(uint64_t pos, uint64_t finish, const char *msg, double elapsed)
+inline void progressbar(int64_t pos, int64_t finish, const char *msg, double elapsed)
 {
     double ratio = pos/(double)finish;
     double remaining;
@@ -143,18 +143,18 @@ inline void progressbar(uint64_t pos, uint64_t finish, const char *msg, double e
     }
 
 
-    uint64_t hours = (uint64_t) remaining / 3600;
-    uint64_t rhours = (uint64_t) remaining % 3600;
-    uint64_t minutes = rhours / 60;
-    uint64_t seconds = rhours % 60;
+    int64_t hours = (int64_t) remaining / 3600;
+    int64_t rhours = (int64_t) remaining % 3600;
+    int64_t minutes = rhours / 60;
+    int64_t seconds = rhours % 60;
     printf("%3d%%\t", (int)(ratio*100) );
-    printf("%02"PRIu64":%02"PRIu64":%02"PRIu64" remaining\t%s       \r",hours,minutes,seconds,msg);
+    printf("%02"PRId64":%02"PRId64":%02"PRId64" remaining\t%s       \r",hours,minutes,seconds,msg);
     fflush(stdout);
 }
 
-uint64_t get_filesize(FILE *input, int datatype)
+int64_t get_filesize(FILE *input, int datatype)
 {
-    uint64_t length;
+    int64_t length;
     if (datatype != 0)
     {
         fseeko64(input, 0, SEEK_END);
@@ -212,7 +212,7 @@ edge *initialize_edges(void)
 }
 
 
-edge *add_edge(edge *current, uint64_t location, int type)
+edge *add_edge(edge *current, int64_t location, int type)
 {
     if (current->type == HEAD) //if we are adding a new node to the head node that hasn't been filled yet
     {
@@ -269,7 +269,7 @@ event *initialize_events(void)
     return head;
 }
 
-event *add_event(event *current, uint64_t start, uint64_t finish, uint64_t index)
+event *add_event(event *current, int64_t start, int64_t finish, int64_t index)
 {
     current->type = 0;
     current->index = index;
@@ -322,7 +322,7 @@ cusumlevel *initialize_levels(void)
     return head;
 }
 
-cusumlevel *add_cusum_level(cusumlevel *lastlevel, double current, uint64_t length)
+cusumlevel *add_cusum_level(cusumlevel *lastlevel, double current, int64_t length)
 {
     cusumlevel *temp;
     if (lastlevel && lastlevel->length > 0)
@@ -344,7 +344,7 @@ cusumlevel *add_cusum_level(cusumlevel *lastlevel, double current, uint64_t leng
 }
 
 
-double ARL(uint64_t length, double sigma, double mun, double h)
+double ARL(int64_t length, double sigma, double mun, double h)
 {
     return (exp(-2.0*mun*(h/sigma+1.166))-1.0+2.0*mun*(h/sigma+1.166))/(2.0*mun*mun)-(double) length;
 }

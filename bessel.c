@@ -24,13 +24,13 @@
 
 #include"bessel.h"
 
-void filter_signal(double *signal, bessel *lpfilter, uint64_t length)
+void filter_signal(double *signal, bessel *lpfilter, int64_t length)
 {
-    uint64_t i;
-    uint64_t p;
-    uint64_t end;
-    uint64_t order = lpfilter->order;
-    uint64_t padding = lpfilter->padding;
+    int64_t i;
+    int64_t p;
+    int64_t end;
+    int64_t order = lpfilter->order;
+    int64_t padding = lpfilter->padding;
     double *paddedsignal = lpfilter->paddedsignal;
     double *temp = lpfilter->temp;
     double *tempback = lpfilter->tempback;
@@ -87,7 +87,7 @@ void filter_signal(double *signal, bessel *lpfilter, uint64_t length)
 }
 
 
-void besselap(uint64_t N, double complex *poles, double complex *zeros)
+void besselap(int64_t N, double complex *poles, double complex *zeros)
 {
     switch(N)
     {
@@ -164,9 +164,9 @@ void besselap(uint64_t N, double complex *poles, double complex *zeros)
     }
 }
 
-void polymult(double complex *roots, uint64_t N, double *rcoefs)
+void polymult(double complex *roots, int64_t N, double *rcoefs)
 {
-    uint64_t i, j;
+    int64_t i, j;
     double complex *polycoefs;
     polycoefs = calloc_and_check(N+1, sizeof(double complex),"Cannot allocate polynomial coefficients");
     polycoefs[N]=1.0;
@@ -185,9 +185,9 @@ void polymult(double complex *roots, uint64_t N, double *rcoefs)
     free(polycoefs);
 }
 
-double scale_filter(double complex *poles, uint64_t N, double warped, double scale)
+double scale_filter(double complex *poles, int64_t N, double warped, double scale)
 {
-    uint64_t i;
+    int64_t i;
     for (i=0; i<N; i++)
     {
         poles[i] *= warped;
@@ -195,11 +195,11 @@ double scale_filter(double complex *poles, uint64_t N, double warped, double sca
     return scale * pow(warped, (double) N);
 }
 
-double bilinear(double complex *poles, uint64_t N, double scale, double fs)
+double bilinear(double complex *poles, int64_t N, double scale, double fs)
 {
     double fs2 = 2.0 * fs;
     double complex poleprod = 1;
-    uint64_t i;
+    int64_t i;
     for (i=0; i<N; i++)
     {
         poleprod *= fs2 - poles[i];
@@ -208,9 +208,9 @@ double bilinear(double complex *poles, uint64_t N, double scale, double fs)
     return scale * creal(1.0 / poleprod);
 }
 
-void transform_filter(double complex *poles, double complex *zeros, uint64_t N, double scale, double *b, double *a)
+void transform_filter(double complex *poles, double complex *zeros, int64_t N, double scale, double *b, double *a)
 {
-    uint64_t i;
+    int64_t i;
     polymult(zeros, N, b);
     polymult(poles, N, a);
     for (i=0; i<N+1; i++)
@@ -219,7 +219,7 @@ void transform_filter(double complex *poles, double complex *zeros, uint64_t N, 
     }
 }
 
-bessel *initialize_filter(bessel *lpfilter, uint64_t order, double cutoff, uint64_t length, uint64_t samplingfreq)
+bessel *initialize_filter(bessel *lpfilter, int64_t order, double cutoff, int64_t length, int64_t samplingfreq)
 {
 
 
@@ -234,7 +234,7 @@ bessel *initialize_filter(bessel *lpfilter, uint64_t order, double cutoff, uint6
 
     lpfilter->order = order;
     lpfilter->cutoff = cutoff;
-    lpfilter->padding = (uint64_t) (100e-6*samplingfreq);
+    lpfilter->padding = (int64_t) (100e-6*samplingfreq);
 
 
     double complex *poles;

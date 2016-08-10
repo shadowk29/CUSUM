@@ -14,7 +14,7 @@
 #define ERR(i) sqrt(gsl_matrix_get(covar,i,i))
 //test
 struct data {
-    uint64_t n;
+    int64_t n;
     double *y;
     double *weight;
 };
@@ -22,6 +22,6 @@ struct data {
 int expb_f (const gsl_vector * x, void *data, gsl_vector * f);
 int expb_df (const gsl_vector * x, void *data, gsl_matrix * J);
 int expb_fdf (const gsl_vector * x, void *data, gsl_vector * f, gsl_matrix * J);
-void step_response(event *current, double risetime, uint64_t maxiters, double minstep);
+void step_response(event *current, double risetime, int64_t maxiters, double minstep);
 
 #endif //STEPFIT_H_INCLUDED
