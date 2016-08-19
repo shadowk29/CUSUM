@@ -607,8 +607,17 @@ edge *detect_edges(double *signal, double baseline, int64_t length, edge *curren
 
     if (event_direction == 0)
     {
-        down_threshold = baseline*(1 - threshold);//current thresholds for detection of downspikes and upspikes can be different
-        up_threshold = baseline*(1 - threshold + hysteresis);
+        if (threshold < 1)
+        {
+            down_threshold = baseline*(1 - threshold);//current thresholds for detection of downspikes and upspikes can be different
+            up_threshold = baseline*(1 - threshold + hysteresis);
+        }
+        else
+        {
+            down_threshold = baseline - threshold;//current thresholds for detection of downspikes and upspikes can be different
+            up_threshold = baseline - threshold + hysteresis;
+        }
+
 
         for (i=0; i<length; i++)
         {
@@ -626,8 +635,16 @@ edge *detect_edges(double *signal, double baseline, int64_t length, edge *curren
     }
     else
     {
-        up_threshold = baseline*(1 + threshold);
-        down_threshold = baseline*(1 + threshold - hysteresis);//current thresholds for detection of downspikes and upspikes can be different
+        if (threshold < 1)
+        {
+            up_threshold = baseline*(1 + threshold);
+            down_threshold = baseline*(1 + threshold - hysteresis);//current thresholds for detection of downspikes and upspikes can be different
+        }
+        else
+        {
+            up_threshold = baseline + threshold;
+            down_threshold = baseline + threshold - hysteresis;//current thresholds for detection of downspikes and upspikes can be different
+        }
         for (i=0; i<length; i++)
         {
             if (signal[i]*sign > up_threshold && state == 0) //if we are open pore state and detect a downspike

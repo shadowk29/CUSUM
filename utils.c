@@ -132,7 +132,6 @@ inline void progressbar(int64_t pos, int64_t finish, const char *msg, double ela
     double ratio = pos/(double)finish;
     double remaining;
 
-
     if (pos == 0)
     {
         remaining = 0;
