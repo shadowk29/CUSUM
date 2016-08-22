@@ -135,6 +135,7 @@ void swapByteOrder_int16(double *current, uint16_t *rawsignal, int64_t length)
     {
         bitval.bits = rawsignal[2*i];
         bitval.bits = (bitval.bits>>8)|(bitval.bits<<8);
+        bitval.longbits = (uint64_t) bitval.bits;
         current[i] = bitval.currentval;
     }
 }

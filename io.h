@@ -17,6 +17,7 @@ union doublebits
 union float16_bits
 {
     double currentval;
+    uint64_t longbits;
     uint16_t bits;
 };
 
