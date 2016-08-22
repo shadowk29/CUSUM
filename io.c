@@ -32,105 +32,131 @@ void print_error_summary(FILE *logfile, int64_t *error_summary, int64_t numevent
     }
 }
 
-int64_t read_current(FILE *input, double *signal, int64_t position, int64_t length, int datatype, chimera *daqsetup)
+int64_t read_current(FILE *input, double *signal, void *rawsignal, int64_t position, int64_t length, int datatype, chimera *daqsetup)
 {
     int64_t read = 0;
     if (datatype == 64)
     {
-        read = read_current_double(input, signal, position, length);
+        read = read_current_double(input, signal, (uint64_t *) rawsignal, position, length);
     }
     else if (datatype == 16)
     {
-        read = read_current_int16(input, signal, position, length);
+        read = read_current_int16(input, signal, (uint16_t *) rawsignal, position, length);
     }
     else if (datatype == 0)
     {
-        read = read_current_chimera(input, signal, position, length, daqsetup);
+        read = read_current_chimera(input, signal, (uint16_t *) rawsignal, position, length, daqsetup);
     }
     return read;
 }
 
-double chimera_gain(int64_t sample, chimera *daqsetup)
+void chimera_gain(double *current, uint16_t *rawsignal, int64_t length, chimera *daqsetup)
 {
-    double current = 0;
+    int64_t i;
     double closed_loop_gain = daqsetup->TIAgain*daqsetup->preADCgain;
     uint16_t bitmask = (uint16_t) ((1 << 16)-1) - (uint16_t) ((1 << (16-daqsetup->ADCbits)) - 1);
-    sample = (uint16_t) (sample & bitmask);
-    current = daqsetup->ADCvref - (2.0 * daqsetup->ADCvref) * (double) sample / (double) (1<<16);
-    current = -current / closed_loop_gain + daqsetup->currentoffset;
-    return current * 1e12;
+    uint16_t sample;
+    for (i=0; i<length; i++)
+    {
+        current[i] = 0;
+        sample = (uint16_t) (rawsignal[i] & bitmask);
+        current[i] = daqsetup->ADCvref - (2.0 * daqsetup->ADCvref) * (double) sample / (double) (1<<16);
+        current[i] = -current[i] / closed_loop_gain + daqsetup->currentoffset;
+        current[i] *= 1e12;
+    }
 }
 
-int64_t read_current_chimera(FILE *input, double *current, int64_t position, int64_t length, chimera *daqsetup)
+int64_t read_current_chimera(FILE *input, double *current, uint16_t *rawsignal, int64_t position, int64_t length, chimera *daqsetup)
 {
     int64_t test;
-    uint16_t iv;
-
-    int64_t i;
     int64_t read = 0;
 
     if (fseeko64(input,(off64_t) position*sizeof(uint16_t),SEEK_SET))
     {
         return 0;
     }
-
-
-    for (i = 0; i < length; i++)
+    test = fread(rawsignal, sizeof(uint16_t), length, input);
+    read = test;
+    if (test != length)
     {
-        test = fread(&iv, sizeof(uint16_t), 1, input);
-        if (test == 1)
-        {
-            read++;
-            current[i] = chimera_gain(iv, daqsetup);
-        }
-        else
-        {
-            perror("End of file reached");
-            break;
-        }
+        perror("End of file reached");
     }
+
+    chimera_gain(current, rawsignal, read, daqsetup);
+    return read;
+}
+
+void swapByteOrder(double *current, uint64_t *rawsignal, int64_t length)
+{
+    union doublebits bitval;
+    int64_t i;
+    for (i=0; i<length; i++)
+    {
+        bitval.bits = rawsignal[2*i];
+        bitval.bits = (bitval.bits >> 56) |
+          ((bitval.bits<<40) & 0x00FF000000000000) |
+          ((bitval.bits<<24) & 0x0000FF0000000000) |
+          ((bitval.bits<<8) & 0x000000FF00000000) |
+          ((bitval.bits>>8) & 0x00000000FF000000) |
+          ((bitval.bits>>24) & 0x0000000000FF0000) |
+          ((bitval.bits>>40) & 0x000000000000FF00) |
+          (bitval.bits << 56);
+        current[i] = bitval.currentval;
+    }
+}
+
+
+int64_t read_current_double(FILE *input, double *current, uint64_t *rawsignal, int64_t position, int64_t length)
+{
+    int64_t test;
+
+    int64_t read = 0;
+
+    if (fseeko64(input,(off64_t) position*2*sizeof(double),SEEK_SET))
+    {
+        return 0;
+    }
+    test = fread(rawsignal, sizeof(uint64_t), length, input);
+    read = test;
+    if (test != length)
+    {
+        perror("End of file reached");
+    }
+    swapByteOrder(current, rawsignal, length);
     return read;
 }
 
 
-
-
-inline void swapByteOrder_int16(uint16_t *ull)
+void swapByteOrder_int16(double *current, uint16_t *rawsignal, int64_t length)
 {
-    *ull = (*ull>>8)|(*ull<<8);
+    union float16_bits bitval;
+    int64_t i;
+    for (i=0; i<length; i++)
+    {
+        bitval.bits = rawsignal[2*i];
+        bitval.bits = (bitval.bits>>8)|(bitval.bits<<8);
+        current[i] = bitval.currentval;
+    }
 }
 
 
-int64_t read_current_int16(FILE *input, double *current, int64_t position, int64_t length)
+int64_t read_current_int16(FILE *input, double *current, uint16_t *rawsignal, int64_t position, int64_t length)
 {
     int64_t test;
-    int16_t iv[2];
 
-    int64_t i;
     int64_t read = 0;
 
-    if (fseeko64(input,(off64_t) position*2*sizeof(int16_t),SEEK_SET))
+    if (fseeko64(input,(off64_t) position*2*sizeof(uint16_t),SEEK_SET))
     {
         return 0;
     }
-
-
-    for (i = 0; i < length; i++)
+    test = fread(rawsignal, sizeof(uint16_t), length, input);
+    read = test;
+    if (test != length)
     {
-        test = fread(iv, sizeof(int16_t), 2, input);
-        if (test == 2)
-        {
-            read++;
-            swapByteOrder_int16((uint16_t *) &iv[0]);
-            current[i] = (double) iv[0];
-        }
-        else
-        {
-            perror("End of file reached");
-            break;
-        }
-
+        perror("End of file reached");
     }
+    swapByteOrder_int16(current, rawsignal, length);
     return read;
 }
 
@@ -342,51 +368,7 @@ void print_histogram(char *filename, histostruct *histogram)
 }
 
 
-inline void swapByteOrder(int64_t *ull)
-{
-    *ull = (*ull >> 56) |
-          ((*ull<<40) & 0x00FF000000000000) |
-          ((*ull<<24) & 0x0000FF0000000000) |
-          ((*ull<<8) & 0x000000FF00000000) |
-          ((*ull>>8) & 0x00000000FF000000) |
-          ((*ull>>24) & 0x0000000000FF0000) |
-          ((*ull>>40) & 0x000000000000FF00) |
-          (*ull << 56);
-}
 
-
-int64_t read_current_double(FILE *input, double *current, int64_t position, int64_t length)
-{
-    int64_t test;
-    double iv[2];
-
-    int64_t i;
-    int64_t read = 0;
-
-    if (fseeko64(input,(off64_t) position*2*sizeof(double),SEEK_SET))
-    {
-        return 0;
-    }
-
-
-    for (i = 0; i < length; i++)
-    {
-        test = fread(iv, sizeof(double), 2, input);
-        if (test == 2)
-        {
-            read++;
-            swapByteOrder((int64_t *) &iv[0]);
-            current[i] = iv[0];
-        }
-        else
-        {
-            perror("End of file reached: ");
-            break;
-        }
-
-    }
-    return read;
-}
 
 
 void configure_defaults(configuration *config)

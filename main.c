@@ -69,6 +69,19 @@ int main()
     }
     //allocate memory for file reading
     double *signal = calloc_and_check(config->readlength,sizeof(double), "Cannot allocate file reading signal array");
+    void *rawsignal = NULL;
+    switch (config->datatype)
+    {
+        case 0:
+            rawsignal = calloc_and_check(config->readlength, sizeof(uint16_t), "Cannot allocate chimera rawsignal array");
+            break;
+        case 16:
+            rawsignal = calloc_and_check(config->readlength, 2*sizeof(uint16_t), "Cannot allocate f2 rawsignal array");
+            break;
+        case 64:
+            rawsignal = calloc_and_check(config->readlength, 2*sizeof(uint64_t), "Cannot allocate f8 rawsignal array");
+            break;
+    }
 
     histostruct *histogram;
     histogram = calloc_and_check(1,sizeof(histostruct),"Cannot allocate histogram structure");
@@ -122,7 +135,7 @@ int main()
     {
         snprintf(progressmsg,STRLENGTH*sizeof(char)," %g seconds processed",(pos-config->start)/(double) config->samplingfreq);
         progressbar(pos-config->start,config->finish-config->start,progressmsg,difftime(time(&curr_time),start_time));
-        read = read_current(input, signal, pos, intmin(config->readlength,config->finish - pos), config->datatype, config->daqsetup);
+        read = read_current(input, signal, rawsignal, pos, intmin(config->readlength,config->finish - pos), config->datatype, config->daqsetup);
         if (read < config->readlength || feof(input))
         {
             endflag = 1;
@@ -205,7 +218,7 @@ int main()
         identify_step_events(current_event, config->stepfit_samples, config->subevent_minpoints, config->attempt_recovery);
         filter_long_events(current_event, config->event_maxpoints);
         filter_short_events(current_event, config->event_minpoints);
-        generate_trace(input, current_event, config->datatype, logfile, lpfilter, config->eventfilter, config->daqsetup, config->samplingfreq, current_edge, last_end, config->start, config->subevent_minpoints);
+        generate_trace(input, current_event, config->datatype, rawsignal, logfile, lpfilter, config->eventfilter, config->daqsetup, config->samplingfreq, current_edge, last_end, config->start, config->subevent_minpoints);
         last_end = current_event->finish;
         cusum(current_event, config->cusum_delta, config->cusum_min_threshold, config->cusum_max_threshold, config->subevent_minpoints);
         typeswitch += average_cusum_levels(current_event, config->subevent_minpoints, config->cusum_minstep, config->attempt_recovery);
@@ -251,6 +264,7 @@ int main()
     free(config->daqsetup);
     free(config);
     free(error_summary);
+    free(rawsignal);
 
 
     if (config->usefilter)

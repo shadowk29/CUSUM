@@ -509,7 +509,7 @@ void event_baseline(event *current_event, double baseline_min, double baseline_m
 
 
 
-void generate_trace(FILE *input, event *current, int datatype, FILE *logfile, bessel *lpfilter, int eventfilter, chimera *daqsetup, int64_t samplingfreq, edge *current_edge, int64_t last_end, int64_t start, int64_t subevent_minpoints)
+void generate_trace(FILE *input, event *current, int datatype, void *rawsignal, FILE *logfile, bessel *lpfilter, int eventfilter, chimera *daqsetup, int64_t samplingfreq, edge *current_edge, int64_t last_end, int64_t start, int64_t subevent_minpoints)
 {
 #ifdef DEBUG
     printf("Generate Trace\n");
@@ -567,7 +567,7 @@ void generate_trace(FILE *input, event *current, int datatype, FILE *logfile, be
             exit(17);
         }
 
-        read = read_current(input, current->signal, position, current->length + current->padding_before + current->padding_after, datatype, daqsetup);
+        read = read_current(input, current->signal, rawsignal, position, current->length + current->padding_before + current->padding_after, datatype, daqsetup);
 
 
         if (read != current->length + current->padding_before + current->padding_after)
