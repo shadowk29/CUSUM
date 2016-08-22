@@ -129,14 +129,10 @@ int64_t read_current_double(FILE *input, double *current, uint64_t *rawsignal, i
 
 void swapByteOrder_int16(double *current, uint16_t *rawsignal, int64_t length)
 {
-    union float16_bits bitval;
     int64_t i;
     for (i=0; i<length; i++)
     {
-        bitval.bits = rawsignal[2*i];
-        bitval.bits = (bitval.bits>>8)|(bitval.bits<<8);
-        bitval.longbits = (uint64_t) bitval.bits;
-        current[i] = bitval.currentval;
+        current[i] = (double) ((rawsignal[2*i]>>8)|(rawsignal[2*i]<<8));
     }
 }
 

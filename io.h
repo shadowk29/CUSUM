@@ -14,13 +14,6 @@ union doublebits
     uint64_t bits;
 };
 
-union float16_bits
-{
-    double currentval;
-    uint64_t longbits;
-    uint16_t bits;
-};
-
 void configure_defaults(configuration *config);
 void config_sanity_check(configuration *config, FILE *logfile);
 void print_error_summary(FILE *logfile, int64_t *error_summary, int64_t numevents);
