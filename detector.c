@@ -535,7 +535,7 @@ void generate_trace(FILE *input, event *current, int datatype, void *rawsignal, 
         current->padding_after = padding;
         if (current->start - start < current->padding_before)
         {
-            current->padding_before = current->start;
+            current->padding_before = current->start - start;
         }
         else if (current->start - current->padding_before < last_end)
         {
