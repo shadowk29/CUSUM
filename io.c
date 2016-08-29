@@ -116,9 +116,9 @@ int64_t read_current_double(FILE *input, double *current, uint64_t *rawsignal, i
     {
         return 0;
     }
-    test = fread(rawsignal, sizeof(uint64_t), length, input);
-    read = test;
-    if (test != length)
+    test = fread(rawsignal, sizeof(uint64_t), 2*length, input);
+    read = test/2;
+    if (test != 2*length)
     {
         perror("End of file reached");
     }
@@ -147,9 +147,9 @@ int64_t read_current_int16(FILE *input, double *current, uint16_t *rawsignal, in
     {
         return 0;
     }
-    test = fread(rawsignal, sizeof(uint16_t), length, input);
-    read = test;
-    if (test != length)
+    test = fread(rawsignal, sizeof(uint16_t), 2*length, input);
+    read = test/2;
+    if (test != 2*length)
     {
         perror("End of file reached");
     }
