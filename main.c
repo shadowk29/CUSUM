@@ -18,7 +18,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
+#include<limits.h>
 #include"io.h"
 #include"utils.h"
 #include"detector.h"
@@ -26,12 +26,14 @@
 #include"stepfit.h"
 #define _VERSION_ "2.1.0"
 
-
-
 int main()
 {
+    if (!(sizeof(double) * CHAR_BIT == 64))
+    {
+        printf("CUSUM requires 64-bit doubles\nPlease recompile with an appropriate compiler\n");
+        exit(-1);
+    }
     //read the configuration file
-
     configuration *config;
     config = calloc_and_check(1,sizeof(configuration),"Cannot allocate config struct");
     config->daqsetup = calloc_and_check(1,sizeof(chimera),"Cannot allocate DAQ struct");
