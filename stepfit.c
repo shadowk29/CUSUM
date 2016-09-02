@@ -25,75 +25,26 @@
 */
 #include "stepfit.h"
 
-int expb_f (const gsl_vector * x, void *data, gsl_vector * f)
+double heaviside(double x)
 {
-    int64_t n = ((struct data *)data)->n;
-    double *y = ((struct data *)data)->y;
-    double *weight = ((struct data *)data)->weight;
+    return x>0 ? 1 : 0;
+}
 
-    double i0 = gsl_vector_get (x, 0);
-    double a = gsl_vector_get (x, 1);
-    double u1 = gsl_vector_get (x, 2);
-    double tau1 = gsl_vector_get (x, 3);
-    double b = gsl_vector_get (x, 4);
-    double u2 = gsl_vector_get (x, 5);
-    double tau2 = gsl_vector_get (x, 6);
+double stepfunc(double time, const double *p)
+{
+    return p[0] - p[1]*heaviside(time-p[2])*(1.0-exp(-(time-p[2])/p[3])) + p[4]*heaviside(time-p[5])*(1.0-exp(-(time-p[5])/p[6]));     /* Linear fit function; note f = a - b*x */
+}
+
+void time_array(double *time, double timestep, int64_t m)
+{
     int64_t i;
-    for (i = 0; i < n; i++)
+    for (i=0; i<m; i++)
     {
-        double t = i;
-        double Yi = i0;
-        if (t > u1)
-        {
-            Yi += a*(exp(-(t-u1)/tau1)-1);
-        }
-        if (t > u2)
-        {
-            Yi += b*(1-exp(-(t-u2)/tau2));
-        }
-        gsl_vector_set (f, i, (Yi - y[i])/weight[i]);
+        time[i] = i * timestep;
     }
-    return GSL_SUCCESS;
 }
 
-int expb_df (const gsl_vector * x, void *data, gsl_matrix * J)
-{
-    int64_t n = ((struct data *)data)->n;
-    double *weight = ((struct data *)data)->weight;
-    double a = gsl_vector_get (x, 1);
-    double u1 = gsl_vector_get (x, 2);
-    double tau1 = gsl_vector_get (x, 3);
-    double b = gsl_vector_get (x, 4);
-    double u2 = gsl_vector_get (x, 5);
-    double tau2 = gsl_vector_get (x, 6);
-
-    int64_t i;
-
-    for (i = 0; i < n; i++)
-    {
-        double t = i;
-        double s = weight[i];
-        gsl_matrix_set (J, i, 0, 1);
-        gsl_matrix_set (J, i, 1, t < u1 ? 0 : 1/s*(exp(-(t-u1)/tau1)-1));
-        gsl_matrix_set (J, i, 2, t < u1 ? 0 : 1/s*(a/tau1 * exp(-(t-u1)/tau1)));
-        gsl_matrix_set (J, i, 3, t < u1 ? 0 : 1/s*(a * (t-u1)/(tau1*tau1) * exp(-(t-u1)/tau1)));
-        gsl_matrix_set (J, i, 4, t < u2 ? 0 : 1/s*(1-exp(-(t-u2)/tau2)));
-        gsl_matrix_set (J, i, 5, t < u2 ? 0 : 1/s*(b/tau2 * (-exp(-(t-u2)/tau2))));
-        gsl_matrix_set (J, i, 6, t < u2 ? 0 :  1/s*(-b * (t-u2)/(tau2*tau2) * exp(-(t-u2)/tau2)));
-    }
-    return GSL_SUCCESS;
-}
-
-int expb_fdf (const gsl_vector * x, void *data, gsl_vector * f, gsl_matrix * J)
-{
-    expb_f (x, data, f);
-    expb_df (x, data, J);
-
-    return GSL_SUCCESS;
-}
-
-
-void step_response(event *current, double risetime, int64_t maxiters, double minstep)
+void step_response(event *current, double risetime, double minstep, double timestep)
 {
 #ifdef DEBUG
     printf("StepResponse\n");
@@ -101,86 +52,42 @@ void step_response(event *current, double risetime, int64_t maxiters, double min
 #endif // DEBUG
     if (current->type == STEPRESPONSE)
     {
-        const gsl_multifit_fdfsolver_type *T;
-        gsl_multifit_fdfsolver *s;
-        int status = GSL_CONTINUE;
-        int64_t i,iter = 0;
-        int64_t p = 7;
-        int64_t n = current->length + current->padding_before + current->padding_after;
-        double *weight;
-        weight = calloc_and_check(n,sizeof(double),"Cannot allocate weight array");
-
-        gsl_matrix *covar = gsl_matrix_alloc (p, p);
-
-        gsl_multifit_function_fdf f;
-
+        int64_t m = current->length + current->padding_before + current->padding_after; //number of data points
+        double *time;
+        time = calloc_and_check(m, sizeof(double), "cannot allocate stepfit time array"); //time array
+        int64_t n = 7; // number of parameters in model function f
+        double par[n];  // parameter array
 
         double maxsignal = signal_max(current->signal, current->length + current->padding_before + current->padding_after);
         double minsignal = signal_min(current->signal, current->length + current->padding_before + current->padding_after);
         double baseline = signal_average(current->signal,current->padding_before);
         int sign = signum(baseline);
-        int64_t start = current->padding_before - intmin(current->length/2, current->padding_before/4);
-        int64_t end = current->padding_before+current->length;
+        int64_t start = current->padding_before;
+        int64_t end = current->finish;
+
+        par[0] = baseline;
+        par[1] = (sign < 0 ? maxsignal - minsignal: minsignal - maxsignal);
+        par[2] = start - (int64_t) (2 * risetime / timestep);
+        par[3] = risetime;
+        par[4] = (sign < 0 ? maxsignal - minsignal: minsignal - maxsignal);
+        par[5] = end - (int64_t) (2 * risetime / timestep);
+        par[6] = risetime;
 
 
-        for (i=0; i<n; i++)
-        {
-            if (i < start)
-            {
-                weight[i] = 1;
-            }
-            else if (i < end)
-            {
-                weight[i] = 0.3;
-            }
-            else
-            {
-                weight[i] = 1;
-            }
-        }
-        struct data d = {n, current->signal,weight};
+        int64_t i;
 
-        gsl_vector *x = gsl_vector_alloc(p);
-        gsl_vector_set(x,0,baseline);
-        gsl_vector_set(x,1,sign < 0 ? maxsignal - minsignal: minsignal - maxsignal);
-        gsl_vector_set(x,2,start);
-        gsl_vector_set(x,3,risetime);
-        gsl_vector_set(x,4,sign < 0 ? maxsignal - minsignal: minsignal - maxsignal);
-        gsl_vector_set(x,5,end - current->length/2);
-        gsl_vector_set(x,6,risetime);
+        lm_control_struct control = lm_control_double;
+        lm_status_struct status;
 
+        lmcurve_int64( n, par, m, time, current->signal, stepfunc, &control, &status );
 
-        f.f = &expb_f;
-        f.df = &expb_df;
-        f.fdf = &expb_fdf;
-        f.n = n;
-        f.p = p;
-        f.params = &d;
-
-        T = gsl_multifit_fdfsolver_lmsder;
-        s = gsl_multifit_fdfsolver_alloc (T, n, p);
-        gsl_multifit_fdfsolver_set (s, &f, x);
-
-
-        while (iter < maxiters && status == GSL_CONTINUE)
-        {
-            iter++;
-            status = gsl_multifit_fdfsolver_iterate (s);
-            if (status)
-            {
-                break;
-            }
-            status = gsl_multifit_test_delta (s->dx, s->x,1e-3, 1e-3);
-        }
-
-
-        double i0 = FIT(0);
-        double a = FIT(1);
-        int64_t u1 = FIT(2);
-        double rc1 = FIT(3);
-        double b = FIT(4);
-        int64_t u2 = FIT(5);
-        double rc2 = FIT(6);
+        double i0 = par[0];
+        double a = par[1];
+        int64_t u1 = par[2];
+        double rc1 = par[3];
+        double b = par[4];
+        int64_t u2 = par[5];
+        double rc2 = par[6];
         double residual = 0;
 
         //printf("i0 = %g\na=%g\nu1=%"PRId64"\nb=%g\nu2=%"PRId64"\n",i0,a,u1,b,u2);
@@ -227,13 +134,13 @@ void step_response(event *current, double risetime, int64_t maxiters, double min
             current->filtered_signal[i] = i0;
             residual += (current->signal[i]-i0)*(current->signal[i]-i0);
         }
-        for (i=u1; i<u2; i++)
+        for (i=(int64_t) u1; i<u2; i++)
         {
             t = i;
             current->filtered_signal[i] = i0-a;
             residual += (current->signal[i]-(i0+a*(exp(-(t-u1)/rc1)-1)))*(current->signal[i]-(i0+a*(exp(-(t-u1)/rc1)-1)));
         }
-        for (i=u2; i<n; i++)
+        for (i=(int64_t) u2; i<n; i++)
         {
             t = i;
             current->filtered_signal[i] = i0-a+b;
@@ -242,15 +149,6 @@ void step_response(event *current, double risetime, int64_t maxiters, double min
         current->rc1 = rc1;
         current->rc2 = rc2;
         current->residual = sqrt(residual/(current->length + current->padding_before + current->padding_after));
-
-        gsl_multifit_fdfsolver_free (s);
-        gsl_matrix_free (covar);
-        gsl_vector_free(x);
-        free(weight);
-        if (status != GSL_SUCCESS)
-        {
-            current->type = BADFIT;
-        }
     }
 }
 

@@ -224,7 +224,7 @@ int main()
         last_end = current_event->finish;
         cusum(current_event, config->cusum_delta, config->cusum_min_threshold, config->cusum_max_threshold, config->subevent_minpoints);
         typeswitch += average_cusum_levels(current_event, config->subevent_minpoints, config->cusum_minstep, config->attempt_recovery);
-        step_response(current_event, risetime, config->maxiters, config->cusum_minstep);
+        step_response(current_event, risetime, config->cusum_minstep, 1.0/config->samplingfreq);
         populate_event_levels(current_event);
         calculate_level_noise(current_event, config->subevent_minpoints);
         refine_event_estimates(current_event);
