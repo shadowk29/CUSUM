@@ -44,7 +44,7 @@ void time_array(double *time, double timestep, int64_t m)
     }
 }
 
-void step_response(event *current, double risetime, double minstep, double timestep)
+void step_response(event *current, double risetime, int64_t maxiters, double minstep, double timestep)
 {
 #ifdef DEBUG
     printf("StepResponse\n");
@@ -77,9 +77,16 @@ void step_response(event *current, double risetime, double minstep, double times
         int64_t i;
 
         lm_control_struct control = lm_control_double;
+        control.patience = maxiters;
         lm_status_struct status;
 
         lmcurve_int64( n, par, m, time, current->signal, stepfunc, &control, &status );
+
+        if (status.outcome < 1 || status.outcome > 3)
+        {
+            current->type = BADFIT;
+            return;
+        }
 
         double i0 = par[0];
         double a = par[1];
@@ -107,7 +114,7 @@ void step_response(event *current, double risetime, double minstep, double times
             rc2 = dtemp;
         }
 
-        if (u2 >= n || u1 <= 0) //if for some reason we are out of range
+        if (u2 >= m || u1 <= 0) //if for some reason we are out of range
         {
             current->type = FITRANGE;
             return;
@@ -149,6 +156,7 @@ void step_response(event *current, double risetime, double minstep, double times
         current->rc1 = rc1;
         current->rc2 = rc2;
         current->residual = sqrt(residual/(current->length + current->padding_before + current->padding_after));
+        free(time);
     }
 }
 

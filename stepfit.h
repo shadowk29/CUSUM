@@ -16,6 +16,6 @@ double stepfunc(double time, const double *p);
 void time_array(double *time, double timestep, int64_t m);
 
 
-void step_response(event *current, double risetime, double minstep, double timestep);
+void step_response(event *current, double risetime, int64_t maxiters, double minstep, double timestep);
 
 #endif //STEPFIT_H_INCLUDED
