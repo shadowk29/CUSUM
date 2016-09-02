@@ -80,7 +80,7 @@ void step_response(event *current, double risetime, int64_t maxiters, double min
         control.patience = maxiters;
         lm_status_struct status;
 
-        lmcurve_int64( n, par, m, time, current->signal, stepfunc, &control, &status );
+        lmcurve_int64(n, par, m, time, current->signal, stepfunc, &control, &status );
 
         if (status.outcome < 1 || status.outcome > 3)
         {
