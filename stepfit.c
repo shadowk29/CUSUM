@@ -32,7 +32,7 @@ double heaviside(double x)
 
 double stepfunc(double time, const double *p)
 {
-    return p[0] - p[1]*heaviside(time-p[2])*(1.0-exp(-(time-p[2])/p[3])) + p[4]*heaviside(time-p[5])*(1.0-exp(-(time-p[5])/p[6]));     /* Linear fit function; note f = a - b*x */
+    return p[0] - p[1]*heaviside(time-p[2])*(1.0-exp(-(time-p[2])/p[3])) + p[4]*heaviside(time-p[5])*(1.0-exp(-(time-p[5])/p[6]));
 }
 
 void time_array(double *time, double timestep, int64_t m)
@@ -63,7 +63,7 @@ void step_response(event *current, double risetime, int64_t maxiters, double min
         double baseline = signal_average(current->signal,current->padding_before);
         int sign = signum(baseline);
         int64_t start = current->padding_before;
-        int64_t end = current->finish;
+        int64_t end = current->length + current->padding_before;
 
         par[0] = baseline;
         par[1] = (sign < 0 ? maxsignal - minsignal: minsignal - maxsignal);

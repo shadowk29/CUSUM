@@ -117,7 +117,15 @@ int main()
     fprintf(logfile, "Locating events...\n ");
     fflush(stdout);
 
-    double risetime = 5; //FIXME
+    double risetime;
+    if (config->eventfilter || config->usefilter)
+    {
+        risetime = 2.0/(config->cutoff * config->samplingfreq);
+    }
+    else
+    {
+        risetime = 5.0/config->samplingfreq;
+    }
     int64_t typeswitch = 0;
     double baseline;
     double badbaseline = 0;
