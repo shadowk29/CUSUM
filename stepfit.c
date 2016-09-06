@@ -30,11 +30,13 @@ double heaviside(double x)
     return x>0 ? 1 : 0;
 }
 
-double stepfunc(double time, const double *p)
+double stepfunc(double time, const double *p, double maxlength)
 {
     double sigma1 = exp(p[3]);
     double sigma2 = exp(p[6]);
-    return p[0] - p[1]*heaviside(time-p[2])*(1.0-exp(-(time-p[2])/sigma1)) + p[4]*heaviside(time-p[5])*(1.0-exp(-(time-p[5])/sigma2));
+    double t1 = maxlength/2.0 * (1.0 + tanh(p[2]));
+    double t2 = maxlength/2.0 * (1.0 + tanh(p[5]));
+    return p[0] - p[1]*heaviside(time-t1)*(1.0-exp(-(time-t1)/sigma1)) + p[4]*heaviside(time-t2)*(1.0-exp(-(time-t2)/sigma2));
 }
 
 void time_array(double *time, int64_t m)
@@ -53,7 +55,7 @@ void evaluate(const double *p, int64_t length, const void *data, double *fvec, i
 
     int64_t i;
     for (i=0; i<length; i++)
-    fvec[i] = D->signal[i] - D->stepfunc(D->time[i], p);
+    fvec[i] = D->signal[i] - D->stepfunc(D->time[i], p, D->maxlength);
 }
 
 void step_response(event *current, double risetime, int64_t maxiters, double minstep)
@@ -70,7 +72,7 @@ void step_response(event *current, double risetime, int64_t maxiters, double min
         time_array(time, length);
         int64_t n = 7; // number of parameters in model function f
         double par[n];  // parameter array
-        data_struct data = {time, current->signal, stepfunc};
+
 
         double maxsignal = signal_max(current->signal, current->length + current->padding_before + current->padding_after);
         double minsignal = signal_min(current->signal, current->length + current->padding_before + current->padding_after);
@@ -78,13 +80,18 @@ void step_response(event *current, double risetime, int64_t maxiters, double min
         int sign = signum(baseline);
         int64_t start = current->padding_before;
         int64_t end = current->length + current->padding_before;
+        double stepguess = 0.66 * sign * (minsignal - maxsignal);
+        double maxlength = (double) length;
+
+
+        data_struct data = {time, current->signal, maxlength, stepfunc};
 
         par[0] = baseline;
-        par[1] = 0.66*(sign > 0 ? maxsignal - minsignal: minsignal - maxsignal);
-        par[2] = start - (int64_t) ( risetime);
+        par[1] = stepguess;
+        par[2] = atanh(2.0*(start - (int64_t) risetime)/maxlength - 1.0);
         par[3] = log(risetime);
-        par[4] = 0.66*(sign > 0 ? maxsignal - minsignal: minsignal - maxsignal);
-        par[5] = end - (int64_t) (risetime);
+        par[4] = stepguess;
+        par[5] = atanh(2.0*(end - (int64_t) risetime)/maxlength - 1.0);
         par[6] = log(risetime);
 
         int64_t i;
@@ -104,36 +111,14 @@ void step_response(event *current, double risetime, int64_t maxiters, double min
 
         double i0 = par[0];
         double a = par[1];
-        int64_t u1 = par[2];
+        int64_t u1 = maxlength/2.0 * (1.0 + tanh(par[2]));
         double rc1 = exp(par[3]);
         double b = par[4];
-        int64_t u2 = par[5];
+        int64_t u2 = maxlength/2.0 * (1.0 + tanh(par[5]));
         double rc2 = exp(par[6]);
         double residual = 0;
 
-        //printf("i0 = %g\na=%g\nu1=%"PRId64"\nb=%g\nu2=%"PRId64"\n",i0,a,u1,b,u2);
-
-        if (u1 > u2) //if the fit got stuck in a variable swapped equivalent minimum, we can just reverse the paramters
-        {
-            int64_t temp;
-            double dtemp;
-            temp = u1;
-            u1 = u2;
-            u2 = temp;
-            dtemp = a;
-            a = -b;
-            b = -dtemp;
-            dtemp = rc1;
-            rc1 = rc2;
-            rc2 = dtemp;
-        }
-
-        if (u2 >= length || u1 <= 0) //if for some reason we are out of range
-        {
-            current->type = FITRANGE;
-            return;
-        }
-        else if (signum(a) != signum(b)) //if it is not a step-and-return event
+        if (signum(a) != signum(b)) //if it is not a step-and-return event
         {
             current->type = FITSIGN;
             return;
@@ -144,7 +129,6 @@ void step_response(event *current, double risetime, int64_t maxiters, double min
             return;
         }
         else if (signum(a) != sign || signum(b) != sign)
-
         {
             current->type = FITDIR;
             return;
