@@ -44,6 +44,16 @@ void time_array(double *time, int64_t m)
     }
 }
 
+void evaluate(const double *p, int64_t length, const void *data, double *fvec, int64_t *userbreak)
+{
+    data_struct *D;
+    D = (data_struct*)data;
+
+    int64_t i;
+    for (i=0; i<length; i++)
+    fvec[i] = D->signal[i] - D->stepfunc(D->time[i], p);
+}
+
 void step_response(event *current, double risetime, int64_t maxiters, double minstep)
 {
 #ifdef DEBUG
@@ -58,6 +68,7 @@ void step_response(event *current, double risetime, int64_t maxiters, double min
         time_array(time, length);
         int64_t n = 7; // number of parameters in model function f
         double par[n];  // parameter array
+        data_struct data = {time, current->signal, stepfunc};
 
         double maxsignal = signal_max(current->signal, current->length + current->padding_before + current->padding_after);
         double minsignal = signal_min(current->signal, current->length + current->padding_before + current->padding_after);
@@ -67,10 +78,10 @@ void step_response(event *current, double risetime, int64_t maxiters, double min
         int64_t end = current->length + current->padding_before;
 
         par[0] = baseline;
-        par[1] = (sign > 0 ? maxsignal - minsignal: minsignal - maxsignal);
+        par[1] = 0.66*(sign > 0 ? maxsignal - minsignal: minsignal - maxsignal);
         par[2] = start - (int64_t) ( risetime);
         par[3] = risetime;
-        par[4] = (sign > 0 ? maxsignal - minsignal: minsignal - maxsignal);
+        par[4] = 0.66*(sign > 0 ? maxsignal - minsignal: minsignal - maxsignal);
         par[5] = end - (int64_t) (risetime);
         par[6] = risetime;
 
@@ -80,7 +91,7 @@ void step_response(event *current, double risetime, int64_t maxiters, double min
         control.patience = maxiters;
         lm_status_struct status;
 
-        lmcurve_int64(n, par, length, time, current->signal, stepfunc, &control, &status );
+        lmmin_int64(n, par, length, (const void*) &data, evaluate, &control, &status );
 
 
         if (status.outcome < 1 || status.outcome > 3)

@@ -500,7 +500,6 @@ void event_baseline(event *current_event, double baseline_min, double baseline_m
         stdev = sqrt(signal_variance(signal, baseline_before_length));
         if (d_abs(baseline_before - baseline_after) > 2.5 * stdev || baseline_before > baseline_max || baseline_after > baseline_max || baseline_before < baseline_min || baseline_after < baseline_min)
         {
-            printf("\nbaseline before: %g\nbaseline after: %g\n",baseline_before,baseline_after);
             current_event->type = BADBASELINE;
         }
         current_event->baseline_before = baseline_before;
