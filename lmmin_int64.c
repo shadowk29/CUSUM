@@ -256,7 +256,7 @@ void lmmin_int64(const int64_t n, double* x, const int64_t m, const void* data,
     double* wf = (double*)pws;
     pws += m * sizeof(double) / sizeof(char);
     int64_t* Pivot = (int64_t*)pws;
-    pws += n * sizeof(int) / sizeof(char);
+    pws += n * sizeof(int64_t) / sizeof(char);
 
     /* Initialize diag. */
     if (!C->scale_diag)
