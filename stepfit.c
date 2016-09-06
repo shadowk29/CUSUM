@@ -35,16 +35,16 @@ double stepfunc(double time, const double *p)
     return p[0] - p[1]*heaviside(time-p[2])*(1.0-exp(-(time-p[2])/p[3])) + p[4]*heaviside(time-p[5])*(1.0-exp(-(time-p[5])/p[6]));
 }
 
-void time_array(double *time, double timestep, int64_t m)
+void time_array(double *time, int64_t m)
 {
     int64_t i;
     for (i=0; i<m; i++)
     {
-        time[i] = i * timestep;
+        time[i] = i;
     }
 }
 
-void step_response(event *current, double risetime, int64_t maxiters, double minstep, double timestep)
+void step_response(event *current, double risetime, int64_t maxiters, double minstep)
 {
 #ifdef DEBUG
     printf("StepResponse\n");
@@ -52,9 +52,10 @@ void step_response(event *current, double risetime, int64_t maxiters, double min
 #endif // DEBUG
     if (current->type == STEPRESPONSE)
     {
-        int64_t m = current->length + current->padding_before + current->padding_after; //number of data points
+        int64_t length = current->length + current->padding_before + current->padding_after; //number of data points
         double *time;
-        time = calloc_and_check(m, sizeof(double), "cannot allocate stepfit time array"); //time array
+        time = calloc_and_check(length, sizeof(double), "cannot allocate stepfit time array"); //time array
+        time_array(time, length);
         int64_t n = 7; // number of parameters in model function f
         double par[n];  // parameter array
 
@@ -66,13 +67,12 @@ void step_response(event *current, double risetime, int64_t maxiters, double min
         int64_t end = current->length + current->padding_before;
 
         par[0] = baseline;
-        par[1] = (sign < 0 ? maxsignal - minsignal: minsignal - maxsignal);
-        par[2] = start - (int64_t) (2 * risetime / timestep);
+        par[1] = (sign > 0 ? maxsignal - minsignal: minsignal - maxsignal);
+        par[2] = start - (int64_t) ( risetime);
         par[3] = risetime;
-        par[4] = (sign < 0 ? maxsignal - minsignal: minsignal - maxsignal);
-        par[5] = end - (int64_t) (2 * risetime / timestep);
+        par[4] = (sign > 0 ? maxsignal - minsignal: minsignal - maxsignal);
+        par[5] = end - (int64_t) (risetime);
         par[6] = risetime;
-
 
         int64_t i;
 
@@ -80,11 +80,12 @@ void step_response(event *current, double risetime, int64_t maxiters, double min
         control.patience = maxiters;
         lm_status_struct status;
 
-        lmcurve_int64(n, par, m, time, current->signal, stepfunc, &control, &status );
+        lmcurve_int64(n, par, length, time, current->signal, stepfunc, &control, &status );
+
 
         if (status.outcome < 1 || status.outcome > 3)
         {
-            current->type = BADFIT;
+            current->type = -10-status.outcome;
             return;
         }
 
@@ -114,7 +115,7 @@ void step_response(event *current, double risetime, int64_t maxiters, double min
             rc2 = dtemp;
         }
 
-        if (u2 >= m || u1 <= 0) //if for some reason we are out of range
+        if (u2 >= length || u1 <= 0) //if for some reason we are out of range
         {
             current->type = FITRANGE;
             return;
@@ -130,6 +131,7 @@ void step_response(event *current, double risetime, int64_t maxiters, double min
             return;
         }
         else if (signum(a) != sign || signum(b) != sign)
+
         {
             current->type = FITDIR;
             return;
@@ -147,7 +149,7 @@ void step_response(event *current, double risetime, int64_t maxiters, double min
             current->filtered_signal[i] = i0-a;
             residual += (current->signal[i]-(i0+a*(exp(-(t-u1)/rc1)-1)))*(current->signal[i]-(i0+a*(exp(-(t-u1)/rc1)-1)));
         }
-        for (i=(int64_t) u2; i<n; i++)
+        for (i=(int64_t) u2; i<length; i++)
         {
             t = i;
             current->filtered_signal[i] = i0-a+b;

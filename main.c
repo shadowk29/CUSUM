@@ -120,11 +120,11 @@ int main()
     double risetime;
     if (config->eventfilter || config->usefilter)
     {
-        risetime = 2.0/(config->cutoff * config->samplingfreq);
+        risetime = 2.0/config->cutoff;
     }
     else
     {
-        risetime = 5.0/config->samplingfreq;
+        risetime = 5;
     }
     int64_t typeswitch = 0;
     double baseline;
@@ -232,7 +232,7 @@ int main()
         last_end = current_event->finish;
         cusum(current_event, config->cusum_delta, config->cusum_min_threshold, config->cusum_max_threshold, config->subevent_minpoints);
         typeswitch += average_cusum_levels(current_event, config->subevent_minpoints, config->cusum_minstep, config->attempt_recovery);
-        step_response(current_event, risetime, config->maxiters, config->cusum_minstep, 1.0/config->samplingfreq);
+        step_response(current_event, risetime, config->maxiters, config->cusum_minstep);
         populate_event_levels(current_event);
         calculate_level_noise(current_event, config->subevent_minpoints);
         refine_event_estimates(current_event);
