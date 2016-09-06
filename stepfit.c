@@ -32,7 +32,9 @@ double heaviside(double x)
 
 double stepfunc(double time, const double *p)
 {
-    return p[0] - p[1]*heaviside(time-p[2])*(1.0-exp(-(time-p[2])/p[3])) + p[4]*heaviside(time-p[5])*(1.0-exp(-(time-p[5])/p[6]));
+    double sigma1 = p[3]*p[3];
+    double sigma2 = p[6]*p[6];
+    return p[0] - p[1]*heaviside(time-p[2])*(1.0-exp(-(time-p[2])/sigma1)) + p[4]*heaviside(time-p[5])*(1.0-exp(-(time-p[5])/sigma2));
 }
 
 void time_array(double *time, int64_t m)
@@ -80,10 +82,10 @@ void step_response(event *current, double risetime, int64_t maxiters, double min
         par[0] = baseline;
         par[1] = 0.66*(sign > 0 ? maxsignal - minsignal: minsignal - maxsignal);
         par[2] = start - (int64_t) ( risetime);
-        par[3] = risetime;
+        par[3] = sqrt(risetime);
         par[4] = 0.66*(sign > 0 ? maxsignal - minsignal: minsignal - maxsignal);
         par[5] = end - (int64_t) (risetime);
-        par[6] = risetime;
+        par[6] = sqrt(risetime);
 
         int64_t i;
 
@@ -103,10 +105,10 @@ void step_response(event *current, double risetime, int64_t maxiters, double min
         double i0 = par[0];
         double a = par[1];
         int64_t u1 = par[2];
-        double rc1 = par[3];
+        double rc1 = par[3]*par[3];
         double b = par[4];
         int64_t u2 = par[5];
-        double rc2 = par[6];
+        double rc2 = par[6]*par[6];
         double residual = 0;
 
         //printf("i0 = %g\na=%g\nu1=%"PRId64"\nb=%g\nu2=%"PRId64"\n",i0,a,u1,b,u2);
