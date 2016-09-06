@@ -16,12 +16,15 @@ struct Data_Struct
     double *time;
     double *signal;
     double maxlength;
-    double (*stepfunc)(double time, const double *p, double maxlength);
+    double maxstep;
+    double risetime;
+    int sign;
+    double (*stepfunc)(double time, const double *p, double maxlength, double maxstep, double risetime, int sign);
 };
 typedef struct Data_Struct data_struct;
 
 double heaviside(double x);
-double stepfunc(double time, const double *p, double maxlength);
+double stepfunc(double time, const double *p, double maxlength, double maxstep, double risetime, int sign);
 void time_array(double *time, int64_t m);
 void step_response(event *current, double risetime, int64_t maxiters, double minstep);
 

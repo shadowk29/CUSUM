@@ -30,13 +30,15 @@ double heaviside(double x)
     return x>0 ? 1 : 0;
 }
 
-double stepfunc(double time, const double *p, double maxlength)
+double stepfunc(double time, const double *p, double maxlength, double maxstep, double risetime, int sign)
 {
-    double sigma1 = exp(p[3]);
-    double sigma2 = exp(p[6]);
+    double sigma1 = risetime * exp(p[3]);
+    double sigma2 = risetime * exp(p[6]);
     double t1 = maxlength/2.0 * (1.0 + tanh(p[2]));
     double t2 = maxlength/2.0 * (1.0 + tanh(p[5]));
-    return p[0] - p[1]*heaviside(time-t1)*(1.0-exp(-(time-t1)/sigma1)) + p[4]*heaviside(time-t2)*(1.0-exp(-(time-t2)/sigma2));
+    double a = sign*maxstep/2.0 * (1.0 + tanh(p[1]));
+    double b = sign*maxstep/2.0 * (1.0 + tanh(p[4]));
+    return p[0] - a*heaviside(time-t1)*(1.0-exp(-(time-t1)/sigma1)) + b*heaviside(time-t2)*(1.0-exp(-(time-t2)/sigma2));
 }
 
 void time_array(double *time, int64_t m)
@@ -55,7 +57,7 @@ void evaluate(const double *p, int64_t length, const void *data, double *fvec, i
     *userbreak=0;
     int64_t i;
     for (i=0; i<length; i++)
-    fvec[i] = D->signal[i] - D->stepfunc(D->time[i], p, D->maxlength);
+    fvec[i] = D->signal[i] - D->stepfunc(D->time[i], p, D->maxlength, D->maxstep, D->risetime, D->sign);
 }
 
 void step_response(event *current, double risetime, int64_t maxiters, double minstep)
@@ -82,17 +84,18 @@ void step_response(event *current, double risetime, int64_t maxiters, double min
         int64_t end = current->length + current->padding_before;
         double stepguess = 0.66 * sign * (minsignal - maxsignal);
         double maxlength = (double) length;
+        double maxstep = d_abs(maxsignal - minsignal);
 
 
-        data_struct data = {time, current->signal, maxlength, stepfunc};
+        data_struct data = {time, current->signal, maxlength, maxstep, risetime, sign, stepfunc};
 
         par[0] = baseline;
-        par[1] = stepguess;
+        par[1] = atanh(2.0*stepguess/maxstep-1.0);
         par[2] = atanh(2.0*(start - (int64_t) risetime)/maxlength - 1.0);
-        par[3] = log(risetime);
-        par[4] = stepguess;
+        par[3] = 0;
+        par[4] = atanh(2.0*stepguess/maxstep-1.0);
         par[5] = atanh(2.0*(end - (int64_t) risetime)/maxlength - 1.0);
-        par[6] = log(risetime);
+        par[6] = 0;
 
         int64_t i;
 
@@ -110,12 +113,12 @@ void step_response(event *current, double risetime, int64_t maxiters, double min
         }
 
         double i0 = par[0];
-        double a = par[1];
+        double a = sign*maxstep/2.0 * (1.0 + tanh(par[1]));
         int64_t u1 = maxlength/2.0 * (1.0 + tanh(par[2]));
-        double rc1 = exp(par[3]);
-        double b = par[4];
+        double rc1 = risetime * exp(par[3]);
+        double b = sign*maxstep/2.0 * (1.0 + tanh(par[4]));
         int64_t u2 = maxlength/2.0 * (1.0 + tanh(par[5]));
-        double rc2 = exp(par[6]);
+        double rc2 = risetime * exp(par[6]);
         double residual = 0;
 
         if (signum(a) != signum(b)) //if it is not a step-and-return event
