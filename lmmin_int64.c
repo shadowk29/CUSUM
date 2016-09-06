@@ -57,6 +57,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <float.h>
+#include<inttypes.h>
 #include "lmmin_int64.h"
 
 #define MIN(a, b) (((a) <= (b)) ? (a) : (b))

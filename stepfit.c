@@ -52,7 +52,7 @@ void evaluate(const double *p, int64_t length, const void *data, double *fvec, i
 {
     data_struct *D;
     D = (data_struct*)data;
-
+    *userbreak=0;
     int64_t i;
     for (i=0; i<length; i++)
     fvec[i] = D->signal[i] - D->stepfunc(D->time[i], p, D->maxlength);
