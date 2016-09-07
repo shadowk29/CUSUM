@@ -461,7 +461,7 @@ void config_sanity_check(configuration *config, FILE *logfile)
 }
 
 
-FILE * read_config(configuration *config)
+FILE * read_config(configuration *config, const char *version)
 {
     configure_defaults(config);
     char configline[STRLENGTH];
@@ -665,6 +665,8 @@ FILE * read_config(configuration *config)
 
     FILE *logfile;
     logfile = fopen64_and_check(config->logfile,"w", 4);
+    printf("Using CUSUM version %s\n",version);
+    fprintf(logfile,"Using CUSUM version %s\n",version);
     fseek(configfile,0,SEEK_SET);
     fprintf(logfile, "<----CONFIGURATION BEGINS---->\n\n");
     while ((fgets(configline, STRLENGTH, configfile)) != NULL)

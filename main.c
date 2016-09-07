@@ -40,9 +40,8 @@ int main()
     config->daqsetup = calloc_and_check(1,sizeof(chimera),"Cannot allocate DAQ struct");
 
     FILE *logfile;
-    logfile = read_config(config);
-    printf("Using CUSUM version %s\n",_VERSION_);
-    fprintf(logfile,"Using CUSUM version %s\n",_VERSION_);
+    logfile = read_config(config, _VERSION_);
+
 
     if (config->datatype != 16 && config->datatype != 64 && config->datatype !=0)
     {
