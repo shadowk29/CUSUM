@@ -49,7 +49,6 @@ void filter_signal(double *signal, bessel *lpfilter, int64_t length)
     double *ccof = lpfilter->ccof;
     end = length+2*(order+padding);
 
-
     memcpy(&paddedsignal[order+padding],signal,length*sizeof(double));
     for (i=0; i<order+padding; i++)
     {
@@ -58,10 +57,6 @@ void filter_signal(double *signal, bessel *lpfilter, int64_t length)
         paddedsignal[end-1-i]=signal_average(signal,padding);
         temp[end-1-i]=signal_average(signal,padding);
     }
-
-
-
-
     for (i=order; i<end; i++)
     {
         temp[i] = ccof[0]*paddedsignal[i];
@@ -70,10 +65,6 @@ void filter_signal(double *signal, bessel *lpfilter, int64_t length)
             temp[i] += ccof[p]*paddedsignal[i-p] - dcof[p]*temp[i-p];
         }
     }
-
-
-
-
     for (i=0; i<order+padding; i++)
     {
         paddedsignal[end-1-i] = signal_average(&temp[order],padding);
@@ -87,10 +78,6 @@ void filter_signal(double *signal, bessel *lpfilter, int64_t length)
             paddedsignal[end-1-i] += ccof[p]*temp[end-1-i+p] - dcof[p]*paddedsignal[end-1-i+p];
         }
     }
-
-
-
-
     memcpy(signal,&paddedsignal[order+padding],length*sizeof(double));
     memset(paddedsignal,'0',(length+2*(order+padding))*sizeof(double));
     memset(temp,'0',(length+2*(order+padding))*sizeof(double));
@@ -231,33 +218,23 @@ void transform_filter(double complex *poles, double complex *zeros, int64_t N, d
 
 bessel *initialize_filter(bessel *lpfilter, int64_t order, double cutoff, int64_t length, int64_t samplingfreq)
 {
-
-
-
     if ((lpfilter = malloc(sizeof(bessel)))==NULL)
     {
         printf("Cannot allocate filter memory\n");
         exit(36);
     }
-
-
-
     lpfilter->order = order;
     lpfilter->cutoff = cutoff;
     lpfilter->padding = (int64_t) (100e-6*samplingfreq);
-
 
     double complex *poles;
     double complex *zeros;
 
     poles = calloc_and_check(order,sizeof(double complex),"Cannot allocate Bessel poles");
-
     zeros = calloc_and_check(order,sizeof(double complex),"Cannot allocate Bessel zeros");
 
     lpfilter->ccof = calloc_and_check(order+1,sizeof(double complex),"Cannot allocate ccof");
-
     lpfilter->dcof = calloc_and_check(order+1,sizeof(double complex),"Cannot allocate dcof");
-
 
     double fs = 2.0;
     double warped = 2.0 * fs * tan(M_PI * cutoff / fs);
