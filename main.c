@@ -33,6 +33,7 @@ int main()
         printf("CUSUM requires 64-bit doubles\nPlease recompile with an appropriate compiler\n");
         exit(-1);
     }
+
     //read the configuration file
     configuration *config;
     config = calloc_and_check(1,sizeof(configuration),"Cannot allocate config struct");
@@ -40,6 +41,8 @@ int main()
 
     FILE *logfile;
     logfile = read_config(config);
+    printf("Using CUSUM version %s\n",_VERSION_);
+    fprintf(logfile,"Using CUSUM version %s\n",_VERSION_);
 
     if (config->datatype != 16 && config->datatype != 64 && config->datatype !=0)
     {
