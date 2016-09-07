@@ -279,7 +279,7 @@ int main()
     free(rawsignal);
 
 
-    if (config->usefilter)
+    if (config->usefilter || config->eventfilter)
     {
         free_filter(lpfilter);
     }
