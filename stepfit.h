@@ -8,7 +8,6 @@
 #include"utils.h"
 #include"detector.h"
 #include"lmstruct_int64.h"
-#include"lmcurve_int64.h"
 #include"lmmin_int64.h"
 
 struct Data_Struct
