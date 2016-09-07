@@ -7,7 +7,17 @@
 #include<math.h>
 #include<inttypes.h>
 
-
+struct Bessel
+{
+    double *dcof;
+    double *ccof;
+    double cutoff;
+    int64_t order;
+    int64_t padding;
+    double *paddedsignal;
+    double *temp;
+};
+typedef struct Bessel bessel;
 
 void besselap(int64_t N, double complex *poles, double complex *zeros);
 void polymult(double complex *roots, int64_t N, double *rcoefs);

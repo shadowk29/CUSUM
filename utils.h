@@ -36,18 +36,6 @@ struct Chimera
 };
 typedef struct Chimera chimera;
 
-struct Bessel
-{
-    double *dcof;
-    double *ccof;
-    double cutoff;
-    int64_t order;
-    int64_t padding;
-    double *paddedsignal;
-    double *temp;
-    double *tempback;
-};
-typedef struct Bessel bessel;
 
 struct Cusumlevel
 {

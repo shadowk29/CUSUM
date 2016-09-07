@@ -45,7 +45,6 @@ void filter_signal(double *signal, bessel *lpfilter, int64_t length)
     int64_t padding = lpfilter->padding;
     double *paddedsignal = lpfilter->paddedsignal;
     double *temp = lpfilter->temp;
-    double *tempback = lpfilter->tempback;
     double *dcof = lpfilter->dcof;
     double *ccof = lpfilter->ccof;
     end = length+2*(order+padding);
@@ -77,25 +76,24 @@ void filter_signal(double *signal, bessel *lpfilter, int64_t length)
 
     for (i=0; i<order+padding; i++)
     {
-        tempback[end-1-i] = signal_average(&temp[order],padding);
-        tempback[i] = signal_average(&temp[order],padding);
+        paddedsignal[end-1-i] = signal_average(&temp[order],padding);
+        paddedsignal[i] = signal_average(&temp[order],padding);
     }
     for (i=order; i<end; i++)
     {
-        tempback[end-1-i] = ccof[0]*temp[end-1-i];
+        paddedsignal[end-1-i] = ccof[0]*temp[end-1-i];
         for (p=1; p<=order; p++)
         {
-            tempback[end-1-i] += ccof[p]*temp[end-1-i+p] - dcof[p]*tempback[end-1-i+p];
+            paddedsignal[end-1-i] += ccof[p]*temp[end-1-i+p] - dcof[p]*paddedsignal[end-1-i+p];
         }
     }
 
 
 
 
-    memcpy(signal,&tempback[order+padding],length*sizeof(double));
+    memcpy(signal,&paddedsignal[order+padding],length*sizeof(double));
     memset(paddedsignal,'0',(length+2*(order+padding))*sizeof(double));
     memset(temp,'0',(length+2*(order+padding))*sizeof(double));
-    memset(tempback,'0',(length+2*(order+padding))*sizeof(double));
 }
 
 
@@ -271,13 +269,9 @@ bessel *initialize_filter(bessel *lpfilter, int64_t order, double cutoff, int64_
     transform_filter(poles, zeros, order, scale, lpfilter->ccof, lpfilter->dcof);
 
     lpfilter->temp = NULL;
-    lpfilter->tempback = NULL;
     lpfilter->paddedsignal = NULL;
 
     lpfilter->temp = calloc_and_check(length+2*(order+lpfilter->padding), sizeof(double),"Cannot allocate filter temp");
-
-    lpfilter->tempback = calloc_and_check(length+2*(order+lpfilter->padding), sizeof(double),"Cannot allocate filter tempback");
-
     lpfilter->paddedsignal = calloc_and_check(length+2*(order+lpfilter->padding), sizeof(double),"Cannot allocate paddedsignal");
 
     free(poles);
@@ -290,7 +284,6 @@ void free_filter(bessel *lpfilter)
     free(lpfilter->dcof);
     free(lpfilter->ccof);
     free(lpfilter->temp);
-    free(lpfilter->tempback);
     free(lpfilter->paddedsignal);
     free(lpfilter);
 }
