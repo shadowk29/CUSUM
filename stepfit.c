@@ -108,7 +108,14 @@ void step_response(event *current, double risetime, int64_t maxiters, double min
 
         if (status.outcome < 1 || status.outcome > 3)
         {
-            current->type = -10-status.outcome;
+            if (status.outcome != 12)
+            {
+                current->type = FITERR;
+            }
+            else
+            {
+                current->type = FITNAN;
+            }
             return;
         }
 
@@ -121,19 +128,9 @@ void step_response(event *current, double risetime, int64_t maxiters, double min
         double rc2 = risetime * exp(par[6]);
         double residual = 0;
 
-        if (signum(a) != signum(b)) //if it is not a step-and-return event
-        {
-            current->type = FITSIGN;
-            return;
-        }
-        else if (d_abs(b) < minstep || d_abs(b) < minstep)
+        if (d_abs(b) < minstep || d_abs(b) < minstep)
         {
             current->type = FITSTEP;
-            return;
-        }
-        else if (signum(a) != sign || signum(b) != sign)
-        {
-            current->type = FITDIR;
             return;
         }
 
