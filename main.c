@@ -24,7 +24,7 @@
 #include"detector.h"
 #include"bessel.h"
 #include"stepfit.h"
-#define _VERSION_ "2.1.0"
+#define _VERSION_ "3.0.0"
 
 int main()
 {
