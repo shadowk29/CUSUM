@@ -27,20 +27,20 @@
 
 double stepfunc(double time, const double *p, double maxlength, double maxstep, double risetime, int sign)
 {
-    double sigma1 = risetime * exp(p[3]);
-    double sigma2 = risetime * exp(p[6]);
+    double sigma1, sigma2, a, b;
     double t1 = maxlength/2.0 * (1.0 + tanh(p[2]));
     double t2 = maxlength/2.0 * (1.0 + tanh(p[5]));
-    double a = sign*maxstep/2.0 * (1.0 + tanh(p[1]));
-    double b = sign*maxstep/2.0 * (1.0 + tanh(p[4]));
-
     double fitval = p[0];
     if (time > t1)
     {
+        sigma1 = risetime * exp(p[3]);
+        a = sign*maxstep/2.0 * (1.0 + tanh(p[1]));
         fitval -= a*(1.0-exp(-(time-t1)/sigma1));
     }
     if (time > t2)
     {
+        sigma2 = risetime * exp(p[6]);
+        b = sign*maxstep/2.0 * (1.0 + tanh(p[4]));
         fitval += b*(1.0-exp(-(time-t2)/sigma2));
     }
     return fitval;
