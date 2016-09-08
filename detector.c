@@ -522,14 +522,6 @@ void generate_trace(FILE *input, event *current, int datatype, void *rawsignal, 
         int64_t read;
         int64_t next_start = get_next_event_start(current_edge);
 
-        if (current->length == 0)
-        {
-            current->type = BADTRACE;
-            return;
-        }
-
-
-
         padding = (int64_t) (100e-6*samplingfreq);
         current->padding_before = padding;
         current->padding_after = padding;

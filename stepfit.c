@@ -5,6 +5,8 @@
 
     This section of the code implements an algorithm used in MOSAIC,
     which can be found here: http://usnistgov.github.io/mosaic/html/
+    and takes advantage of a modified version of lmfit-6.1, which
+    can be found here: apps.jcns.fz-juelich.de/lmfit
 
     This file is part of CUSUM.
 
@@ -28,19 +30,19 @@
 double stepfunc(double time, const double *p, double maxlength, double maxstep, double maxbaseline, double risetime, int sign)
 {
     double sigma1, sigma2, a, b;
-    double t1 = maxlength/2.0 * (1.0 + tanh(p[2]));
-    double t2 = maxlength/2.0 * (1.0 + tanh(p[5]));
-    double fitval = sign*maxbaseline/2.0 * (1.0 + tanh(p[0]));
+    double t1 = maxlength/2.0 * (1.0 + tanh(p[2])); //constrain t1 to (0, maxlength)
+    double t2 = maxlength/2.0 * (1.0 + tanh(p[5])); //constrint t2 to (0, maxlength)
+    double fitval = sign*maxbaseline/2.0 * (1.0 + tanh(p[0])); //constrain baseline to sign * (0, maxbaseline)
     if (time > t1)
     {
-        sigma1 = risetime * exp(p[3]);
-        a = sign*maxstep/2.0 * (1.0 + tanh(p[1]));
+        sigma1 = risetime * exp(p[3]); //constrain sigma1 to (0, inf)
+        a = sign*maxstep/2.0 * (1.0 + tanh(p[1])); //constrain a to sign * (0, maxstep)
         fitval -= a*(1.0-exp(-(time-t1)/sigma1));
     }
     if (time > t2)
     {
-        sigma2 = risetime * exp(p[6]);
-        b = sign*maxstep/2.0 * (1.0 + tanh(p[4]));
+        sigma2 = risetime * exp(p[6]); //constrain sigma2 to (0, inf)
+        b = sign*maxstep/2.0 * (1.0 + tanh(p[4])); //constrain b to sign * (0, maxstep)
         fitval += b*(1.0-exp(-(time-t2)/sigma2));
     }
     return fitval;
