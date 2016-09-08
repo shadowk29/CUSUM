@@ -10,7 +10,7 @@
 #define EPS 1e-50
 #define STRLENGTH 1024
 #define HEAD -1000
-#define NUMTYPES 11
+#define NUMTYPES 10
 #define CUSUM 0
 #define STEPRESPONSE 1
 #define BADBASELINE 2
@@ -20,8 +20,7 @@
 #define BADTRACE 6
 #define BADPADDING 7
 #define FITERR 8
-#define FITNAN 9
-#define FITSTEP 10
+#define FITSTEP 9
 
 //#define DEBUG
 

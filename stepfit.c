@@ -120,15 +120,7 @@ void step_response(event *current, double risetime, int64_t maxiters, double min
 
         if (status.outcome < 1 || status.outcome > 3)
         {
-            if (status.outcome != 12)
-            {
-                current->type = FITERR;
-            }
-            else
-            {
-                current->type = FITNAN;
-            }
-            return;
+            current->type = FITERR;
         }
 
         double i0 = par[0];
