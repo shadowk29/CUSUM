@@ -25,12 +25,12 @@
 */
 #include "stepfit.h"
 
-double stepfunc(double time, const double *p, double maxlength, double maxstep, double risetime, int sign)
+double stepfunc(double time, const double *p, double maxlength, double maxstep, double maxbaseline, double risetime, int sign)
 {
     double sigma1, sigma2, a, b;
     double t1 = maxlength/2.0 * (1.0 + tanh(p[2]));
     double t2 = maxlength/2.0 * (1.0 + tanh(p[5]));
-    double fitval = p[0];
+    double fitval = sign*maxbaseline/2.0 * (1.0 + tanh(p[0]));
     if (time > t1)
     {
         sigma1 = risetime * exp(p[3]);
@@ -63,12 +63,7 @@ void evaluate(const double *p, int64_t length, const void *data, double *fvec, i
     int64_t i;
     for (i=0; i<length; i++)
     {
-        fvec[i] = D->signal[i] - D->stepfunc(D->time[i], p, D->maxlength, D->maxstep, D->risetime, D->sign);
-        if (!isfinite(fvec[i]))
-        {
-            printf("We have a problem: %g\t%g\t%g\t\n",fvec[i],D->signal[i],D->stepfunc(D->time[i], p, D->maxlength, D->maxstep, D->risetime, D->sign));
-            exit(-2);
-        }
+        fvec[i] = D->signal[i] - D->stepfunc(D->time[i], p, D->maxlength, D->maxstep, D->maxbaseline, D->risetime, D->sign);
     }
 }
 
@@ -97,11 +92,12 @@ void step_response(event *current, double risetime, int64_t maxiters, double min
         double stepguess = 0.66 * sign * (minsignal - maxsignal);
         double maxlength = (double) length;
         double maxstep = d_abs(maxsignal - minsignal);
+        double maxbaseline = my_max(d_abs(maxsignal),d_abs(minsignal));
 
 
-        data_struct data = {time, current->signal, maxlength, maxstep, risetime, sign, stepfunc};
+        data_struct data = {time, current->signal, maxlength, maxstep, maxbaseline, risetime, sign, stepfunc};
 
-        par[0] = baseline;
+        par[0] = atanh(2.0*sign*baseline/maxbaseline-1.0);
         par[1] = atanh(2.0*stepguess/maxstep-1.0);
         par[2] = atanh(2.0*(start - (int64_t) risetime)/maxlength - 1.0);
         par[3] = 0;
@@ -123,7 +119,7 @@ void step_response(event *current, double risetime, int64_t maxiters, double min
             current->type = FITERR;
         }
 
-        double i0 = par[0];
+        double i0 = sign*maxbaseline/2.0 * (1.0 + tanh(par[0]));
         double a = sign*maxstep/2.0 * (1.0 + tanh(par[1]));
         int64_t u1 = maxlength/2.0 * (1.0 + tanh(par[2]));
         double rc1 = risetime * exp(par[3]);
