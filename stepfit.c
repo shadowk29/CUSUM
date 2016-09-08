@@ -25,11 +25,6 @@
 */
 #include "stepfit.h"
 
-double heaviside(double x)
-{
-    return x>0 ? 1 : 0;
-}
-
 double stepfunc(double time, const double *p, double maxlength, double maxstep, double risetime, int sign)
 {
     double sigma1 = risetime * exp(p[3]);
@@ -38,7 +33,17 @@ double stepfunc(double time, const double *p, double maxlength, double maxstep, 
     double t2 = maxlength/2.0 * (1.0 + tanh(p[5]));
     double a = sign*maxstep/2.0 * (1.0 + tanh(p[1]));
     double b = sign*maxstep/2.0 * (1.0 + tanh(p[4]));
-    return p[0] - a*heaviside(time-t1)*(1.0-exp(-(time-t1)/sigma1)) + b*heaviside(time-t2)*(1.0-exp(-(time-t2)/sigma2));
+
+    double fitval = p[0];
+    if (time > t1)
+    {
+        fitval -= a*(1.0-exp(-(time-t1)/sigma1));
+    }
+    if (time > t2)
+    {
+        fitval += b*(1.0-exp(-(time-t2)/sigma2));
+    }
+    return fitval;
 }
 
 void time_array(double *time, int64_t m)
@@ -57,7 +62,14 @@ void evaluate(const double *p, int64_t length, const void *data, double *fvec, i
     *userbreak=0;
     int64_t i;
     for (i=0; i<length; i++)
-    fvec[i] = D->signal[i] - D->stepfunc(D->time[i], p, D->maxlength, D->maxstep, D->risetime, D->sign);
+    {
+        fvec[i] = D->signal[i] - D->stepfunc(D->time[i], p, D->maxlength, D->maxstep, D->risetime, D->sign);
+        if (!isfinite(fvec[i]))
+        {
+            printf("We have a problem: %g\t%g\t%g\t\n",fvec[i],D->signal[i],D->stepfunc(D->time[i], p, D->maxlength, D->maxstep, D->risetime, D->sign));
+            exit(-2);
+        }
+    }
 }
 
 void step_response(event *current, double risetime, int64_t maxiters, double minstep)
