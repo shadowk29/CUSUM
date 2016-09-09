@@ -1,7 +1,7 @@
 /*
 
                                 COPYRIGHT
-    Copyright (C) 2015 Kyle Briggs (kbrig035<at>uottawa.ca)
+    Copyright (C) 2015-2016 Kyle Briggs (kbrig035<at>uottawa.ca)
 
     This section of the code implements an algorithm used in MOSAIC,
     which can be found here: http://usnistgov.github.io/mosaic/html/
