@@ -23,13 +23,30 @@
 void print_error_summary(FILE *logfile, int64_t *error_summary, int64_t numevents)
 {
     int i;
-    printf("\n\nEvent Summary: %"PRId64" events detected\n\nEvent Type\tCount\tPercentage\n\n",numevents);
-    fprintf(logfile,"\n\nEvent Summary: %"PRId64" events detected\n\nEvent Type\tCount\tPercentage\n\n",numevents);
+
+
+    printf("\n\n---------------------------------\nEvent Summary: %"PRId64" events detected\n\n",numevents);
+    fprintf(logfile,"\n\n---------------------------------\nEvent Summary: %"PRId64" events detected\n\n",numevents);
+
+
+    printf("Success: %.3g %%\nFailed: %.3g %%\n---------------------------------\n",100*(error_summary[CUSUM]+error_summary[STEPRESPONSE])/(double) numevents, 100*(numevents - (error_summary[CUSUM]+error_summary[STEPRESPONSE]))/(double) numevents);
+    fprintf(logfile,"Success: %.3g\nFailed: %.3g\n---------------------------------\n",100*(error_summary[CUSUM]+error_summary[STEPRESPONSE])/(double) numevents, 100*(numevents - (error_summary[CUSUM]+error_summary[STEPRESPONSE]))/(double) numevents);
+
+    printf("Event Type\tCount\tPercentage\n\n");
+    fprintf(logfile,"Event Type\tCount\tPercentage\n\n");
+
     for (i=0; i<NUMTYPES; i++)
     {
         printf("%d\t\t%"PRId64"\t%.3g %%\n",i,error_summary[i],100.0*error_summary[i]/(double)numevents);
         fprintf(logfile,"%d\t\t%"PRId64"\t%.3g %%\n",i,error_summary[i],100.0*error_summary[i]/(double)numevents);
+        if (i==1)
+        {
+            printf("---------------------------------\n");
+            fprintf(logfile,"---------------------------------\n");
+        }
     }
+    printf("---------------------------------\n");
+    fprintf(logfile,"---------------------------------\n");
 }
 
 int64_t read_current(FILE *input, double *signal, void *rawsignal, int64_t position, int64_t length, int datatype, chimera *daqsetup)
