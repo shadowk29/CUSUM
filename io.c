@@ -149,7 +149,7 @@ void swapByteOrder_int16(double *current, uint16_t *rawsignal, int64_t length)
     int64_t i;
     for (i=0; i<length; i++)
     {
-        current[i] = (double) ((rawsignal[2*i]>>8)|(rawsignal[2*i]<<8));
+        current[i] = (double) ((rawsignal[2*i]<<8)|(rawsignal[2*i]>>8));
     }
 }
 
