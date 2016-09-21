@@ -150,11 +150,6 @@ void swapByteOrder_int16(double *current, int16_t *rawsignal, int64_t length)
     for (i=0; i<length; i++)
     {
         current[i] = ((rawsignal[2*i] << 8) | ((rawsignal[2*i] >> 8) & 0xFF));
-        printf("%"PRId16"\n",((rawsignal[2*i] << 8) | ((rawsignal[2*i] >> 8) & 0xFF)));
-        if (i==100)
-        {
-            exit(9);
-        }
     }
 }
 
