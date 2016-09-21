@@ -58,7 +58,7 @@ int64_t read_current(FILE *input, double *signal, void *rawsignal, int64_t posit
     }
     else if (datatype == 16)
     {
-        read = read_current_int16(input, signal, (uint16_t *) rawsignal, position, length);
+        read = read_current_int16(input, signal, (int16_t *) rawsignal, position, length);
     }
     else if (datatype == 0)
     {
@@ -144,27 +144,32 @@ int64_t read_current_double(FILE *input, double *current, uint64_t *rawsignal, i
 }
 
 
-void swapByteOrder_int16(double *current, uint16_t *rawsignal, int64_t length)
+void swapByteOrder_int16(double *current, int16_t *rawsignal, int64_t length)
 {
     int64_t i;
     for (i=0; i<length; i++)
     {
-        current[i] = (double) ((rawsignal[2*i]>>8)|(rawsignal[2*i]<<8));
+        current[i] = ((rawsignal[2*i] << 8) | ((rawsignal[2*i] >> 8) & 0xFF));
+        printf("%"PRId16"\n",((rawsignal[2*i] << 8) | ((rawsignal[2*i] >> 8) & 0xFF)));
+        if (i==100)
+        {
+            exit(9);
+        }
     }
 }
 
 
-int64_t read_current_int16(FILE *input, double *current, uint16_t *rawsignal, int64_t position, int64_t length)
+int64_t read_current_int16(FILE *input, double *current, int16_t *rawsignal, int64_t position, int64_t length)
 {
     int64_t test;
 
     int64_t read = 0;
 
-    if (fseeko64(input,(off64_t) position*2*sizeof(uint16_t),SEEK_SET))
+    if (fseeko64(input,(off64_t) position*2*sizeof(int16_t),SEEK_SET))
     {
         return 0;
     }
-    test = fread(rawsignal, sizeof(uint16_t), 2*length, input);
+    test = fread(rawsignal, sizeof(int16_t), 2*length, input);
     read = test/2;
     if (test != 2*length)
     {

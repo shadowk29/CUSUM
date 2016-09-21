@@ -46,11 +46,11 @@ void print_event_line(FILE *events, FILE *rate, event *current, double timestep,
 void print_histogram(char *filename, histostruct *histogram);
 FILE *read_config(configuration *config, const char *version);
 void swapByteOrder(double *current, uint64_t *rawsignal, int64_t length);
-void swapByteOrder_int16(double *current, uint16_t *rawsignal, int64_t length);
+void swapByteOrder_int16(double *current, int16_t *rawsignal, int64_t length);
 void chimera_gain(double *current, uint16_t *rawsignal, int64_t length, chimera *daqsetup);
 int64_t read_current_chimera(FILE *input, double *current, uint16_t *rawsignal, int64_t position, int64_t length, chimera *daqsetup);
 int64_t read_current_double(FILE *input, double *current, uint64_t *rawsignal, int64_t position, int64_t length);
-int64_t read_current_int16(FILE *input, double *current, uint16_t *rawsignal, int64_t position, int64_t length);
+int64_t read_current_int16(FILE *input, double *current, int16_t *rawsignal, int64_t position, int64_t length);
 int64_t read_current(FILE *input, double *signal, void *rawsignal, int64_t position, int64_t length, int datatype, chimera *daqsetup);
 void print_event_signal(int64_t index, event *current, double timestep, char *eventsfolder);
 void print_signal(event *current, int64_t length, char *filename, double timestep);
