@@ -99,6 +99,7 @@ struct Event
     double rc1;
     double rc2;
     double residual;
+    double maxdeviation;
     struct Edge *first_edge;
     struct Cusumlevel *first_level;
 };

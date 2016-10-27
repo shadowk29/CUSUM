@@ -504,6 +504,22 @@ void event_baseline(event *current_event, double baseline_min, double baseline_m
         }
         current_event->baseline_before = baseline_before;
         current_event->baseline_after = baseline_after;
+
+        int64_t i;
+        int64_t length = current_event->length + current_event->padding_before + current_event->padding_after;
+        double maxdeviation = 0;
+        double deviation;
+        double baseline = 0.5 * (baseline_before + baseline_after);
+        for (i=0; i<length; i++)
+        {
+            deviation = d_abs(current_event->signal[i] - baseline);
+            if (deviation > maxdeviation)
+            {
+                maxdeviation = deviation;
+            }
+        }
+        current_event->maxdeviation = maxdeviation;
+
     }
 }
 
