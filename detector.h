@@ -67,4 +67,7 @@ void generate_trace(FILE *input, event *current, int datatype, void *rawsignal, 
 
 void event_baseline(event *current_event, double baseline_min, double baseline_max);
 void event_area(event *current_event, double timestep);
+
+
+void gauss_histogram(double *signal, baseline_struct *baseline, int64_t length);
 #endif // DETECTOR_H_INCLUDED

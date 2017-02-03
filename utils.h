@@ -76,6 +76,21 @@ struct Histostruct
 };
 typedef struct Histostruct histostruct;
 
+struct Baseline_struct
+{
+    double *histogram;
+    double *current;
+    int64_t numbins;
+    double baseline_min;
+    double baseline_max;
+    double range;
+    double delta;
+    double mean;
+    double stdev;
+    double amplitude;
+};
+typedef struct Baseline_struct baseline_struct;
+
 struct Event
 {
     int64_t index;
@@ -195,4 +210,10 @@ double signal_variance(double *signal, int64_t length);
 
 int64_t get_filesize(FILE *input, int datatype);
 inline void progressbar(int64_t pos, int64_t finish, const char *msg, double elapsed);
+
+
+void fit_gaussian(baseline_struct *baseline);
+void invert_matrix(double m[3][3], double inverse[3][3]);
+baseline_struct *initialize_baseline(baseline_struct *baseline, configuration *config);
+void free_baseline(baseline_struct *baseline);
 #endif // UTILS_H_INCLUDED

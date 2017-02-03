@@ -20,6 +20,84 @@
 */
 #include"utils.h"
 
+void invert_matrix(double m[3][3], double inverse[3][3])
+{
+    double det = m[0][0] * (m[1][1] * m[2][2] - m[2][1] * m[1][2]) -
+             m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0]) +
+             m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
+
+    double invdet = 1.0 / det;
+
+    inverse[0][0] = (m[1][1] * m[2][2] - m[2][1] * m[1][2]) * invdet;
+    inverse[0][1] = (m[0][2] * m[2][1] - m[0][1] * m[2][2]) * invdet;
+    inverse[0][2] = (m[0][1] * m[1][2] - m[0][2] * m[1][1]) * invdet;
+    inverse[1][0] = (m[1][2] * m[2][0] - m[1][0] * m[2][2]) * invdet;
+    inverse[1][1] = (m[0][0] * m[2][2] - m[0][2] * m[2][0]) * invdet;
+    inverse[1][2] = (m[1][0] * m[0][2] - m[0][0] * m[1][2]) * invdet;
+    inverse[2][0] = (m[1][0] * m[2][1] - m[2][0] * m[1][1]) * invdet;
+    inverse[2][1] = (m[2][0] * m[0][1] - m[0][0] * m[2][1]) * invdet;
+    inverse[2][2] = (m[0][0] * m[1][1] - m[1][0] * m[0][1]) * invdet;
+}
+
+void fit_gaussian(baseline_struct *baseline)
+{
+    double *x = baseline->current;
+    double *y = baseline->histogram;
+    int64_t numbins = baseline->numbins;
+    double xTx[3][3];
+    double xTxinv[3][3];
+    double xnlny[3];
+    double x0 = 0;
+    double x1 = 0;
+    double x2 = 0;
+    double x3 = 0;
+    double x4 = 0;
+    double lny = 0;
+    double xlny = 0;
+    double x2lny = 0;
+
+    int64_t i;
+    for (i=0; i<numbins; i++)
+    {
+        x0 += y[i];
+        x1 += x[i]*y[i];
+        x2 += x[i]*x[i]*y[i];
+        x3 += x[i]*x[i]*x[i]*y[i];
+        x4 += x[i]*x[i]*x[i]*x[i]*y[i];
+        if (y[i] > 0)
+        {
+            lny += log(y[i])*y[i];
+            xlny += x[i]*log(y[i])*y[i];
+            x2lny += x[i]*x[i]*log(y[i])*y[i];
+        }
+    }
+
+    xTx[0][0] = x4;
+    xTx[0][1] = x3;
+    xTx[0][2] = x2;
+    xTx[1][0] = x3;
+    xTx[1][1] = x2;
+    xTx[1][2] = x1;
+    xTx[2][0] = x2;
+    xTx[2][1] = x1;
+    xTx[2][2] = x0;
+
+    xnlny[0] = x2lny;
+    xnlny[1] = xlny;
+    xnlny[2] = lny;
+
+    invert_matrix(xTx, xTxinv);
+
+    double params[3];
+    params[0] = xTxinv[0][0]*xnlny[0] + xTxinv[0][1]*xnlny[1] + xTxinv[0][2]*xnlny[2];
+    params[1] = xTxinv[1][0]*xnlny[0] + xTxinv[1][1]*xnlny[1] + xTxinv[1][2]*xnlny[2];
+    params[2] = xTxinv[2][0]*xnlny[0] + xTxinv[2][1]*xnlny[1] + xTxinv[2][2]*xnlny[2];
+
+    baseline->stdev = sqrt(-1.0/(2*params[0]));
+    baseline->mean = baseline->stdev*baseline->stdev*params[1];
+    baseline->amplitude = exp(params[2] + baseline->mean * baseline->mean/(2.0*baseline->stdev*baseline->stdev));
+}
+
 double signal_max(double *signal, int64_t length)
 {
     int64_t i;
@@ -346,6 +424,32 @@ cusumlevel *add_cusum_level(cusumlevel *lastlevel, double current, int64_t lengt
 double ARL(int64_t length, double sigma, double mun, double h)
 {
     return (exp(-2.0*mun*(h/sigma+1.166))-1.0+2.0*mun*(h/sigma+1.166))/(2.0*mun*mun)-(double) length;
+}
+
+baseline_struct *initialize_baseline(baseline_struct *baseline, configuration *config)
+{
+    int64_t i;
+    baseline = calloc_and_check(1, sizeof(baseline_struct), "Cannot allocate baseline structure");
+    baseline->baseline_max = config->baseline_max;
+    baseline->baseline_min = config->baseline_min;
+    baseline->delta = config->binsize;
+    baseline->range = baseline->baseline_max - baseline->baseline_min + baseline->delta;
+    baseline->numbins = (int64_t) (baseline->range/baseline->delta);
+    baseline->histogram = calloc_and_check(baseline->numbins, sizeof(double), "Cannot allocate baseline histogram");
+    baseline->current = calloc_and_check(baseline->numbins, sizeof(double), "Cannot allocate time histogram");
+    for (i=0; i<baseline->numbins; i++)
+    {
+        baseline->current[i] = baseline->baseline_min + i * baseline->delta;
+        printf("%g\n",baseline->current[i]);
+    }
+    return baseline;
+}
+
+void free_baseline(baseline_struct *baseline)
+{
+    free(baseline->histogram);
+    free(baseline->current);
+    free(baseline);
 }
 
 

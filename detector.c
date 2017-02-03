@@ -695,6 +695,28 @@ double baseline_averaging(double *signal, int64_t length, double baseline_min, d
 
 }
 
+void gauss_histogram(double *signal, baseline_struct *baseline, int64_t length)
+{
+    double *histogram = baseline->histogram;
+    double baseline_min = baseline->baseline_min;
+    double baseline_max = baseline->baseline_max;
+    double delta = baseline->delta;
+    int64_t numbins = baseline->numbins;
+    int64_t i;
+    for (i=0; i<numbins; i++)
+    {
+        histogram[i] = 0;
+    }
+    for (i=0; i<length; i++)
+    {
+        if (signal[i] > baseline_min && signal[i] < baseline_max)
+        {
+            histogram[(int64_t) ((signal[i]-baseline_min)/delta)] += 1;
+        }
+    }
+    fit_gaussian(baseline);
+}
+
 
 double build_histogram(double *signal, histostruct *histogram, int64_t length, double delta, double baseline_max, double baseline_min)
 {

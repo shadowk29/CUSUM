@@ -87,6 +87,9 @@ int main()
             break;
     }
 
+    //baseline_struct *baseline_stats = NULL;
+    //baseline_stats = initialize_baseline(baseline_stats, config);
+
     histostruct *histogram;
     histogram = calloc_and_check(1,sizeof(histostruct),"Cannot allocate histogram structure");
     histogram->histogram = NULL;
@@ -157,6 +160,8 @@ int main()
             filter_signal(signal, lpfilter, read);
         }
         baseline = build_histogram(signal, histogram, read, config->binsize, config->baseline_max, config->baseline_min);
+        //gauss_histogram(signal, baseline_stats, read);
+        //printf("Before: %g\nAfter: %g\t%g\t%g\n", baseline, baseline_stats->mean, baseline_stats->stdev, baseline_stats->amplitude);
         if (baseline < config->baseline_min || baseline > config->baseline_max)
         {
             badbaseline += read;
@@ -277,6 +282,7 @@ int main()
     free(config);
     free(error_summary);
     free(rawsignal);
+    //free_baseline(baseline_stats);
 
 
     if (config->usefilter || config->eventfilter)
