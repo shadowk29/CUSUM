@@ -440,7 +440,6 @@ baseline_struct *initialize_baseline(baseline_struct *baseline, configuration *c
     for (i=0; i<baseline->numbins; i++)
     {
         baseline->current[i] = baseline->baseline_min + i * baseline->delta;
-        printf("%g\n",baseline->current[i]);
     }
     return baseline;
 }

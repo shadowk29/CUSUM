@@ -87,8 +87,8 @@ int main()
             break;
     }
 
-    //baseline_struct *baseline_stats = NULL;
-    //baseline_stats = initialize_baseline(baseline_stats, config);
+    baseline_struct *baseline_stats = NULL;
+    baseline_stats = initialize_baseline(baseline_stats, config);
 
     histostruct *histogram;
     histogram = calloc_and_check(1,sizeof(histostruct),"Cannot allocate histogram structure");
@@ -159,9 +159,9 @@ int main()
         {
             filter_signal(signal, lpfilter, read);
         }
-        baseline = build_histogram(signal, histogram, read, config->binsize, config->baseline_max, config->baseline_min);
-        //gauss_histogram(signal, baseline_stats, read);
-        //printf("Before: %g\nAfter: %g\t%g\t%g\n", baseline, baseline_stats->mean, baseline_stats->stdev, baseline_stats->amplitude);
+        //baseline = build_histogram(signal, histogram, read, config->binsize, config->baseline_max, config->baseline_min);
+        gauss_histogram(signal, baseline_stats, read);
+        baseline = baseline_stats->mean;
         if (baseline < config->baseline_min || baseline > config->baseline_max)
         {
             badbaseline += read;
@@ -169,7 +169,7 @@ int main()
         else
         {
             goodbaseline += read;
-            current_edge = detect_edges(signal, baseline, read, current_edge, config->threshold, config->hysteresis, pos, config->event_direction);
+            current_edge = detect_edges(signal, baseline, read, current_edge, config->threshold * baseline_stats->stdev, config->hysteresis * baseline_stats->stdev, pos, config->event_direction);
         }
         if (endflag)
         {
@@ -282,7 +282,7 @@ int main()
     free(config);
     free(error_summary);
     free(rawsignal);
-    //free_baseline(baseline_stats);
+    free_baseline(baseline_stats);
 
 
     if (config->usefilter || config->eventfilter)

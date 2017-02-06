@@ -413,6 +413,11 @@ void config_sanity_check(configuration *config, FILE *logfile)
 {
     printf("Verifying config parameters\nAny notes below will modify the config file above for the actual run\n\n");
     fprintf(logfile,"Verifying config parameters\nAny notes below will modify the config file above for the actual run\n\n");
+    if (config->threshold < 1 || config->hysteresis < 1)
+    {
+        printf("Fractional threshold and hysteresis are no longer supported! Use an integer multiple of the baseline standard deviation.\n");
+        exit(1);
+    }
     if (config->readlength < 2 * config->event_maxpoints)
     {
         printf("Readlength should be at least 2 times event_maxpoints. Correction:\nreadlength=%"PRId64"\n",2 * config->event_maxpoints);
