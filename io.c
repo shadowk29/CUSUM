@@ -19,6 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include"io.h"
+#define SECONDS_TO_MICROSECONDS 1e6
+#define AMPS_TO_PICOAMPS 1e12
+#define FRACTION_TO_PERCENTAGE 100
 
 void print_error_summary(FILE *logfile, int64_t *error_summary, int64_t numevents)
 {
@@ -29,16 +32,16 @@ void print_error_summary(FILE *logfile, int64_t *error_summary, int64_t numevent
     fprintf(logfile,"\n\n---------------------------------\nEvent Summary: %"PRId64" events detected\n\n",numevents);
 
 
-    printf("Success: %.3g %%\nFailed: %.3g %%\n---------------------------------\n",100*(error_summary[CUSUM]+error_summary[STEPRESPONSE])/(double) numevents, 100*(numevents - (error_summary[CUSUM]+error_summary[STEPRESPONSE]))/(double) numevents);
-    fprintf(logfile,"Success: %.3g\nFailed: %.3g\n---------------------------------\n",100*(error_summary[CUSUM]+error_summary[STEPRESPONSE])/(double) numevents, 100*(numevents - (error_summary[CUSUM]+error_summary[STEPRESPONSE]))/(double) numevents);
+    printf("Success: %.3g %%\nFailed: %.3g %%\n---------------------------------\n",FRACTION_TO_PERCENTAGE*(error_summary[CUSUM]+error_summary[STEPRESPONSE])/(double) numevents, FRACTION_TO_PERCENTAGE*(numevents - (error_summary[CUSUM]+error_summary[STEPRESPONSE]))/(double) numevents);
+    fprintf(logfile,"Success: %.3g\nFailed: %.3g\n---------------------------------\n",FRACTION_TO_PERCENTAGE*(error_summary[CUSUM]+error_summary[STEPRESPONSE])/(double) numevents, FRACTION_TO_PERCENTAGE*(numevents - (error_summary[CUSUM]+error_summary[STEPRESPONSE]))/(double) numevents);
 
     printf("Event Type\tCount\tPercentage\n\n");
     fprintf(logfile,"Event Type\tCount\tPercentage\n\n");
 
     for (i=0; i<NUMTYPES; i++)
     {
-        printf("%d\t\t%"PRId64"\t%.3g %%\n",i,error_summary[i],100.0*error_summary[i]/(double)numevents);
-        fprintf(logfile,"%d\t\t%"PRId64"\t%.3g %%\n",i,error_summary[i],100.0*error_summary[i]/(double)numevents);
+        printf("%d\t\t%"PRId64"\t%.3g %%\n",i,error_summary[i],FRACTION_TO_PERCENTAGE*error_summary[i]/(double)numevents);
+        fprintf(logfile,"%d\t\t%"PRId64"\t%.3g %%\n",i,error_summary[i],FRACTION_TO_PERCENTAGE*error_summary[i]/(double)numevents);
         if (i==1)
         {
             printf("---------------------------------\n");
@@ -79,7 +82,7 @@ void chimera_gain(double *current, uint16_t *rawsignal, int64_t length, chimera 
         sample = (uint16_t) (rawsignal[i] & bitmask);
         current[i] = daqsetup->ADCvref - (2.0 * daqsetup->ADCvref) * (double) sample / (double) (1<<16);
         current[i] = -current[i] / closed_loop_gain + daqsetup->currentoffset;
-        current[i] *= 1e12;
+        current[i] *= AMPS_TO_PICOAMPS;
     }
 }
 
@@ -254,7 +257,7 @@ void print_event_line(FILE *events, FILE *rate, event *current, double timestep,
             current->type, \
             current->start * timestep, \
             (current->start - lasttime) * timestep, \
-            current->length * timestep * 1e6, \
+            current->length * timestep * SECONDS_TO_MICROSECONDS, \
             current->threshold, \
             current->baseline_before, \
             current->baseline_after, \
@@ -264,10 +267,10 @@ void print_event_line(FILE *events, FILE *rate, event *current, double timestep,
             d_abs(current->average_blockage / (0.5 * (current->baseline_before + current->baseline_after))), \
             current->max_blockage, \
             d_abs(current->max_blockage / (0.5 * (current->baseline_before + current->baseline_after))), \
-            current->max_length * timestep * 1e6, \
+            current->max_length * timestep * SECONDS_TO_MICROSECONDS, \
             current->numlevels, \
-            current->rc1 * timestep * 1e6, \
-            current->rc2 * timestep * 1e6, \
+            current->rc1 * timestep * SECONDS_TO_MICROSECONDS, \
+            current->rc2 * timestep * SECONDS_TO_MICROSECONDS, \
             current->residual, \
             current->maxdeviation);
         while (level)
@@ -283,7 +286,7 @@ void print_event_line(FILE *events, FILE *rate, event *current, double timestep,
         level = current->first_level;
         while (level)
         {
-            fprintf(events,"%g",level->length * timestep * 1e6);
+            fprintf(events,"%g",level->length * timestep * SECONDS_TO_MICROSECONDS);
             if (level->next)
             {
                 fprintf(events,";");
