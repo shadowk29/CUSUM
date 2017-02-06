@@ -161,6 +161,12 @@ int main()
         }
         //baseline = build_histogram(signal, histogram, read, config->binsize, config->baseline_max, config->baseline_min);
         gauss_histogram(signal, baseline_stats, read);
+        //printf("%g\n",baseline_stats->stdev);
+        if (isnan(baseline_stats->mean) || isnan(baseline_stats->stdev))
+        {
+            printf("\nBaseline fit failed, check your baseline bounds\n");
+            exit(2);
+        }
         baseline = baseline_stats->mean;
         if (baseline < config->baseline_min || baseline > config->baseline_max)
         {

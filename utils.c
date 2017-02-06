@@ -55,9 +55,26 @@ void fit_gaussian(baseline_struct *baseline)
     double lny = 0;
     double xlny = 0;
     double x2lny = 0;
-
+    int64_t minbin = 0;
+    int64_t maxbin = numbins;
     int64_t i;
-    for (i=0; i<numbins; i++)
+    for (i=0; i<numbins-1; i++)
+    {
+        if (y[i] > exp(-6.0) * signal_max(y,numbins))
+        {
+            minbin = i;
+            break;
+        }
+    }
+    for (i=numbins-1; i>=1; i--)
+    {
+        if (y[i] > exp(-6.0) * signal_max(y,numbins))
+        {
+            maxbin = i;
+            break;
+        }
+    }
+    for (i=minbin; i<maxbin; i++)
     {
         x0 += y[i];
         x1 += x[i]*y[i];
@@ -96,7 +113,17 @@ void fit_gaussian(baseline_struct *baseline)
     baseline->stdev = sqrt(-1.0/(2*params[0]));
     baseline->mean = baseline->stdev*baseline->stdev*params[1];
     baseline->amplitude = exp(params[2] + baseline->mean * baseline->mean/(2.0*baseline->stdev*baseline->stdev));
+
+    /*FILE *histotest;
+    histotest = fopen64_and_check("G:/Testing/output/histogramtest.csv","w",99);
+    for (i=0; i<numbins; i++)
+    {
+        fprintf(histotest,"%g,%g\n",x[i],y[i]);
+    }
+    fclose(histotest);
+    exit(99);*/
 }
+
 
 double signal_max(double *signal, int64_t length)
 {
