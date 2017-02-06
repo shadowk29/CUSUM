@@ -686,6 +686,97 @@ void gauss_histogram(double *signal, baseline_struct *baseline, int64_t length)
     fit_gaussian(baseline);
 }
 
+void fit_gaussian(baseline_struct *baseline)
+{
+    double *x = baseline->current;
+    double *y = baseline->histogram;
+    int64_t numbins = baseline->numbins;
+    double xTx[3][3];
+    double xTxinv[3][3];
+    double xnlny[3];
+    double x0 = 0;
+    double x1 = 0;
+    double x2 = 0;
+    double x3 = 0;
+    double x4 = 0;
+    double lny = 0;
+    double xlny = 0;
+    double x2lny = 0;
+    int64_t minbin = 0;
+    int64_t maxbin = numbins;
+    int64_t i;
+    double maxval = signal_max(y,numbins);
+
+    i = locate_max(y,numbins);
+    while (i >= 0)
+    {
+        if (y[i] < my_max(1,exp(-6.0)*maxval))
+        {
+            minbin = i;
+            break;
+        }
+        i--;
+    }
+    i = locate_max(y,numbins);
+    while (i < numbins)
+    {
+        if (y[i] < my_max(1,exp(-6.0)*maxval))
+        {
+            maxbin = i;
+            break;
+        }
+        i++;
+    }
+    for (i=minbin; i<maxbin; i++)
+    {
+        x0 += y[i];
+        x1 += x[i]*y[i];
+        x2 += x[i]*x[i]*y[i];
+        x3 += x[i]*x[i]*x[i]*y[i];
+        x4 += x[i]*x[i]*x[i]*x[i]*y[i];
+        if (y[i] > 0)
+        {
+            lny += log(y[i])*y[i];
+            xlny += x[i]*log(y[i])*y[i];
+            x2lny += x[i]*x[i]*log(y[i])*y[i];
+        }
+    }
+
+    xTx[0][0] = x4;
+    xTx[0][1] = x3;
+    xTx[0][2] = x2;
+    xTx[1][0] = x3;
+    xTx[1][1] = x2;
+    xTx[1][2] = x1;
+    xTx[2][0] = x2;
+    xTx[2][1] = x1;
+    xTx[2][2] = x0;
+
+    xnlny[0] = x2lny;
+    xnlny[1] = xlny;
+    xnlny[2] = lny;
+
+    invert_matrix(xTx, xTxinv);
+
+    double params[3];
+    params[0] = xTxinv[0][0]*xnlny[0] + xTxinv[0][1]*xnlny[1] + xTxinv[0][2]*xnlny[2];
+    params[1] = xTxinv[1][0]*xnlny[0] + xTxinv[1][1]*xnlny[1] + xTxinv[1][2]*xnlny[2];
+    params[2] = xTxinv[2][0]*xnlny[0] + xTxinv[2][1]*xnlny[1] + xTxinv[2][2]*xnlny[2];
+
+    baseline->stdev = sqrt(-1.0/(2*params[0]));
+    baseline->mean = baseline->stdev*baseline->stdev*params[1];
+    baseline->amplitude = exp(params[2] + baseline->mean * baseline->mean/(2.0*baseline->stdev*baseline->stdev));
+
+    /*FILE *histotest;
+    histotest = fopen64_and_check("G:/Testing/output/histogramtest.csv","w",99);
+    for (i=0; i<numbins; i++)
+    {
+        fprintf(histotest,"%g,%g\n",x[i],y[i]);
+    }
+    fclose(histotest);
+    exit(99);*/
+}
+
 
 double build_histogram(double *signal, histostruct *histogram, int64_t length, double delta, double baseline_max, double baseline_min)
 {

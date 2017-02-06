@@ -70,4 +70,5 @@ void event_area(event *current_event, double timestep);
 
 
 void gauss_histogram(double *signal, baseline_struct *baseline, int64_t length);
+void fit_gaussian(baseline_struct *baseline);
 #endif // DETECTOR_H_INCLUDED
