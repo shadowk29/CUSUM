@@ -60,7 +60,7 @@ void fit_gaussian(baseline_struct *baseline)
     int64_t i;
     for (i=0; i<numbins-1; i++)
     {
-        if (y[i] > exp(-6.0) * signal_max(y,numbins))
+        if (y[i] > my_max(1,exp(-6.0) * signal_max(y,numbins)))
         {
             minbin = i;
             break;
@@ -68,7 +68,7 @@ void fit_gaussian(baseline_struct *baseline)
     }
     for (i=numbins-1; i>=1; i--)
     {
-        if (y[i] > exp(-6.0) * signal_max(y,numbins))
+        if (y[i] > my_max(1,exp(-6.0) * signal_max(y,numbins)))
         {
             maxbin = i;
             break;
