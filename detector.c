@@ -293,21 +293,6 @@ void refine_event_estimates(event *current)
     }
 }
 
-int64_t locate_min(double *signal, int64_t length)
-{
-    double minval = signal[0];
-    int64_t location = 0;
-    int64_t i;
-    for (i=0; i<length; i++)
-    {
-        if (signal[i] < minval)
-        {
-            minval = signal[i];
-            location = i;
-        }
-    }
-    return location;
-}
 
 
 

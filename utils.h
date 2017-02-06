@@ -216,4 +216,7 @@ void fit_gaussian(baseline_struct *baseline);
 void invert_matrix(double m[3][3], double inverse[3][3]);
 baseline_struct *initialize_baseline(baseline_struct *baseline, configuration *config);
 void free_baseline(baseline_struct *baseline);
+
+int64_t locate_min(double *signal, int64_t length);
+int64_t locate_max(double *signal, int64_t length);
 #endif // UTILS_H_INCLUDED

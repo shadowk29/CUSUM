@@ -20,6 +20,39 @@
 */
 #include"utils.h"
 
+int64_t locate_min(double *signal, int64_t length)
+{
+    double minval = signal[0];
+    int64_t location = 0;
+    int64_t i;
+    for (i=0; i<length; i++)
+    {
+        if (signal[i] < minval)
+        {
+            minval = signal[i];
+            location = i;
+        }
+    }
+    return location;
+}
+
+int64_t locate_max(double *signal, int64_t length)
+{
+    double maxval = signal[0];
+    int64_t location = 0;
+    int64_t i;
+    for (i=0; i<length; i++)
+    {
+        if (signal[i] > maxval)
+        {
+            maxval = signal[i];
+            location = i;
+        }
+    }
+    return location;
+}
+
+
 void invert_matrix(double m[3][3], double inverse[3][3])
 {
     double det = m[0][0] * (m[1][1] * m[2][2] - m[2][1] * m[1][2]) -
@@ -58,21 +91,27 @@ void fit_gaussian(baseline_struct *baseline)
     int64_t minbin = 0;
     int64_t maxbin = numbins;
     int64_t i;
-    for (i=0; i<numbins-1; i++)
+    double maxval = signal_max(y,numbins);
+
+    i = locate_max(y,numbins);
+    while (i >= 0)
     {
-        if (y[i] > my_max(1,exp(-6.0) * signal_max(y,numbins)))
+        if (y[i] < exp(-6.0)*maxval)
         {
             minbin = i;
             break;
         }
+        i--;
     }
-    for (i=numbins-1; i>=1; i--)
+    i = locate_max(y,numbins);
+    while (i < numbins)
     {
-        if (y[i] > my_max(1,exp(-6.0) * signal_max(y,numbins)))
+        if (y[i] < exp(-6.0)*maxval)
         {
             maxbin = i;
             break;
         }
+        i++;
     }
     for (i=minbin; i<maxbin; i++)
     {

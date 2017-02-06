@@ -45,7 +45,7 @@ void identify_step_events(event *current, int64_t stepfit_samples, int64_t subev
 
 void filter_short_events(event *current, int64_t minpoints);
 void filter_long_events(event *current, int64_t event_maxpoints);
-int64_t locate_min(double *signal, int64_t length);
+
 
 int64_t average_cusum_levels(event *current, int64_t subevent_minpoints, double cusum_minstep, int attempt_recovery);
 void cusum(event *current_event, double delta, double minthreshold, double maxthreshold, int64_t subevent_minpoints);
