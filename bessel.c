@@ -93,7 +93,7 @@ void filter_signal(double *signal, bessel *lpfilter, int64_t length)
             paddedsignal[end-1-i] += ccof[p]*temp[end-1-i+p] - dcof[p]*paddedsignal[end-1-i+p];
         }
     }
-    memcpy(signal,&paddedsignal[order+padding],length*sizeof(double));
+    memcpy(signal,&paddedsignal[imax],length*sizeof(double));
     /*for (i=0; i<length; i++)
     {
         fprintf(filt,"%g\n",signal[i]);
