@@ -54,7 +54,8 @@ void filter_signal(double *signal, bessel *lpfilter, int64_t length)
     double *ccof = lpfilter->ccof;
     end = length+2*(order+padding);
     int64_t imax = order+padding;
-    double padval = signal_average(signal,padding);
+    double start_padval = signal_average(signal,padding);
+    double end_padval = signal_average(&signal[length - padding], padding);
 
     /*for (i=0; i<length; i++)
     {
@@ -64,10 +65,10 @@ void filter_signal(double *signal, bessel *lpfilter, int64_t length)
 
     for (i=0; i<imax; i++)
     {
-        temp[i] = padval;
-        paddedsignal[i] = padval;
-        paddedsignal[end-1-i] = padval;
-        temp[end-1-i] = padval;
+        temp[i] = start_padval;
+        paddedsignal[i] = start_padval;
+        paddedsignal[end-1-i] = end_padval;
+        temp[end-1-i] = end_padval;
     }
     for (i=order; i<end; i++)
     {
@@ -77,11 +78,12 @@ void filter_signal(double *signal, bessel *lpfilter, int64_t length)
             temp[i] += ccof[p]*paddedsignal[i-p] - dcof[p]*temp[i-p];
         }
     }
-    padval = signal_average(&temp[order],padding);
+    start_padval = signal_average(&temp[order],padding);
+    end_padval = signal_average(&temp[order+length+padding],padding);
     for (i=0; i<imax; i++)
     {
-        paddedsignal[end-1-i] = padval;
-        paddedsignal[i] = padval;
+        paddedsignal[end-1-i] = end_padval;
+        paddedsignal[i] = start_padval;
     }
     for (i=order; i<end; i++)
     {
