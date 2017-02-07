@@ -115,6 +115,7 @@ struct Event
     double rc2;
     double residual;
     double maxdeviation;
+    double local_stdev;
     struct Edge *first_edge;
     struct Cusumlevel *first_level;
 };
@@ -124,6 +125,7 @@ struct Edge
 {
     int64_t location;
     int64_t type;
+    double local_stdev;
     struct Edge *next;
 };
 typedef struct Edge edge;
@@ -190,11 +192,11 @@ double ARL(int64_t length, double sigma, double mun, double h);
 
 int64_t count_edges(edge *head_edge);
 edge *initialize_edges(void);
-edge *add_edge(edge *current, int64_t location, int type);
+edge *add_edge(edge *current, int64_t location, int type, double stdev);
 void free_edges(edge *current);
 
 event *initialize_events(void);
-event *add_event(event *current, int64_t start, int64_t finish, int64_t index);
+event *add_event(event *current, int64_t start, int64_t finish, int64_t index, double local_stdev);
 void free_single_event(event *current);
 
 cusumlevel *add_cusum_level(cusumlevel *lastlevel, double current, int64_t length);

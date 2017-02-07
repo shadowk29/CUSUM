@@ -77,6 +77,7 @@ void step_response(event *current, double risetime, int64_t maxiters, double min
 #endif // DEBUG
     if (current->type == STEPRESPONSE)
     {
+        minstep *= current->local_stdev;
         int64_t length = current->length + current->padding_before + current->padding_after; //number of data points
         double *time;
         time = calloc_and_check(length, sizeof(double), "cannot allocate stepfit time array"); //time array

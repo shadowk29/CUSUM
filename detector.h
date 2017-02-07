@@ -57,7 +57,7 @@ void event_max_blockage(event *current);
 
 
 
-edge *detect_edges(double *signal, double baseline, int64_t length, edge *current, double threshold, double hysteresis, int64_t position, int event_direction);
+edge *detect_edges(double *signal, double baseline, int64_t length, edge *current, double threshold, double stdev, double hysteresis, int64_t position, int event_direction);
 double build_histogram(double *signal, histostruct *histogram, int64_t length, double delta, double baseline_max, double baseline_min);
 double baseline_averaging(double *signal, int64_t length, double baseline_min, double baseline_max);
 void generate_trace(FILE *input, event *current, int datatype, void *rawsignal, FILE *logfile, bessel *lpfilter, int eventfilter, chimera *daqsetup, int64_t samplingfreq, edge *current_edge, int64_t last_end, int64_t start, int64_t subevent_minpoints);

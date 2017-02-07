@@ -175,7 +175,7 @@ int main()
         else
         {
             goodbaseline += read;
-            current_edge = detect_edges(signal, baseline, read, current_edge, config->threshold * baseline_stats->stdev, config->hysteresis * baseline_stats->stdev, pos, config->event_direction);
+            current_edge = detect_edges(signal, baseline, read, current_edge, config->threshold, baseline_stats->stdev, config->hysteresis, pos, config->event_direction);
         }
         if (endflag)
         {
