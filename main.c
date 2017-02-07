@@ -24,7 +24,7 @@
 #include"detector.h"
 #include"bessel.h"
 #include"stepfit.h"
-#define _VERSION_ "3.1.1"
+#define _VERSION_ "3.1.2"
 
 int main()
 {
@@ -59,7 +59,10 @@ int main()
     FILE *rate;
     rate = fopen64_and_check(config->ratefile,"w",21);
 
-    initialize_events_file(events, rate);
+    FILE *baselinefile;
+    baselinefile = fopen64_and_check(config->baselinefile,"w",21);
+
+    initialize_events_file(events, rate, baselinefile);
 
     bessel *lpfilter = NULL;
     double *filtered = NULL;
@@ -168,6 +171,7 @@ int main()
             exit(2);
         }
         baseline = baseline_stats->mean;
+        output_baseline_stats(baselinefile, baseline_stats, pos, config->samplingfreq);
         if (baseline < config->baseline_min || baseline > config->baseline_max)
         {
             badbaseline += read;
@@ -206,6 +210,7 @@ int main()
     {
         free(filtered);
     }
+    fclose(baselinefile);
 
 
     int64_t index = 0;

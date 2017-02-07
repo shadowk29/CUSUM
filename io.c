@@ -20,6 +20,11 @@
 */
 #include"io.h"
 
+void output_baseline_stats(FILE *baselinefile, baseline_struct *baseline_stats, int64_t pos, double samplingfreq)
+{
+    fprintf(baselinefile, "%g,%g,%g\n",pos/(double) samplingfreq, baseline_stats->mean, baseline_stats->stdev);
+}
+
 void print_error_summary(FILE *logfile, int64_t *error_summary, int64_t numevents)
 {
     int i;
@@ -179,7 +184,7 @@ int64_t read_current_int16(FILE *input, double *current, uint16_t *rawsignal, in
     return read;
 }
 
-void initialize_events_file(FILE *events, FILE *rate)
+void initialize_events_file(FILE *events, FILE *rate, FILE *baselinefile)
 {
     fprintf(events,"id,\
 type,\
@@ -210,6 +215,10 @@ fprintf(rate,"id,\
 type,\
 start_time_s,\
 end_time_s\n");
+
+fprintf(baselinefile, "time_s,\
+baseline_pA,\
+stdev_pA\n");
 }
 
 void print_event_line(FILE *events, FILE *rate, event *current, double timestep, int64_t lasttime)
@@ -690,6 +699,11 @@ FILE * read_config(configuration *config, const char *version)
     if ((test=snprintf(config->logfile,STRLENGTH-1,"%s/summary.txt",config->outputfolder)) < 0 || test >= STRLENGTH)
     {
         printf("Cannot write logfile string\n");
+        exit(1);
+    }
+    if ((test=snprintf(config->baselinefile,STRLENGTH-1,"%s/baseline.csv",config->outputfolder)) < 0 || test >= STRLENGTH)
+    {
+        printf("Cannot write baselinefile string\n");
         exit(1);
     }
 

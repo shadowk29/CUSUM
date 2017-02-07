@@ -144,6 +144,7 @@ struct Configuration
     char eventsfile[STRLENGTH];
     char ratefile[STRLENGTH];
     char logfile[STRLENGTH];
+    char baselinefile[STRLENGTH];
 
     //file reading parameters
     int64_t start;
