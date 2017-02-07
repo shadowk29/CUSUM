@@ -79,7 +79,7 @@ void filter_signal(double *signal, bessel *lpfilter, int64_t length)
         }
     }
     start_padval = signal_average(&temp[order],padding);
-    end_padval = signal_average(&temp[order+length+padding],padding);
+    end_padval = signal_average(&temp[length+imax],padding);
     for (i=0; i<imax; i++)
     {
         paddedsignal[end-1-i] = end_padval;
