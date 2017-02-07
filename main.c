@@ -93,10 +93,10 @@ int main()
     baseline_struct *baseline_stats = NULL;
     baseline_stats = initialize_baseline(baseline_stats, config);
 
-    histostruct *histogram;
+    /*histostruct *histogram;
     histogram = calloc_and_check(1,sizeof(histostruct),"Cannot allocate histogram structure");
     histogram->histogram = NULL;
-    histogram->numbins = 0;
+    histogram->numbins = 0;*/
 
     //find out how big the file is for use in a progressbar
     int64_t filesize = get_filesize(input, config->datatype);
@@ -282,12 +282,12 @@ int main()
 
 
     free_edges(head_edge);
-    for (i=0; i<histogram->numbins; i++)
+    /*for (i=0; i<histogram->numbins; i++)
     {
         free(histogram->histogram[i]);
     }
     free(histogram->histogram);
-    free(histogram);
+    free(histogram);*/
     fclose(input);
     free(config->daqsetup);
     free(config);
