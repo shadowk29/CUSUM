@@ -73,7 +73,7 @@ int main()
     int64_t filterpadding = 0;
     if (config->usefilter || config->eventfilter)
     {
-        filterpadding = (int64_t) (100e-6*config->samplingfreq);
+        filterpadding = 100 * 2.0 / config->cutoff;
         lpfilter = initialize_filter(lpfilter, config->order, config->cutoff, config->readlength, filterpadding);
     }
     //allocate memory for file reading
@@ -250,7 +250,7 @@ int main()
         identify_step_events(current_event, config->stepfit_samples, config->subevent_minpoints, config->attempt_recovery);
         filter_long_events(current_event, config->event_maxpoints);
         filter_short_events(current_event, config->event_minpoints);
-        generate_trace(input, current_event, config->datatype, rawsignal, logfile, lpfilter, config->eventfilter, config->daqsetup, config->samplingfreq, current_edge, last_end, config->start, config->subevent_minpoints);
+        generate_trace(input, current_event, config->datatype, rawsignal, logfile, lpfilter, config->eventfilter, config->daqsetup, current_edge, last_end, config->start, config->subevent_minpoints);
         last_end = current_event->finish;
         cusum(current_event, config->cusum_delta, config->cusum_min_threshold, config->cusum_max_threshold, config->subevent_minpoints);
         typeswitch += average_cusum_levels(current_event, config->subevent_minpoints, config->cusum_minstep, config->attempt_recovery);

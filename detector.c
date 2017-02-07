@@ -514,7 +514,7 @@ void event_baseline(event *current_event, double baseline_min, double baseline_m
 
 
 
-void generate_trace(FILE *input, event *current, int datatype, void *rawsignal, FILE *logfile, bessel *lpfilter, int eventfilter, chimera *daqsetup, int64_t samplingfreq, edge *current_edge, int64_t last_end, int64_t start, int64_t subevent_minpoints)
+void generate_trace(FILE *input, event *current, int datatype, void *rawsignal, FILE *logfile, bessel *lpfilter, int eventfilter, chimera *daqsetup, edge *current_edge, int64_t last_end, int64_t start, int64_t subevent_minpoints)
 {
 #ifdef DEBUG
     printf("Generate Trace\n");
@@ -522,12 +522,14 @@ void generate_trace(FILE *input, event *current, int datatype, void *rawsignal, 
 #endif // DEBUG
     if (current->type == CUSUM || current->type == STEPRESPONSE)
     {
-        int64_t padding;
+        int64_t padding = 500;
         int64_t position;
         int64_t read;
         int64_t next_start = get_next_event_start(current_edge);
-
-        padding = (int64_t) (100e-6*samplingfreq);
+        if (lpfilter->cutoff > 0)
+        {
+            padding = 100 * 2.0 / lpfilter->cutoff;
+        }
         current->padding_before = padding;
         current->padding_after = padding;
         if (current->start - start < current->padding_before)
