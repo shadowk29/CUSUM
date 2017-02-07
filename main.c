@@ -252,7 +252,7 @@ int main()
         event_baseline(current_event, config->baseline_min, config->baseline_max);
         event_max_blockage(current_event);
         event_area(current_event, 1.0/config->samplingfreq);
-        print_event_signal(current_event->index, current_event, 1.0/config->samplingfreq*1e6,config->eventsfolder);
+        print_event_signal(current_event->index, current_event, 1.0/config->samplingfreq*SECONDS_TO_MICROSECONDS,config->eventsfolder);
         print_event_line(events, rate, current_event, 1.0/config->samplingfreq, lasttime);
         lasttime = current_event->start;
         current_edge = current_edge->next;

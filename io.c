@@ -19,9 +19,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include"io.h"
-#define SECONDS_TO_MICROSECONDS 1e6
-#define AMPS_TO_PICOAMPS 1e12
-#define FRACTION_TO_PERCENTAGE 100
 
 void print_error_summary(FILE *logfile, int64_t *error_summary, int64_t numevents)
 {
