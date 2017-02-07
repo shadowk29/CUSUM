@@ -522,14 +522,19 @@ void generate_trace(FILE *input, event *current, int datatype, void *rawsignal, 
 #endif // DEBUG
     if (current->type == CUSUM || current->type == STEPRESPONSE)
     {
+        int64_t filter_order = 0;
+        int64_t filter_padding = 0;
         int64_t padding = 500;
+        if (lpfilter)
+        {
+            filter_order = lpfilter->order;
+            filter_padding = lpfilter->padding;
+            padding = 100 * 2.0 / lpfilter->cutoff;
+        }
+
         int64_t position;
         int64_t read;
         int64_t next_start = get_next_event_start(current_edge);
-        if (lpfilter->cutoff > 0)
-        {
-            padding = 100 * 2.0 / lpfilter->cutoff;
-        }
         current->padding_before = padding;
         current->padding_after = padding;
         if (current->start - start < current->padding_before)
@@ -552,8 +557,8 @@ void generate_trace(FILE *input, event *current, int datatype, void *rawsignal, 
         }
 
 
-        current->paddedsignal = calloc_and_check(current->length + current->padding_before + current->padding_after + 2*(lpfilter->order + lpfilter->padding),sizeof(double),"Cannot allocate event signal array");
-        current->signal = &current->paddedsignal[lpfilter->order + lpfilter->padding];
+        current->paddedsignal = calloc_and_check(current->length + current->padding_before + current->padding_after + 2*(filter_order + filter_padding),sizeof(double),"Cannot allocate event signal array");
+        current->signal = &current->paddedsignal[filter_order + filter_padding];
         current->filtered_signal = calloc_and_check(current->length + current->padding_before + current->padding_after,sizeof(double),"Cannot allocate event filtered signal array");
 
 
