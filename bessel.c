@@ -36,7 +36,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 
 #include"bessel.h"
 
-void filter_signal(double *signal, bessel *lpfilter, int64_t length)
+void filter_signal(double *signal, double *paddedsignal, bessel *lpfilter, int64_t length)
 {
 
     /*FILE *raw;
@@ -48,7 +48,7 @@ void filter_signal(double *signal, bessel *lpfilter, int64_t length)
     int64_t end;
     int64_t order = lpfilter->order;
     int64_t padding = lpfilter->padding;
-    double *paddedsignal = lpfilter->paddedsignal;
+    //double *paddedsignal = lpfilter->paddedsignal;
     double *temp = lpfilter->temp;
     double *dcof = lpfilter->dcof;
     double *ccof = lpfilter->ccof;
@@ -61,7 +61,7 @@ void filter_signal(double *signal, bessel *lpfilter, int64_t length)
     {
         fprintf(raw,"%g\n",signal[i]);
     }*/
-    memcpy(&paddedsignal[imax],signal,length*sizeof(double));
+    //memcpy(&paddedsignal[imax],signal,length*sizeof(double));
 
     for (i=0; i<imax; i++)
     {
@@ -93,7 +93,7 @@ void filter_signal(double *signal, bessel *lpfilter, int64_t length)
             paddedsignal[end-1-i] += ccof[p]*temp[end-1-i+p] - dcof[p]*paddedsignal[end-1-i+p];
         }
     }
-    memcpy(signal,&paddedsignal[imax],length*sizeof(double));
+    //memcpy(signal,&paddedsignal[imax],length*sizeof(double));
     /*for (i=0; i<length; i++)
     {
         fprintf(filt,"%g\n",signal[i]);
@@ -234,7 +234,7 @@ void transform_filter(double complex *poles, double complex *zeros, int64_t N, d
     }
 }
 
-bessel *initialize_filter(bessel *lpfilter, int64_t order, double cutoff, int64_t length, int64_t samplingfreq)
+bessel *initialize_filter(bessel *lpfilter, int64_t order, double cutoff, int64_t length, int64_t padding)
 {
     if ((lpfilter = malloc(sizeof(bessel)))==NULL)
     {
@@ -243,7 +243,7 @@ bessel *initialize_filter(bessel *lpfilter, int64_t order, double cutoff, int64_
     }
     lpfilter->order = order;
     lpfilter->cutoff = cutoff;
-    lpfilter->padding = (int64_t) (100e-6*samplingfreq);
+    lpfilter->padding = padding;
 
     double complex *poles;
     double complex *zeros;
@@ -264,10 +264,10 @@ bessel *initialize_filter(bessel *lpfilter, int64_t order, double cutoff, int64_
     transform_filter(poles, zeros, order, scale, lpfilter->ccof, lpfilter->dcof);
 
     lpfilter->temp = NULL;
-    lpfilter->paddedsignal = NULL;
+    //lpfilter->paddedsignal = NULL;
 
-    lpfilter->temp = calloc_and_check(length+2*(order+lpfilter->padding), sizeof(double),"Cannot allocate filter temp");
-    lpfilter->paddedsignal = calloc_and_check(length+2*(order+lpfilter->padding), sizeof(double),"Cannot allocate paddedsignal");
+    lpfilter->temp = calloc_and_check(length+2*(order+padding), sizeof(double),"Cannot allocate filter temp");
+    //lpfilter->paddedsignal = calloc_and_check(length+2*(order+lpfilter->padding), sizeof(double),"Cannot allocate paddedsignal");
 
     free(poles);
     free(zeros);
@@ -279,7 +279,7 @@ void free_filter(bessel *lpfilter)
     free(lpfilter->dcof);
     free(lpfilter->ccof);
     free(lpfilter->temp);
-    free(lpfilter->paddedsignal);
+    //free(lpfilter->paddedsignal);
     free(lpfilter);
 }
 

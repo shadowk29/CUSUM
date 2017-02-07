@@ -110,6 +110,7 @@ struct Event
     double max_blockage;
     int64_t max_length;
     double *signal;
+    double *paddedsignal;
     double *filtered_signal;
     double binsize;
     int64_t padding_before;

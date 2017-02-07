@@ -350,9 +350,9 @@ void free_single_event(event *current)
     printf("Free event\n");
     fflush(stdout);
 #endif // DEBUG
-    if (current->signal)
+    if (current->paddedsignal)
     {
-        free(current->signal);
+        free(current->paddedsignal);
     }
     if (current->filtered_signal)
     {

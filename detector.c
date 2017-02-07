@@ -550,8 +550,8 @@ void generate_trace(FILE *input, event *current, int datatype, void *rawsignal, 
         }
 
 
-
-        current->signal = calloc_and_check(current->length + current->padding_before + current->padding_after,sizeof(double),"Cannot allocate event signal array");
+        current->paddedsignal = calloc_and_check(current->length + current->padding_before + current->padding_after + 2*(lpfilter->order + lpfilter->padding),sizeof(double),"Cannot allocate event signal array");
+        current->signal = &current->paddedsignal[lpfilter->order + lpfilter->padding];
         current->filtered_signal = calloc_and_check(current->length + current->padding_before + current->padding_after,sizeof(double),"Cannot allocate event filtered signal array");
 
 
@@ -576,7 +576,7 @@ void generate_trace(FILE *input, event *current, int datatype, void *rawsignal, 
         }
         if (eventfilter)
         {
-            filter_signal(current->signal, lpfilter, read);
+            filter_signal(current->signal, current->paddedsignal, lpfilter, read);
         }
     }
 }

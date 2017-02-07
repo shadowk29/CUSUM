@@ -70,12 +70,16 @@ int main()
     int64_t *error_summary = calloc_and_check(NUMTYPES, sizeof(int64_t), "Cannot allocate error array");
 
     //initialize the low-pass filter and allocate necessary memory
+    int64_t filterpadding = 0;
     if (config->usefilter || config->eventfilter)
     {
-        lpfilter = initialize_filter(lpfilter, config->order, config->cutoff, config->readlength, config->samplingfreq);
+        filterpadding = (int64_t) (100e-6*config->samplingfreq);
+        lpfilter = initialize_filter(lpfilter, config->order, config->cutoff, config->readlength, filterpadding);
     }
     //allocate memory for file reading
-    double *signal = calloc_and_check(config->readlength,sizeof(double), "Cannot allocate file reading signal array");
+
+    double *paddedsignal = calloc_and_check(config->readlength + 2*(config->order + filterpadding),sizeof(double), "Cannot allocate file reading signal array");
+    double *signal = &paddedsignal[config->order + filterpadding];
     void *rawsignal = NULL;
     switch (config->datatype)
     {
@@ -160,7 +164,7 @@ int main()
         }
         if (config->usefilter)
         {
-            filter_signal(signal, lpfilter, read);
+            filter_signal(signal, paddedsignal, lpfilter, read);
         }
         //baseline = build_histogram(signal, histogram, read, config->binsize, config->baseline_max, config->baseline_min);
         gauss_histogram(signal, baseline_stats, read);
@@ -205,7 +209,7 @@ int main()
     }
 
 
-    free(signal);
+    free(paddedsignal);
     if (config->usefilter)
     {
         free(filtered);
