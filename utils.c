@@ -413,7 +413,7 @@ baseline_struct *initialize_baseline(baseline_struct *baseline, configuration *c
     baseline->baseline_min = config->baseline_min;
     baseline->range = baseline->baseline_max - baseline->baseline_min;
     baseline->numbins = (int64_t) (2 * pow(config->readlength, 1.0/3.0));
-    baseline->delta = baseline->range / (baseline->numbins - 1);
+    baseline->delta = baseline->range / baseline->numbins;
     baseline->baseline_max = config->baseline_max;
 
     baseline->histogram = calloc_and_check(baseline->numbins, sizeof(double), "Cannot allocate baseline histogram");
