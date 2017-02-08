@@ -284,8 +284,6 @@ int main()
     printf("\nCleaning up memory usage...\n");
     fprintf(logfile, "Cleaning up memory usage...\n");
     free(current_event);
-
-
     free_edges(head_edge);
     /*for (i=0; i<histogram->numbins; i++)
     {

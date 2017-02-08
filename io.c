@@ -560,7 +560,8 @@ FILE * read_config(configuration *config, const char *version)
         else if (strcmp(name,"baseline_min") == 0)
         {
             config->baseline_min = strtod(value,NULL);
-        }else if (strcmp(name,"baseline_max") == 0)
+        }
+        else if (strcmp(name,"baseline_max") == 0)
         {
             config->baseline_max = strtod(value,NULL);
         }
