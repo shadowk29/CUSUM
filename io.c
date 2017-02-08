@@ -381,10 +381,6 @@ void print_event_signal(int64_t index, event *current, double timestep, char *ev
 }
 
 
-
-
-
-
 void configure_defaults(configuration *config)
 {
     //deaults for config file, can be overwritten if provided
