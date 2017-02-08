@@ -98,11 +98,6 @@ int main()
     baseline_struct *baseline_stats = NULL;
     baseline_stats = initialize_baseline(baseline_stats, config);
 
-    /*histostruct *histogram;
-    histogram = calloc_and_check(1,sizeof(histostruct),"Cannot allocate histogram structure");
-    histogram->histogram = NULL;
-    histogram->numbins = 0;*/
-
     //find out how big the file is for use in a progressbar
     int64_t filesize = get_filesize(input, config->datatype);
     if (config->finish == 0)

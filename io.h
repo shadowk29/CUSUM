@@ -50,7 +50,6 @@ void print_event_line(FILE *events, FILE *rate, event *current, double timestep,
 
 //void print_events(event *current, double timestep);
 void output_baseline_stats(FILE *baselinefile, baseline_struct *baseline_stats, int64_t pos, double samplingfreq);
-void print_histogram(char *filename, histostruct *histogram);
 FILE *read_config(configuration *config, const char *version);
 void swapByteOrder(double *current, uint64_t *rawsignal, int64_t length);
 void swapByteOrder_int16(double *current, uint16_t *rawsignal, int64_t length);

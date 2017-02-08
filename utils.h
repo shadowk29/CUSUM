@@ -72,14 +72,6 @@ struct Cusumlevel
 };
 typedef struct Cusumlevel cusumlevel;
 
-struct Histostruct
-{
-    double **histogram;
-    int64_t numbins;
-    double offset;
-    double delta;
-};
-typedef struct Histostruct histostruct;
 
 struct Baseline_struct
 {

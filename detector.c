@@ -653,30 +653,6 @@ edge *detect_edges(double *signal, double baseline, int64_t length, edge *curren
     return current;
 }
 
-double baseline_averaging(double *signal, int64_t length, double baseline_min, double baseline_max)
-{
-    int64_t i;
-    int64_t numsamples = 0;
-    double baseline = 0;
-    for (i=0; i<length; i++)
-    {
-        if (signal[i] < baseline_max && signal[i] > baseline_min)
-        {
-            baseline += signal[i];
-            numsamples++;
-        }
-    }
-    if (numsamples > 0 && numsamples > 9*length/10)
-    {
-        baseline /= (double) numsamples;
-        return baseline;
-    }
-    else
-    {
-        return 0;
-    }
-
-}
 
 void gauss_histogram(double *signal, baseline_struct *baseline, int64_t length)
 {
@@ -780,125 +756,9 @@ void fit_gaussian(baseline_struct *baseline)
     baseline->stdev = sqrt(-1.0/(2*params[0]));
     baseline->mean = baseline->stdev*baseline->stdev*params[1];
     baseline->amplitude = exp(params[2] + baseline->mean * baseline->mean/(2.0*baseline->stdev*baseline->stdev));
-
-    /*FILE *histotest;
-    histotest = fopen64_and_check("G:/Testing/output/histogramtest.csv","w",99);
-    for (i=0; i<numbins; i++)
-    {
-        fprintf(histotest,"%g,%g\n",x[i],y[i]);
-    }
-    fclose(histotest);
-    exit(99);*/
 }
 
 
-double build_histogram(double *signal, histostruct *histogram, int64_t length, double delta, double baseline_max, double baseline_min)
-{
-    double maximum = signal_max(signal, length);
-    double minimum = signal_min(signal, length);
 
-    double range = maximum - minimum + delta;
-    if (signum(range)==0)//garbage data, bad baseline
-    {
-        return 0;
-    }
-    int64_t numbins = range / delta;
-    if (numbins == 0 || numbins == 1)
-    {
-        return 0;
-    }
-    //numbins = intmax(numbins, (int64_t) sqrt(length));
-
-    double baseline = 0;
-    int64_t i,j;
-    int sign;
-    int newsign;
-    double tempbase = 0;
-    int64_t average;
-
-    for (i=0; i<histogram->numbins; i++)
-    {
-        for (j=0; j<3; j++)
-        {
-            histogram->histogram[i][j] = 0;
-        }
-    }
-
-    if (histogram->histogram == NULL || histogram->numbins < numbins)
-    {
-        if ((histogram->histogram = realloc(histogram->histogram,numbins*sizeof(double *)))==NULL)
-        {
-            printf("Cannot allocate histogram");
-            exit(1);
-        }
-        for (i=histogram->numbins; i<numbins; i++)
-        {
-            histogram->histogram[i] = calloc_and_check(3,sizeof(double),"Cannot allocate histogram bin");
-        }
-        histogram->numbins = numbins;
-    }
-
-    //populate the current level histogram for the data chunk
-    if (length <= 0)
-    {
-        printf("Final sample interval contains no points\n");
-        return 0;
-    }
-    for (i=0; i<length; i++)
-    {
-        histogram->histogram[(int64_t) ((signal[i]-minimum)/delta)][0] += 1;
-    }
-
-
-
-    //get the first derivative of the histogram
-    histogram->histogram[0][FIRST_DERIV] = (histogram->histogram[1][HISTOGRAM]-histogram->histogram[0][HISTOGRAM])/delta; //first derivative uses endpoint only
-    histogram->histogram[numbins-1][FIRST_DERIV] = (histogram->histogram[numbins-1][HISTOGRAM]-histogram->histogram[numbins-2][HISTOGRAM])/delta; //first derivative uses endpoint only
-    for (i=1; i<numbins-1; i++)
-    {
-        histogram->histogram[i][FIRST_DERIV] = (histogram->histogram[i+1][HISTOGRAM]-histogram->histogram[i-1][HISTOGRAM])/(2.0*delta);
-    }
-
-
-    //get the second derivative of the histogram
-    histogram->histogram[0][SCND_DERIV] = (histogram->histogram[1][HISTOGRAM]-2*histogram->histogram[0][HISTOGRAM])/(delta*delta); //second derivative uses endpoint only
-    histogram->histogram[numbins-1][SCND_DERIV] = (-2*histogram->histogram[numbins-1][HISTOGRAM]+histogram->histogram[numbins-2][HISTOGRAM])/(delta*delta); //second derivative uses endpoint only
-    for (i=1; i<numbins-1; i++)
-    {
-        histogram->histogram[i][SCND_DERIV] = (histogram->histogram[i+1][HISTOGRAM]-2*histogram->histogram[i][HISTOGRAM]+histogram->histogram[i-1][HISTOGRAM])/(delta*delta);
-    }
-    sign = signum(histogram->histogram[0][FIRST_DERIV]);
-    average = length/numbins;
-    for (i=1; i<numbins-1; i++) //we ignore the endpoints
-    {
-        newsign = signum(histogram->histogram[i][FIRST_DERIV]);
-        if (newsign != sign)//derivative crosses 0
-        {
-            sign = newsign;
-            if (histogram->histogram[i][SCND_DERIV]<0 && histogram->histogram[i][HISTOGRAM]>average/2)
-            {
-                tempbase = (i+0.5)*delta+minimum;
-            }
-            else if (histogram->histogram[intmax(i-1,0)][SCND_DERIV]<0 && histogram->histogram[intmax(i-1,0)][HISTOGRAM]>average/2)//check neighbours to find the negative second derivative.
-            {
-                tempbase = (intmax(i-1,0)+0.5)*delta+minimum;
-            }
-            else if (histogram->histogram[intmin(i+1,numbins-1)][SCND_DERIV]<0 && histogram->histogram[intmin(i+1,numbins-1)][HISTOGRAM]>average/2)//check neighbours to find the negative second derivative.
-            {
-                tempbase = (intmin(i+1,numbins-1)+0.5)*delta+minimum;
-            }
-            if (tempbase*signum(tempbase) > baseline*signum(baseline) && tempbase < baseline_max && tempbase > baseline_min)
-            {
-                baseline = tempbase;
-            }
-        }
-    }
-
-    histogram->offset = minimum;
-    histogram->delta = delta;
-
-    //print_histogram("output/histogram.csv", histogram);
-    return baseline;
-}
 
 

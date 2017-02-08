@@ -382,23 +382,6 @@ void print_event_signal(int64_t index, event *current, double timestep, char *ev
 
 
 
-void print_histogram(char *filename, histostruct *histogram)
-{
-    int64_t i;
-    FILE *output;
-    if ((output = fopen(filename, "w"))==NULL)
-    {
-        printf("Cannot open histogram file\n");
-        exit(25);
-    }
-    for (i=0; i<histogram->numbins; i++)
-    {
-        fprintf(output,"%g,%g,%g,%g\n",(i+0.5)*histogram->delta+histogram->offset, histogram->histogram[i][0], histogram->histogram[i][1], histogram->histogram[i][2]);
-    }
-    fclose(output);
-}
-
-
 
 
 
