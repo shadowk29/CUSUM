@@ -94,6 +94,7 @@ int main()
             break;
     }
 
+
     baseline_struct *baseline_stats = NULL;
     baseline_stats = initialize_baseline(baseline_stats, config);
 

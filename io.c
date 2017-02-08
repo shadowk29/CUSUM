@@ -409,7 +409,6 @@ void configure_defaults(configuration *config)
     config->finish = 0;
     config->usefilter = 0;
     config->eventfilter = 0;
-    config->binsize = 10;
     config->event_direction = 0;
     config->cusum_min_threshold = 0.1;
     config->cusum_max_threshold = 100.0;
@@ -564,10 +563,6 @@ FILE * read_config(configuration *config, const char *version)
         }else if (strcmp(name,"baseline_max") == 0)
         {
             config->baseline_max = strtod(value,NULL);
-        }
-        else if (strcmp(name,"binsize") == 0)
-        {
-            config->binsize = strtod(value,NULL);
         }
         else if (strcmp(name,"cusum_min_threshold") == 0)
         {

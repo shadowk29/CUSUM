@@ -410,11 +410,12 @@ baseline_struct *initialize_baseline(baseline_struct *baseline, configuration *c
 {
     int64_t i;
     baseline = calloc_and_check(1, sizeof(baseline_struct), "Cannot allocate baseline structure");
-    baseline->baseline_max = config->baseline_max;
     baseline->baseline_min = config->baseline_min;
-    baseline->delta = config->binsize;
-    baseline->range = baseline->baseline_max - baseline->baseline_min + baseline->delta;
-    baseline->numbins = (int64_t) (baseline->range/baseline->delta);
+    baseline->range = baseline->baseline_max - baseline->baseline_min;
+    baseline->numbins = (int64_t) (2 * pow(config->readlength, 1.0/3.0));
+    baseline->delta = baseline->range / (baseline->numbins - 1);
+    baseline->baseline_max = config->baseline_max;
+
     baseline->histogram = calloc_and_check(baseline->numbins, sizeof(double), "Cannot allocate baseline histogram");
     baseline->current = calloc_and_check(baseline->numbins, sizeof(double), "Cannot allocate time histogram");
     for (i=0; i<baseline->numbins; i++)

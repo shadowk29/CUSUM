@@ -164,8 +164,6 @@ struct Configuration
     int64_t event_minpoints;
     int64_t event_maxpoints;
 
-    double binsize;
-
     double baseline_min;
     double baseline_max;
 
