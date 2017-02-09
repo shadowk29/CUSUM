@@ -398,11 +398,13 @@ void configure_defaults(configuration *config)
 
 void config_sanity_check(configuration *config, FILE *logfile)
 {
-    printf("Verifying config parameters\nAny notes below will modify the config file above for the actual run\n\n");
-    fprintf(logfile,"Verifying config parameters\nAny notes below will modify the config file above for the actual run\n\n");
+    int correctionflag = 0;
+    printf("\nVerifying config parameters\n\n");
+    fprintf(logfile,"\nVerifying config parameters\n\n");
     if (config->threshold < 1 || config->hysteresis < 1)
     {
         printf("Fractional threshold and hysteresis are no longer supported! Use a multiple of the baseline standard deviation.\n");
+        correctionflag = 1;
         exit(1);
     }
     if (config->readlength < 2 * config->event_maxpoints)
@@ -410,6 +412,7 @@ void config_sanity_check(configuration *config, FILE *logfile)
         printf("Readlength should be at least 2 times event_maxpoints. Correction:\nreadlength=%"PRId64"\n",2 * config->event_maxpoints);
         fprintf(logfile,"Readlength should be at least 2 times event_maxpoints. Correction:\nreadlength=%"PRId64"\n",2 * config->event_maxpoints);
         config->readlength = 2 * config->event_maxpoints;
+        correctionflag = 1;
     }
 
     if (config->order > 10)
@@ -417,48 +420,60 @@ void config_sanity_check(configuration *config, FILE *logfile)
         printf("Bessel filters of order >10 are not supported. Correction:\npoles=10\n");
         fprintf(logfile,"Bessel filters of order >10 are not supported. Correction:\npoles=10\n");
         config->order = 10;
+        correctionflag = 1;
     }
     else if (config->order < 2)
     {
         printf("Bessel filters of order <2 are not supported. Correction:\npoles=2\n");
         fprintf(logfile,"Bessel filters of order <2 are not supported. Correction:\npoles=2\n");
         config->order = 2;
+        correctionflag = 1;
     }
     else if (config->order % 2 == 1)
     {
         printf("Bessel filters of order >10 are not supported. Correction:\npoles=%"PRId64"\n",config->order + 1);
         fprintf(logfile,"Bessel filters of order >10 are not supported. Correction:\npoles=%"PRId64"\n",config->order + 1);
         config->order += 1;
+        correctionflag = 1;
     }
     if (config->datatype==0 && config->samplingfreq != (int64_t) config->daqsetup->samplerate)
     {
         printf("Sampling rate does not match Chimera setup. Correction:\nsamplingfreq=%"PRId64"\n",config->samplingfreq);
         fprintf(logfile,"Sampling rate does not match Chimera setup. Correction:\nsamplingfreq=%"PRId64"\n",config->samplingfreq);
         config->samplingfreq = (int64_t) config->daqsetup->samplerate;
+        correctionflag = 1;
     }
     if (config->stepfit_samples > 0 && config->stepfit_samples < config->subevent_minpoints)
     {
         printf("Stepfit samples should be at least as large as subevent_minpoints. Correction:\nstepfit_samples=%"PRId64"\n",config->subevent_minpoints);
         fprintf(logfile,"Stepfit samples should be at least as large as subevent_minpoints. Correction:\nstepfit_samples=%"PRId64"\n",config->subevent_minpoints);
         config->stepfit_samples = config->subevent_minpoints;
+        correctionflag = 1;
     }
     if (config->stepfit_samples && !config->attempt_recovery)
     {
         printf("Stepfit_samples is on, but attempt_recovery is off. Correction:\nattempt_recovery=1\n");
         fprintf(logfile,"Stepfit_samples is on, but attempt_recovery is off. Correction:\nattempt_recovery=1\n");
         config->attempt_recovery = 1;
+        correctionflag = 1;
     }
     if (config->stepfit_samples <= 0 && config->attempt_recovery)
     {
         printf("Attempt_recovery is on, but step_fit samples is off. Correction:\nstepfit_samples=%"PRId64"\n",config->subevent_minpoints);
         fprintf(logfile,"Attempt_recovery is on, but step_fit samples is off. Correction:\nstepfit_samples=%"PRId64"\n",config->subevent_minpoints);
         config->stepfit_samples = config->subevent_minpoints;
+        correctionflag = 1;
     }
     if (config->stepfit_samples <= 0 && !config->attempt_recovery && config->event_minpoints < config->subevent_minpoints)
     {
         printf("Stepfit is off, and event_minpoints is less than subevent_minpoints. Correction:\nevent_minpoints=%"PRId64"\n",config->subevent_minpoints);
         fprintf(logfile,"Stepfit is off, and event_minpoints is less than subevent_minpoints. Correction:\nevent_minpoints=%"PRId64"\n",config->subevent_minpoints);
         config->event_minpoints = config->subevent_minpoints;
+        correctionflag = 1;
+    }
+    if (!correctionflag)
+    {
+        printf("No corrections\n");
     }
     printf("\nDone config check\n\n");
     fprintf(logfile,"\nDone config check\n\n");
