@@ -177,12 +177,12 @@ typedef struct Configuration configuration;
 
 FILE *fopen64_and_check(const char *fname, const char *mode, int error);
 void *calloc_and_check(size_t num, size_t size, char *msg);
-inline int signum(double num);
-inline double my_min(double a, double b);
-inline double my_max(double a, double b);
-inline int64_t intmin(int64_t a, int64_t b);
-inline int64_t intmax(int64_t a, int64_t b);
-inline double d_abs(double num); //absolute value of a number
+int signum(double num);
+double my_min(double a, double b);
+double my_max(double a, double b);
+int64_t intmin(int64_t a, int64_t b);
+int64_t intmax(int64_t a, int64_t b);
+double d_abs(double num); //absolute value of a number
 
 double ARL(int64_t length, double sigma, double mun, double h);
 
@@ -207,7 +207,7 @@ double signal_variance(double *signal, int64_t length);
 
 
 int64_t get_filesize(FILE *input, int datatype);
-inline void progressbar(int64_t pos, int64_t finish, const char *msg, double elapsed);
+void progressbar(int64_t pos, int64_t finish, const char *msg, double elapsed);
 
 
 

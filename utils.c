@@ -182,7 +182,7 @@ int64_t count_edges(edge *current_edge)
     return count;
 }
 
-inline void progressbar(int64_t pos, int64_t finish, const char *msg, double elapsed)
+void progressbar(int64_t pos, int64_t finish, const char *msg, double elapsed)
 {
     double ratio = pos/(double)finish;
     double remaining;
@@ -227,30 +227,30 @@ int64_t get_filesize(FILE *input, int datatype)
 }
 
 
-inline int signum(double num)
+int signum(double num)
 {
     return (EPS<num)-(num<-EPS);
 }
-inline double my_min(double a, double b)
+double my_min(double a, double b)
 {
     return a < b ? a : b;
 }
 
-inline double my_max(double a, double b)
+double my_max(double a, double b)
 {
     return a > b ? a : b;
 }
 
-inline double d_abs(double num)
+double d_abs(double num)
 {
     return num > 0 ? num : -num;
 }
 
-inline int64_t intmin(int64_t a, int64_t b)
+int64_t intmin(int64_t a, int64_t b)
 {
     return a < b ? a : b;
 }
-inline int64_t intmax(int64_t a, int64_t b)
+int64_t intmax(int64_t a, int64_t b)
 {
     return a > b ? a : b;
 }
@@ -340,6 +340,7 @@ event *add_event(event *current, int64_t start, int64_t finish, int64_t index, d
     current->first_level = NULL;
     current->signal = NULL;
     current->filtered_signal = NULL;
+    current->paddedsignal = NULL;
     return current;
 }
 
