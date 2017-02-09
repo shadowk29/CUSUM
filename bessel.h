@@ -50,7 +50,6 @@ struct Bessel
     double cutoff;
     int64_t order;
     int64_t padding;
-    //double *paddedsignal;
     double *temp;
 };
 typedef struct Bessel bessel;

@@ -162,9 +162,7 @@ int main()
         {
             filter_signal(signal, paddedsignal, lpfilter, read);
         }
-        //baseline = build_histogram(signal, histogram, read, config->binsize, config->baseline_max, config->baseline_min);
         gauss_histogram(signal, baseline_stats, read);
-        //printf("%g\n",baseline_stats->stdev);
         if (isnan(baseline_stats->mean) || isnan(baseline_stats->stdev))
         {
             printf("\nBaseline fit failed, check your baseline bounds\n");
@@ -280,12 +278,6 @@ int main()
     fprintf(logfile, "Cleaning up memory usage...\n");
     free(current_event);
     free_edges(head_edge);
-    /*for (i=0; i<histogram->numbins; i++)
-    {
-        free(histogram->histogram[i]);
-    }
-    free(histogram->histogram);
-    free(histogram);*/
     fclose(input);
     free(config->daqsetup);
     free(config);

@@ -38,17 +38,11 @@ THE POSSIBILITY OF SUCH DAMAGE.
 
 void filter_signal(double *signal, double *paddedsignal, bessel *lpfilter, int64_t length)
 {
-
-    /*FILE *raw;
-    FILE *filt;
-    raw = fopen64_and_check("G:/Testing/output/raw200.csv","w",99);
-    filt = fopen64_and_check("G:/Testing/output/filt200.csv","w",99);*/
     int64_t i;
     int64_t p;
     int64_t end;
     int64_t order = lpfilter->order;
     int64_t padding = lpfilter->padding;
-    //double *paddedsignal = lpfilter->paddedsignal;
     double *temp = lpfilter->temp;
     double *dcof = lpfilter->dcof;
     double *ccof = lpfilter->ccof;
@@ -56,12 +50,6 @@ void filter_signal(double *signal, double *paddedsignal, bessel *lpfilter, int64
     int64_t imax = order+padding;
     double start_padval = signal_average(signal,padding);
     double end_padval = signal_average(&signal[length - padding], padding);
-
-    /*for (i=0; i<length; i++)
-    {
-        fprintf(raw,"%g\n",signal[i]);
-    }*/
-    //memcpy(&paddedsignal[imax],signal,length*sizeof(double));
 
     for (i=0; i<imax; i++)
     {
@@ -93,12 +81,6 @@ void filter_signal(double *signal, double *paddedsignal, bessel *lpfilter, int64
             paddedsignal[end-1-i] += ccof[p]*temp[end-1-i+p] - dcof[p]*paddedsignal[end-1-i+p];
         }
     }
-    //memcpy(signal,&paddedsignal[imax],length*sizeof(double));
-    /*for (i=0; i<length; i++)
-    {
-        fprintf(filt,"%g\n",signal[i]);
-    }
-    exit(99);*/
 }
 
 
@@ -264,10 +246,7 @@ bessel *initialize_filter(bessel *lpfilter, int64_t order, double cutoff, int64_
     transform_filter(poles, zeros, order, scale, lpfilter->ccof, lpfilter->dcof);
 
     lpfilter->temp = NULL;
-    //lpfilter->paddedsignal = NULL;
-
     lpfilter->temp = calloc_and_check(length+2*(order+padding), sizeof(double),"Cannot allocate filter temp");
-    //lpfilter->paddedsignal = calloc_and_check(length+2*(order+lpfilter->padding), sizeof(double),"Cannot allocate paddedsignal");
 
     free(poles);
     free(zeros);
@@ -279,7 +258,6 @@ void free_filter(bessel *lpfilter)
     free(lpfilter->dcof);
     free(lpfilter->ccof);
     free(lpfilter->temp);
-    //free(lpfilter->paddedsignal);
     free(lpfilter);
 }
 
