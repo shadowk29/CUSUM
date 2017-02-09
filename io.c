@@ -402,7 +402,7 @@ void config_sanity_check(configuration *config, FILE *logfile)
     fprintf(logfile,"Verifying config parameters\nAny notes below will modify the config file above for the actual run\n\n");
     if (config->threshold < 1 || config->hysteresis < 1)
     {
-        printf("Fractional threshold and hysteresis are no longer supported! Use an integer multiple of the baseline standard deviation.\n");
+        printf("Fractional threshold and hysteresis are no longer supported! Use a multiple of the baseline standard deviation.\n");
         exit(1);
     }
     if (config->readlength < 2 * config->event_maxpoints)
@@ -448,30 +448,17 @@ void config_sanity_check(configuration *config, FILE *logfile)
         fprintf(logfile,"Stepfit_samples is on, but attempt_recovery is off. Correction:\nattempt_recovery=1\n");
         config->attempt_recovery = 1;
     }
-    if (!config->stepfit_samples && config->attempt_recovery)
+    if (config->stepfit_samples <= 0 && config->attempt_recovery)
     {
         printf("Attempt_recovery is on, but step_fit samples is off. Correction:\nstepfit_samples=%"PRId64"\n",config->subevent_minpoints);
         fprintf(logfile,"Attempt_recovery is on, but step_fit samples is off. Correction:\nstepfit_samples=%"PRId64"\n",config->subevent_minpoints);
         config->stepfit_samples = config->subevent_minpoints;
     }
-    if (!config->stepfit_samples && !config->attempt_recovery && config->event_minpoints < config->subevent_minpoints)
+    if (config->stepfit_samples <= 0 && !config->attempt_recovery && config->event_minpoints < config->subevent_minpoints)
     {
         printf("Stepfit is off, and event_minpoints is less than subevent_minpoints. Correction:\nevent_minpoints=%"PRId64"\n",config->subevent_minpoints);
         fprintf(logfile,"Stepfit is off, and event_minpoints is less than subevent_minpoints. Correction:\nevent_minpoints=%"PRId64"\n",config->subevent_minpoints);
         config->event_minpoints = config->subevent_minpoints;
-    }
-    if (config->usefilter || config->eventfilter)
-    {
-        if (config->subevent_minpoints < 8.0/config->cutoff)
-        {
-            printf("Warning: subevent_minpoints is less than 4RC, levels might be underestimated. Suggest increaseing subevent_minpoints to %"PRId64"\nNo Correction\n",(int64_t) (8.0/config->cutoff));
-            fprintf(logfile,"Warning: subevent_minpoints is less than 4RC, levels might be underestimated. Suggest increaseing subevent_minpoints to %"PRId64"\nNo Correction\n",(int64_t) (8.0/config->cutoff));
-        }
-        if (config->event_minpoints < 8.0/config->cutoff && config->stepfit_samples == 0)
-        {
-            printf("Warning: event_minpoints is less than 4RC, short events will not be fit accurately. Suggest increaseing event_minpoints to %"PRId64"\nNo Correction\n",(int64_t) (8.0/config->cutoff));
-            fprintf(logfile,"Warning: event_minpoints is less than 4RC, short events will not be fit accurately. Suggest increaseing event_minpoints to %"PRId64"\nNo Correction\n",(int64_t) (8.0/config->cutoff));
-        }
     }
     printf("\nDone config check\n\n");
     fprintf(logfile,"\nDone config check\n\n");
