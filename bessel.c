@@ -67,7 +67,6 @@ void filter_signal(double *signal, double *paddedsignal, bessel *lpfilter, int64
 
         #pragma omp parallel num_threads(nthreads)
         {
-            printf("%d\n",omp_get_thread_num());
             #pragma omp for schedule(static, chunk)
             for (i=order; i<end; i++)
             {
@@ -91,8 +90,6 @@ void filter_signal(double *signal, double *paddedsignal, bessel *lpfilter, int64
         end_padval = signal_average(&temp2[length+imax],padding);
         for (i=0; i<imax; i++)
         {
-            temp[end-1-i] = end_padval;
-            temp[i] = start_padval;
             paddedsignal[i] = start_padval;
             paddedsignal[end-1-i] = end_padval;
         }
@@ -113,8 +110,41 @@ void filter_signal(double *signal, double *paddedsignal, bessel *lpfilter, int64
                 paddedsignal[end-1-i] = temp[i];
                 for (p=1; p<=order; p++)
                 {
-                    paddedsignal[end-1-i] -= dcof[p]*paddedsignal[end-1-i+p];
+                    paddedsignal[end-1-i] -= dcof[p]*temp[end-1-i+p];
                 }
+            }
+        }
+    }
+    else
+    {
+        for (i=0; i<imax; i++)
+        {
+            temp[i] = start_padval;
+            paddedsignal[i] = start_padval;
+            paddedsignal[end-1-i] = end_padval;
+            temp[end-1-i] = end_padval;
+        }
+        for (i=order; i<end; i++)
+        {
+            temp[i] = ccof[0]*paddedsignal[i];
+            for (p=1; p<=order; p++)
+            {
+                temp[i] += ccof[p]*paddedsignal[i-p] - dcof[p]*temp[i-p];
+            }
+        }
+        start_padval = signal_average(&temp[order],padding);
+        end_padval = signal_average(&temp[length+imax],padding);
+        for (i=0; i<imax; i++)
+        {
+            paddedsignal[end-1-i] = end_padval;
+            paddedsignal[i] = start_padval;
+        }
+        for (i=order; i<end; i++)
+        {
+            paddedsignal[end-1-i] = ccof[0]*temp[end-1-i];
+            for (p=1; p<=order; p++)
+            {
+                paddedsignal[end-1-i] += ccof[p]*temp[end-1-i+p] - dcof[p]*paddedsignal[end-1-i+p];
             }
         }
     }
