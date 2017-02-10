@@ -656,8 +656,6 @@ edge *detect_edges(double *signal, double baseline, int64_t length, edge *curren
 
 void gauss_histogram(double *signal, baseline_struct *baseline, int64_t length)
 {
-    FILE *histo;
-    histo = fopen64_and_check("G:/Testing/Caroline/histo.csv","w",1);
     double *histogram = baseline->histogram;
     double baseline_min = baseline->baseline_min;
     double baseline_max = baseline->baseline_max;
@@ -675,12 +673,6 @@ void gauss_histogram(double *signal, baseline_struct *baseline, int64_t length)
             histogram[(int64_t) ((signal[i]-baseline_min)/delta)] += 1;
         }
     }
-
-    for (i=0; i<numbins; i++)
-    {
-        fprintf(histo,"%g,%g\n",baseline->current[i], baseline->histogram[i]);
-    }
-    fclose(histo);
     fit_gaussian(baseline);
 }
 
