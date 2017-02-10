@@ -415,21 +415,21 @@ void config_sanity_check(configuration *config, FILE *logfile)
         correctionflag = 1;
     }
 
-    if (config->order > 10)
+    if (config->order > 10 && (config->usefilter || config->eventfilter))
     {
         printf("Bessel filters of order >10 are not supported. Correction:\npoles=10\n");
         fprintf(logfile,"Bessel filters of order >10 are not supported. Correction:\npoles=10\n");
         config->order = 10;
         correctionflag = 1;
     }
-    else if (config->order < 2)
+    else if (config->order < 2 && (config->usefilter || config->eventfilter))
     {
         printf("Bessel filters of order <2 are not supported. Correction:\npoles=2\n");
         fprintf(logfile,"Bessel filters of order <2 are not supported. Correction:\npoles=2\n");
         config->order = 2;
         correctionflag = 1;
     }
-    else if (config->order % 2 == 1)
+    else if (config->order % 2 == 1 && (config->usefilter || config->eventfilter))
     {
         printf("Bessel filters of order >10 are not supported. Correction:\npoles=%"PRId64"\n",config->order + 1);
         fprintf(logfile,"Bessel filters of order >10 are not supported. Correction:\npoles=%"PRId64"\n",config->order + 1);
