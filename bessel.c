@@ -39,6 +39,11 @@ THE POSSIBILITY OF SUCH DAMAGE.
 
 void filter_signal(double *signal, double *paddedsignal, bessel *lpfilter, int64_t length, int parallelflag)
 {
+    parallelflag=0;
+    FILE *raw;
+    FILE *filt;
+    raw = fopen64_and_check("G:/Testing/output/parallel/raw-serial-imax.csv","w",99);
+    filt = fopen64_and_check("G:/Testing/output/parallel/filt-serial-imax.csv","w",99);
     int64_t i;
     int64_t p;
     int64_t end;
@@ -55,14 +60,21 @@ void filter_signal(double *signal, double *paddedsignal, bessel *lpfilter, int64
     int64_t nthreads = 8;
     int64_t chunk = (end-order)/nthreads;
 
+
     if (parallelflag)
     {
+        for (i=0; i<length;i++)
+        {
+            fprintf(raw,"%.16g,%.16g\n",i*.24,signal[i]);
+        }
         for (i=0; i<imax; i++)
         {
             temp[i] = start_padval;
+            temp2[i] = start_padval;
             paddedsignal[i] = start_padval;
             paddedsignal[end-1-i] = end_padval;
             temp[end-1-i] = end_padval;
+            temp2[end-i-1] = end_padval;
         }
 
         #pragma omp parallel num_threads(nthreads)
@@ -86,6 +98,16 @@ void filter_signal(double *signal, double *paddedsignal, bessel *lpfilter, int64
                 }
             }
         }
+
+        for (i=0; i<length;i++)
+        {
+            fprintf(filt,"%.16g,%.16g\n",i*.24,temp2[i]);
+        }
+        fclose(raw);
+        fclose(filt);
+        exit(99);
+
+
         start_padval = signal_average(&temp2[order],padding);
         end_padval = signal_average(&temp2[length+imax],padding);
         for (i=0; i<imax; i++)
@@ -117,6 +139,10 @@ void filter_signal(double *signal, double *paddedsignal, bessel *lpfilter, int64
     }
     else
     {
+        for (i=0; i<length;i++)
+        {
+            fprintf(raw,"%.16g,%.16g\n",i*.24,signal[i]);
+        }
         for (i=0; i<imax; i++)
         {
             temp[i] = start_padval;
@@ -132,6 +158,9 @@ void filter_signal(double *signal, double *paddedsignal, bessel *lpfilter, int64
                 temp[i] += ccof[p]*paddedsignal[i-p] - dcof[p]*temp[i-p];
             }
         }
+
+
+
         start_padval = signal_average(&temp[order],padding);
         end_padval = signal_average(&temp[length+imax],padding);
         for (i=0; i<imax; i++)
@@ -147,6 +176,13 @@ void filter_signal(double *signal, double *paddedsignal, bessel *lpfilter, int64
                 paddedsignal[end-1-i] += ccof[p]*temp[end-1-i+p] - dcof[p]*paddedsignal[end-1-i+p];
             }
         }
+        for (i=0; i<length;i++)
+        {
+            fprintf(filt,"%.16g,%.16g\n",i*.24,temp[i]);
+        }
+        fclose(raw);
+        fclose(filt);
+        exit(99);
     }
 }
 
