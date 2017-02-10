@@ -35,8 +35,9 @@ THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include"bessel.h"
+#include<omp.h>
 
-void filter_signal(double *signal, double *paddedsignal, bessel *lpfilter, int64_t length)
+void filter_signal(double *signal, double *paddedsignal, bessel *lpfilter, int64_t length, int parallelflag)
 {
     int64_t i;
     int64_t p;
@@ -44,41 +45,77 @@ void filter_signal(double *signal, double *paddedsignal, bessel *lpfilter, int64
     int64_t order = lpfilter->order;
     int64_t padding = lpfilter->padding;
     double *temp = lpfilter->temp;
+    double *temp2 = lpfilter->temp2;
     double *dcof = lpfilter->dcof;
     double *ccof = lpfilter->ccof;
     end = length+2*(order+padding);
     int64_t imax = order+padding;
     double start_padval = signal_average(signal,padding);
     double end_padval = signal_average(&signal[length - padding], padding);
+    int64_t nthreads = 8;
+    int64_t chunk = (end-order)/nthreads;
 
-    for (i=0; i<imax; i++)
+    if (parallelflag)
     {
-        temp[i] = start_padval;
-        paddedsignal[i] = start_padval;
-        paddedsignal[end-1-i] = end_padval;
-        temp[end-1-i] = end_padval;
-    }
-    for (i=order; i<end; i++)
-    {
-        temp[i] = ccof[0]*paddedsignal[i];
-        for (p=1; p<=order; p++)
+        for (i=0; i<imax; i++)
         {
-            temp[i] += ccof[p]*paddedsignal[i-p] - dcof[p]*temp[i-p];
+            temp[i] = start_padval;
+            paddedsignal[i] = start_padval;
+            paddedsignal[end-1-i] = end_padval;
+            temp[end-1-i] = end_padval;
         }
-    }
-    start_padval = signal_average(&temp[order],padding);
-    end_padval = signal_average(&temp[length+imax],padding);
-    for (i=0; i<imax; i++)
-    {
-        paddedsignal[end-1-i] = end_padval;
-        paddedsignal[i] = start_padval;
-    }
-    for (i=order; i<end; i++)
-    {
-        paddedsignal[end-1-i] = ccof[0]*temp[end-1-i];
-        for (p=1; p<=order; p++)
+
+        #pragma omp parallel num_threads(nthreads)
         {
-            paddedsignal[end-1-i] += ccof[p]*temp[end-1-i+p] - dcof[p]*paddedsignal[end-1-i+p];
+            printf("%d\n",omp_get_thread_num());
+            #pragma omp for schedule(static, chunk)
+            for (i=order; i<end; i++)
+            {
+                temp[i] = ccof[0]*paddedsignal[i];
+                for (p=1; p<=order; p++)
+                {
+                    temp[i] += ccof[p]*paddedsignal[i-p];
+                }
+            }
+            #pragma omp for schedule(static, chunk)
+            for (i=order; i<end; i++)
+            {
+                temp2[i] = temp[i];
+                for (p=1; p<=order; p++)
+                {
+                    temp2[i] -= dcof[p]*temp[i-p];
+                }
+            }
+        }
+        start_padval = signal_average(&temp2[order],padding);
+        end_padval = signal_average(&temp2[length+imax],padding);
+        for (i=0; i<imax; i++)
+        {
+            temp[end-1-i] = end_padval;
+            temp[i] = start_padval;
+            paddedsignal[i] = start_padval;
+            paddedsignal[end-1-i] = end_padval;
+        }
+        #pragma omp parallel num_threads(nthreads)
+        {
+            #pragma omp for schedule(static, chunk)
+            for (i=order; i<end; i++)
+            {
+                temp[end-1-i] = ccof[0]*temp2[end-1-i];
+                for (p=1; p<=order; p++)
+                {
+                    temp[end-1-i] += ccof[p]*temp2[end-1-i+p];
+                }
+            }
+            #pragma omp for schedule(static, chunk)
+            for (i=order; i<end; i++)
+            {
+                paddedsignal[end-1-i] = temp[i];
+                for (p=1; p<=order; p++)
+                {
+                    paddedsignal[end-1-i] -= dcof[p]*paddedsignal[end-1-i+p];
+                }
+            }
         }
     }
 }
@@ -248,6 +285,9 @@ bessel *initialize_filter(bessel *lpfilter, int64_t order, double cutoff, int64_
     lpfilter->temp = NULL;
     lpfilter->temp = calloc_and_check(length+2*(order+padding), sizeof(double),"Cannot allocate filter temp");
 
+    lpfilter->temp2 = NULL;
+    lpfilter->temp2 = calloc_and_check(length+2*(order+padding), sizeof(double),"Cannot allocate filter temp2");
+
     free(poles);
     free(zeros);
     return lpfilter;
@@ -258,6 +298,7 @@ void free_filter(bessel *lpfilter)
     free(lpfilter->dcof);
     free(lpfilter->ccof);
     free(lpfilter->temp);
+    free(lpfilter->temp2);
     free(lpfilter);
 }
 

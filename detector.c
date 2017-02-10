@@ -583,7 +583,7 @@ void generate_trace(FILE *input, event *current, int datatype, void *rawsignal, 
         }
         if (eventfilter)
         {
-            filter_signal(current->signal, current->paddedsignal, lpfilter, read);
+            filter_signal(current->signal, current->paddedsignal, lpfilter, read, 0);
         }
     }
 }

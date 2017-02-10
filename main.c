@@ -160,7 +160,7 @@ int main()
         }
         if (config->usefilter)
         {
-            filter_signal(signal, paddedsignal, lpfilter, read);
+            filter_signal(signal, paddedsignal, lpfilter, read, 1);
         }
         gauss_histogram(signal, baseline_stats, read);
         if (isnan(baseline_stats->mean) || isnan(baseline_stats->stdev))

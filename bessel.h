@@ -42,6 +42,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include<complex.h>
 #include<math.h>
 #include<inttypes.h>
+#include<omp.h>
 
 struct Bessel
 {
@@ -51,6 +52,7 @@ struct Bessel
     int64_t order;
     int64_t padding;
     double *temp;
+    double *temp2;
 };
 typedef struct Bessel bessel;
 
@@ -61,6 +63,6 @@ double bilinear(double complex *poles, int64_t N, double scale, double fs);
 void transform_filter(double complex *poles, double complex *zeros, int64_t N, double scale, double *b, double *a);
 bessel *initialize_filter(bessel *lpfilter, int64_t order, double cutoff, int64_t length, int64_t padding);
 void free_filter(bessel *lpfilter);
-void filter_signal(double *signal, double *paddedsignal, bessel *lpfilter, int64_t length);
+void filter_signal(double *signal, double *paddedsignal, bessel *lpfilter, int64_t length, int parallelflag);
 
 #endif //BESSEL_H_INCLUDED
