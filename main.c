@@ -87,7 +87,7 @@ int main()
     }
     //allocate memory for file reading
 
-
+    edge *sorted_head;
     edge **head_edge;
     edge **current_edge;
     double **paddedsignal;
@@ -179,8 +179,13 @@ int main()
     int64_t blocknum;
     int tid;
     int64_t numedges;
+    int nthreads = 0;
     #pragma omp parallel private(blocknum, read, baseline, tid, numedges)
     {
+        #pragma omp master
+        {
+            nthreads = omp_get_num_threads();
+        }
         read = 0;
         numedges = 0;
         tid = omp_get_thread_num();
@@ -188,8 +193,8 @@ int main()
         for (pos = config->start; pos < config->finish; pos += readlength)
         {
             blocknum = pos / readlength;
-            //snprintf(progressmsg,STRLENGTH*sizeof(char)," %g seconds processed",(pos-config->start)/(double) config->samplingfreq);
-            //progressbar(pos-config->start,config->finish-config->start,progressmsg,difftime(time(&curr_time),start_time));
+            snprintf(progressmsg,STRLENGTH*sizeof(char)," %g seconds processed",(pos-config->start)/(double) config->samplingfreq);
+            progressbar(pos-config->start,config->finish-config->start,progressmsg,difftime(time(&curr_time),start_time));
             read = read_current(input[tid], signal[tid], rawsignal[tid], pos, intmin(config->readlength,config->finish - pos), config->datatype, config->daqsetup);
             if (config->usefilter)
             {
@@ -232,9 +237,18 @@ int main()
     printf("\nRead %g seconds of good baseline\nRead %g seconds of bad baseline\n", goodbaseline/(double) config->samplingfreq, badbaseline / (double) config->samplingfreq);
     fprintf(logfile, "\nRead %g seconds of good baseline\nRead %g seconds of bad baseline\n", goodbaseline/(double) config->samplingfreq, badbaseline / (double) config->samplingfreq);
     free(paddedsignal);
+
+
+    sorted_head = sort_edges(head_edge, nthreads);
+    edge *sort_test = sorted_head;
+    numedges = 0;
+    while (sort_test)
+    {
+        numedges++;//printf("Block: %"PRId64"\tLocation: %"PRId64"\n",sort_test->blocknum, sort_test->location);
+        sort_test = sort_test->next;
+    }
+    printf("Total: %"PRId64"\n",numedges);
     exit(999);
-
-
     //fclose(baselinefile);
 
 /*

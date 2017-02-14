@@ -20,6 +20,66 @@
 */
 #include"utils.h"
 
+edge *sort_edges(edge **unsorted, int numlists)
+{
+    edge *sorted_head = NULL;
+    edge *sorted_current = NULL;
+    edge *current_edge = NULL;
+    edge *temp = NULL;
+    int64_t blocknum;
+
+    int i;
+    int64_t minblock;
+    int remaining = numlists;
+    int first = 1;
+    int minblock_index;
+    while(remaining) //while there are still more lists to process
+    {
+        minblock = LLONG_MAX;
+        temp = NULL;
+        minblock_index = INT_MAX;
+        remaining = numlists;
+        for (i=0; i<numlists; i++) //loop over the list of head nodes to find the one with the smallest blocknum
+        {
+            if (!unsorted[i]) //when a lists is exhausted the lead node becomes NULL, and we decrement the counter
+            {
+                remaining--;
+            }
+            else //a simple minimum finding algorithm
+            {
+                current_edge = unsorted[i];
+                if (current_edge->blocknum < minblock)
+                {
+                    temp = current_edge;
+                    minblock = current_edge->blocknum;
+                    minblock_index = i;
+                }
+            }
+        }
+        if (remaining == 0)
+        {
+            break;
+        }
+        if (first) //if we have not yet set up the head of the list, we have to save a pointer to the head
+        {
+            sorted_head = temp;
+            sorted_current = sorted_head;
+            first = 0;
+        }
+        else
+        {
+            sorted_current->next = temp;
+        }
+        blocknum = sorted_current->blocknum;
+        while (sorted_current->blocknum == blocknum && sorted_current->next) //skip through to the end of the block so that the next section we append will go on the end
+        {
+            sorted_current = sorted_current->next;
+        }
+        unsorted[minblock_index] = sorted_current->next; //reset the head of the unsorted list to the node after the block
+    }
+    return sorted_head;
+}
+
 int64_t locate_min(double *signal, int64_t length)
 {
     double minval = signal[0];

@@ -652,7 +652,6 @@ edge *detect_edges(double *signal, double baseline, int64_t length, edge *curren
             }
         }
     }
-    printf("Thread %d found %"PRId64"edges \n", tid, numedges);
     return current;
 }
 
