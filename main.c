@@ -178,7 +178,8 @@ int main()
     time(&start_time);
     int64_t blocknum;
     int tid;
-    #pragma omp parallel private(blocknum, read, baseline, tid)
+    int64_t numedges;
+    #pragma omp parallel private(blocknum, read, baseline, tid, numedges)
     {
         read = 0;
         tid = omp_get_thread_num();
@@ -191,7 +192,7 @@ int main()
             read = read_current(input[tid], signal[tid], rawsignal[tid], pos, intmin(config->readlength,config->finish - pos), config->datatype, config->daqsetup);
             if (config->usefilter)
             {
-                filter_signal(signal[tid], paddedsignal[tid], lpfilter, read);
+                filter_signal(signal[tid], paddedsignal[tid], lpfilter, read, tid);
             }
             gauss_histogram(signal[tid], baseline_stats[tid], read);
             baseline = baseline_stats[tid]->mean;
@@ -207,19 +208,31 @@ int main()
             else
             {
                 goodbaseline += read;
-                current_edge[tid] = detect_edges(signal[tid], baseline, read, current_edge[tid], config->threshold, baseline_stats[tid]->stdev, config->hysteresis, pos, config->event_direction, blocknum);
+                current_edge[tid] = detect_edges(signal[tid], baseline, read, current_edge[tid], config->threshold, baseline_stats[tid]->stdev, config->hysteresis, pos, config->event_direction, blocknum, tid);
             }
+            //printf("Thread %d found %g and %g\n",tid,baseline_stats[tid]->mean, baseline_stats[tid]->stdev);
             memset(signal[tid],'0',(config->readlength)*sizeof(double));
         }
-        snprintf(progressmsg,STRLENGTH*sizeof(char)," %g seconds processed",(pos-(readlength-read)-config->start)/(double) config->samplingfreq);
-        progressbar(pos - readlength + read -config->start,config->finish-config->start,progressmsg,difftime(time(&curr_time),start_time));
-        printf("\nRead %g seconds of good baseline\nRead %g seconds of bad baseline\n", goodbaseline/(double) config->samplingfreq, badbaseline / (double) config->samplingfreq);
-        fprintf(logfile, "\nRead %g seconds of good baseline\nRead %g seconds of bad baseline\n", goodbaseline/(double) config->samplingfreq, badbaseline / (double) config->samplingfreq);
-
         current_edge[tid] = head_edge[tid];
+
+        //printf("Thread %d first edge at %g from block %"PRId64"\n",tid,current_edge[tid]->location/(double) config->samplingfreq, current_edge[tid]->blocknum);
+        while (current_edge[tid]->next)
+        {
+            printf("Thread %d edge at %g from block %"PRId64"\n",tid,current_edge[tid]->location/(double) config->samplingfreq, current_edge[tid]->blocknum);
+            numedges++;
+            current_edge[tid] = current_edge[tid]->next;
+        }
+        numedges++;
+        printf("\nThread %d found %"PRId64"\n",tid,numedges);
+
         free(paddedsignal[tid]);
     }
+    snprintf(progressmsg,STRLENGTH*sizeof(char)," %g seconds processed",(pos-(readlength-read)-config->start)/(double) config->samplingfreq);
+    progressbar(pos -config->start,config->finish-config->start,progressmsg,difftime(time(&curr_time),start_time));
+    printf("\nRead %g seconds of good baseline\nRead %g seconds of bad baseline\n", goodbaseline/(double) config->samplingfreq, badbaseline / (double) config->samplingfreq);
+    fprintf(logfile, "\nRead %g seconds of good baseline\nRead %g seconds of bad baseline\n", goodbaseline/(double) config->samplingfreq, badbaseline / (double) config->samplingfreq);
     free(paddedsignal);
+    exit(999);
 
 
     //fclose(baselinefile);

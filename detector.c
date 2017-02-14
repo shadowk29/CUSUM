@@ -582,7 +582,7 @@ void generate_trace(FILE *input, event *current, int datatype, void *rawsignal, 
         }
         if (eventfilter)
         {
-            filter_signal(current->signal, current->paddedsignal, lpfilter, read);
+            filter_signal(current->signal, current->paddedsignal, lpfilter, read, 0);
         }
     }
 }
@@ -590,7 +590,7 @@ void generate_trace(FILE *input, event *current, int datatype, void *rawsignal, 
 
 
 
-edge *detect_edges(double *signal, double baseline, int64_t length, edge *current, double threshold, double stdev, double hysteresis, int64_t position, int event_direction, int64_t blocknum)
+edge *detect_edges(double *signal, double baseline, int64_t length, edge *current, double threshold, double stdev, double hysteresis, int64_t position, int event_direction, int64_t blocknum, int tid)
 {
 
     int64_t i = 0;
@@ -598,9 +598,11 @@ edge *detect_edges(double *signal, double baseline, int64_t length, edge *curren
     double down_threshold;
     double up_threshold;
     int state = 0;
-
+    int64_t numedges = 0;
     threshold *= stdev;
     hysteresis *= stdev;
+
+    //printf("Thread %d using %g as threshold\n",tid,threshold);
 
     sign = signum(baseline); //get the sign of the average so that we can properly invert the signal
     baseline *= sign;
@@ -613,19 +615,23 @@ edge *detect_edges(double *signal, double baseline, int64_t length, edge *curren
 
     if (event_direction == 0)
     {
+
         down_threshold = baseline - threshold;//current thresholds for detection of downspikes and upspikes can be different
         up_threshold = baseline - threshold + hysteresis;
+        //printf("%d: baseline is %g, down_threshold is %g, up_threshold is %g\n",tid, baseline, down_threshold, up_threshold);
 
         for (i=0; i<length; i++)
         {
             if (signal[i]*sign < down_threshold && state == 0) //if we are open pore state and detect a downspike
             {
                 current = add_edge(current, i+position, state, stdev, blocknum);
+                numedges++;
                 state = 1;
             }
             else if (signal[i]*sign > up_threshold && state == 1) //blocked state and detect an upspike
             {
                 current = add_edge(current, i+position, state, stdev, blocknum);
+                numedges++;
                 state = 0;
             }
         }
@@ -649,6 +655,7 @@ edge *detect_edges(double *signal, double baseline, int64_t length, edge *curren
             }
         }
     }
+    printf("Thread %d found %"PRId64"edges \n", tid, numedges);
     return current;
 }
 

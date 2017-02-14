@@ -37,8 +37,16 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include"bessel.h"
 #include<omp.h>
 
-void filter_signal(double *signal, double *paddedsignal, bessel *lpfilter, int64_t length)
+void filter_signal(double *signal, double *paddedsignal, bessel *lpfilter, int64_t length, int tid)
 {
+    /*FILE *raw;
+    FILE *filt;
+    char rawname[STRLENGTH];
+    char filtname[STRLENGTH];
+    snprintf(rawname,STRLENGTH*sizeof(char),"G:/Testing/output/parallel/raw_%d.csv",tid);
+    raw = fopen64_and_check(rawname,"w",99);
+    snprintf(filtname,STRLENGTH*sizeof(char),"G:/Testing/output/parallel/filt_%d.csv",tid);
+    filt = fopen64_and_check(filtname,"w",99);*/
     int64_t i;
     int64_t p;
     int64_t end;
@@ -51,6 +59,13 @@ void filter_signal(double *signal, double *paddedsignal, bessel *lpfilter, int64
     int64_t imax = order+padding;
     double start_padval = signal_average(signal,padding);
     double end_padval = signal_average(&signal[length - padding], padding);
+
+
+    /*for (i=0; i<length; i++)
+    {
+        fprintf(raw,"%g,%g\n",0.24*i,signal[i]);
+    }*/
+
     for (i=0; i<imax; i++)
     {
         temp[i] = start_padval;
@@ -82,6 +97,12 @@ void filter_signal(double *signal, double *paddedsignal, bessel *lpfilter, int64
             paddedsignal[end-1-i] += ccof[p]*temp[end-1-i+p] - dcof[p]*paddedsignal[end-1-i+p];
         }
     }
+    /*for (i=0; i<length; i++)
+    {
+        fprintf(filt,"%g,%g\n",0.24*i,signal[i]);
+    }
+    fclose(filt);
+    fclose(raw);*/
 }
 
 
