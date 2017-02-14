@@ -182,6 +182,7 @@ int main()
     #pragma omp parallel private(blocknum, read, baseline, tid, numedges)
     {
         read = 0;
+        numedges = 0;
         tid = omp_get_thread_num();
         #pragma omp for reduction(+:goodbaseline, badbaseline)
         for (pos = config->start; pos < config->finish; pos += readlength)
@@ -218,7 +219,6 @@ int main()
         //printf("Thread %d first edge at %g from block %"PRId64"\n",tid,current_edge[tid]->location/(double) config->samplingfreq, current_edge[tid]->blocknum);
         while (current_edge[tid]->next)
         {
-            printf("Thread %d edge at %g from block %"PRId64"\n",tid,current_edge[tid]->location/(double) config->samplingfreq, current_edge[tid]->blocknum);
             numedges++;
             current_edge[tid] = current_edge[tid]->next;
         }

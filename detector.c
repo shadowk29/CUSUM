@@ -602,8 +602,6 @@ edge *detect_edges(double *signal, double baseline, int64_t length, edge *curren
     threshold *= stdev;
     hysteresis *= stdev;
 
-    //printf("Thread %d using %g as threshold\n",tid,threshold);
-
     sign = signum(baseline); //get the sign of the average so that we can properly invert the signal
     baseline *= sign;
 
@@ -618,7 +616,6 @@ edge *detect_edges(double *signal, double baseline, int64_t length, edge *curren
 
         down_threshold = baseline - threshold;//current thresholds for detection of downspikes and upspikes can be different
         up_threshold = baseline - threshold + hysteresis;
-        //printf("%d: baseline is %g, down_threshold is %g, up_threshold is %g\n",tid, baseline, down_threshold, up_threshold);
 
         for (i=0; i<length; i++)
         {

@@ -52,7 +52,7 @@ void filter_signal(double *signal, double *paddedsignal, bessel *lpfilter, int64
     int64_t end;
     int64_t order = lpfilter->order;
     int64_t padding = lpfilter->padding;
-    double *temp = lpfilter->temp;
+    double *temp = lpfilter->temp[tid];
     double *dcof = lpfilter->dcof;
     double *ccof = lpfilter->ccof;
     end = length+2*(order+padding);
@@ -268,7 +268,16 @@ bessel *initialize_filter(bessel *lpfilter, int64_t order, double cutoff, int64_
     transform_filter(poles, zeros, order, scale, lpfilter->ccof, lpfilter->dcof);
 
     lpfilter->temp = NULL;
-    lpfilter->temp = calloc_and_check(length+2*(order+padding), sizeof(double),"Cannot allocate filter temp");
+    #pragma omp parallel
+    {
+        #pragma omp master
+        {
+            lpfilter->temp = calloc_and_check(omp_get_num_threads(), sizeof(double *), "Cannot allocate lpfilter->temp\n");
+        }
+        #pragma omp barrier
+        lpfilter->temp[omp_get_thread_num()] = calloc_and_check(length+2*(order+padding), sizeof(double),"Cannot allocate filter temp");
+    }
+
 
     free(poles);
     free(zeros);
@@ -279,6 +288,10 @@ void free_filter(bessel *lpfilter)
 {
     free(lpfilter->dcof);
     free(lpfilter->ccof);
+    #pragma omp parallel
+    {
+        free(lpfilter->temp[omp_get_thread_num()]);
+    }
     free(lpfilter->temp);
     free(lpfilter);
 }
