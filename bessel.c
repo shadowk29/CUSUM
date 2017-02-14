@@ -37,165 +37,50 @@ THE POSSIBILITY OF SUCH DAMAGE.
 #include"bessel.h"
 #include<omp.h>
 
-void filter_signal(double *signal, double *paddedsignal, bessel *lpfilter, int64_t length, int parallelflag)
+void filter_signal(double *signal, double *paddedsignal, bessel *lpfilter, int64_t length)
 {
-    parallelflag=1;
-    FILE *raw;
-    FILE *filt;
-    raw = fopen64_and_check("G:/Testing/output/parallel/raw-parallel.csv","w",99);
-    filt = fopen64_and_check("G:/Testing/output/parallel/filt-parallel.csv","w",99);
     int64_t i;
     int64_t p;
     int64_t end;
     int64_t order = lpfilter->order;
     int64_t padding = lpfilter->padding;
     double *temp = lpfilter->temp;
-    double *temp2 = lpfilter->temp2;
     double *dcof = lpfilter->dcof;
     double *ccof = lpfilter->ccof;
     end = length+2*(order+padding);
     int64_t imax = order+padding;
     double start_padval = signal_average(signal,padding);
     double end_padval = signal_average(&signal[length - padding], padding);
-    int64_t nthreads = 8;
-    int64_t chunk = (end-order)/nthreads;
-
-
-    if (parallelflag)
+    for (i=0; i<imax; i++)
     {
-        for (i=0; i<length;i++)
-        {
-            fprintf(raw,"%.16g,%.16g\n",i*.24,signal[i]);
-        }
-        for (i=0; i<imax; i++)
-        {
-            temp[i] = start_padval;
-            paddedsignal[i] = start_padval;
-            paddedsignal[end-1-i] = end_padval;
-            temp[end-1-i] = end_padval;
-        }
-
-        #pragma omp parallel for schedule(static, chunk)
-        for (i=order; i<end; i++)
-        {
-            temp[i] = ccof[0]*paddedsignal[i];
-            for (p=1; p<=order; p++)
-            {
-                temp[i] += ccof[p]*paddedsignal[i-p];
-            }
-        }
-
-//////////////////GOOOOOOOOOOOD///////////////
-
-        for (i=0; i<order; i++)
-        {
-            temp2[i] = temp[i];
-        }
-        #pragma omp parallel for schedule(static, chunk)
-        for (i=order; i<end; i++)
-        {
-            temp2[i] = temp[i];
-            for (p=1; p<=order; p++)
-            {
-                temp2[i] -= dcof[p]*temp2[i-p];
-            }
-        }
-
-        for (i=0; i<length;i++)
-        {
-            fprintf(filt,"%.16g,%.16g\n",i*.24,temp2[i]);
-        }
-        fclose(raw);
-        fclose(filt);
-        exit(99);
-
-
-        start_padval = signal_average(&temp2[order],padding);
-        end_padval = signal_average(&temp2[length+imax],padding);
-        for (i=0; i<imax; i++)
-        {
-            paddedsignal[i] = start_padval;
-            paddedsignal[end-1-i] = end_padval;
-            temp[i] = start_padval;
-            temp[end-1-i] = end_padval;
-        }
-
-
-        #pragma omp for schedule(static, chunk)
-        for (i=order; i<end; i++)
-        {
-            temp[end-1-i] = ccof[0]*temp2[end-1-i];
-            for (p=1; p<=order; p++)
-            {
-                temp[end-1-i] += ccof[p]*temp2[end-1-i+p];
-            }
-        }
-
-        for (i=0; i<order; i++)
-        {
-            paddedsignal[end-1-i] = temp[end-1-i];
-        }
-
-
-        #pragma omp for schedule(static, chunk)
-        for (i=order; i<end; i++)
-        {
-            paddedsignal[end-1-i] = temp[i];
-            for (p=1; p<=order; p++)
-            {
-                paddedsignal[end-1-i] -= dcof[p]*paddedsignal[end-1-i+p];
-            }
-        }
-
+        temp[i] = start_padval;
+        paddedsignal[i] = start_padval;
+        paddedsignal[end-1-i] = end_padval;
+        temp[end-1-i] = end_padval;
     }
-    else
+    for (i=order; i<end; i++)
     {
-        for (i=0; i<length;i++)
+        temp[i] = ccof[0]*paddedsignal[i];
+        for (p=1; p<=order; p++)
         {
-            fprintf(raw,"%.16g,%.16g\n",i*.24,signal[i]);
+            temp[i] += ccof[p]*paddedsignal[i-p] - dcof[p]*temp[i-p];
         }
-        for (i=0; i<imax; i++)
-        {
-            temp[i] = start_padval;
-            paddedsignal[i] = start_padval;
-            paddedsignal[end-1-i] = end_padval;
-            temp[end-1-i] = end_padval;
-        }
-        for (i=order; i<end; i++)
-        {
-            temp[i] = ccof[0]*paddedsignal[i];
-            for (p=1; p<=order; p++)
-            {
-                temp[i] += ccof[p]*paddedsignal[i-p] - dcof[p]*temp[i-p];
-            }
-        }
+    }
 
-        for (i=0; i<length;i++)
+    start_padval = signal_average(&temp[order],padding);
+    end_padval = signal_average(&temp[length+imax],padding);
+    for (i=0; i<imax; i++)
+    {
+        paddedsignal[end-1-i] = end_padval;
+        paddedsignal[i] = start_padval;
+    }
+    for (i=order; i<end; i++)
+    {
+        paddedsignal[end-1-i] = ccof[0]*temp[end-1-i];
+        for (p=1; p<=order; p++)
         {
-            fprintf(filt,"%.16g,%.16g\n",i*.24,temp[i]);
+            paddedsignal[end-1-i] += ccof[p]*temp[end-1-i+p] - dcof[p]*paddedsignal[end-1-i+p];
         }
-        fclose(raw);
-        fclose(filt);
-        exit(99);
-
-
-
-        start_padval = signal_average(&temp[order],padding);
-        end_padval = signal_average(&temp[length+imax],padding);
-        for (i=0; i<imax; i++)
-        {
-            paddedsignal[end-1-i] = end_padval;
-            paddedsignal[i] = start_padval;
-        }
-        for (i=order; i<end; i++)
-        {
-            paddedsignal[end-1-i] = ccof[0]*temp[end-1-i];
-            for (p=1; p<=order; p++)
-            {
-                paddedsignal[end-1-i] += ccof[p]*temp[end-1-i+p] - dcof[p]*paddedsignal[end-1-i+p];
-            }
-        }
-
     }
 }
 
@@ -364,9 +249,6 @@ bessel *initialize_filter(bessel *lpfilter, int64_t order, double cutoff, int64_
     lpfilter->temp = NULL;
     lpfilter->temp = calloc_and_check(length+2*(order+padding), sizeof(double),"Cannot allocate filter temp");
 
-    lpfilter->temp2 = NULL;
-    lpfilter->temp2 = calloc_and_check(length+2*(order+padding), sizeof(double),"Cannot allocate filter temp2");
-
     free(poles);
     free(zeros);
     return lpfilter;
@@ -377,7 +259,6 @@ void free_filter(bessel *lpfilter)
     free(lpfilter->dcof);
     free(lpfilter->ccof);
     free(lpfilter->temp);
-    free(lpfilter->temp2);
     free(lpfilter);
 }
 

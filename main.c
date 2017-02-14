@@ -50,8 +50,18 @@ int main()
     }
 
     //open the input file
-    FILE *input;
-    input = fopen64_and_check(config->filepath,"rb", 4);
+
+    FILE **input;
+    #pragma omp parallel
+    {
+        #pragma omp master
+        {
+            input = calloc_and_check(omp_get_num_threads(), sizeof(FILE *), "Cannot open input file\n");
+        }
+        #pragma omp barrier
+        input[omp_get_thread_num()] = fopen64_and_check(config->filepath,"rb", 4);
+    }
+
 
     FILE *events;
     events = fopen64_and_check(config->eventsfile,"w",21);
@@ -59,13 +69,12 @@ int main()
     FILE *rate;
     rate = fopen64_and_check(config->ratefile,"w",21);
 
-    FILE *baselinefile;
-    baselinefile = fopen64_and_check(config->baselinefile,"w",21);
+    FILE *baselinefile = NULL;
+    //baselinefile = fopen64_and_check(config->baselinefile,"w",21);
 
     initialize_events_file(events, rate, baselinefile);
 
     bessel *lpfilter = NULL;
-    double *filtered = NULL;
 
     int64_t *error_summary = calloc_and_check(NUMTYPES, sizeof(int64_t), "Cannot allocate error array");
 
@@ -78,28 +87,51 @@ int main()
     }
     //allocate memory for file reading
 
-    double *paddedsignal = calloc_and_check(config->readlength + 2*(config->order + filterpadding),sizeof(double), "Cannot allocate file reading signal array");
-    double *signal = &paddedsignal[config->order + filterpadding];
-    void *rawsignal = NULL;
-    switch (config->datatype)
+
+    edge **head_edge;
+    edge **current_edge;
+    double **paddedsignal;
+    double **signal;
+    void **rawsignal;
+    baseline_struct **baseline_stats;
+    #pragma omp parallel
     {
-        case 0:
-            rawsignal = calloc_and_check(config->readlength, sizeof(uint16_t), "Cannot allocate chimera rawsignal array");
-            break;
-        case 16:
-            rawsignal = calloc_and_check(config->readlength, 2*sizeof(uint16_t), "Cannot allocate f2 rawsignal array");
-            break;
-        case 64:
-            rawsignal = calloc_and_check(config->readlength, 2*sizeof(uint64_t), "Cannot allocate f8 rawsignal array");
-            break;
+        #pragma omp master
+        {
+            paddedsignal = calloc_and_check(omp_get_num_threads(), sizeof(double *), "Cannot allocate paddedsignal");
+            signal = calloc_and_check(omp_get_num_threads(), sizeof(double *), "Cannot allocate signal");
+            rawsignal = calloc_and_check(omp_get_num_threads(), sizeof(void *), "Cannot allocate raw");
+            baseline_stats = calloc_and_check(omp_get_num_threads(), sizeof(baseline_struct *), "Cannot allocate raw");
+            head_edge = calloc_and_check(omp_get_num_threads(), sizeof(edge *), "Cannot allocate head edge");
+            current_edge = calloc_and_check(omp_get_num_threads(), sizeof(edge *), "Cannot allocate current edge");
+        }
+        #pragma omp barrier
+        paddedsignal[omp_get_thread_num()] = calloc_and_check(config->readlength + 2*(config->order + filterpadding),sizeof(double), "Cannot allocate file reading signal array");
+        signal[omp_get_thread_num()] = &paddedsignal[omp_get_thread_num()][config->order + filterpadding];
+        baseline_stats[omp_get_thread_num()] = NULL;
+        baseline_stats[omp_get_thread_num()] = initialize_baseline(baseline_stats[omp_get_thread_num()], config);
+        rawsignal[omp_get_thread_num()] = NULL;
+        switch (config->datatype)
+        {
+            case 0:
+                rawsignal[omp_get_thread_num()] = calloc_and_check(config->readlength, sizeof(uint16_t), "Cannot allocate chimera rawsignal array");
+                break;
+            case 16:
+                rawsignal[omp_get_thread_num()] = calloc_and_check(config->readlength, 2*sizeof(uint16_t), "Cannot allocate f2 rawsignal array");
+                break;
+            case 64:
+                rawsignal[omp_get_thread_num()] = calloc_and_check(config->readlength, 2*sizeof(uint64_t), "Cannot allocate f8 rawsignal array");
+                break;
+        }
+        head_edge[omp_get_thread_num()] = initialize_edges();
+        current_edge[omp_get_thread_num()] = head_edge[omp_get_thread_num()];
     }
 
 
-    baseline_struct *baseline_stats = NULL;
-    baseline_stats = initialize_baseline(baseline_stats, config);
+
 
     //find out how big the file is for use in a progressbar
-    int64_t filesize = get_filesize(input, config->datatype);
+    int64_t filesize = get_filesize(input[0], config->datatype);
     if (config->finish == 0)
     {
         config->finish = filesize;
@@ -111,10 +143,7 @@ int main()
 
 
     //initialize linked list to store the locations of edges in the input file
-    edge *head_edge;
-    edge *current_edge;
-    head_edge = initialize_edges();
-    current_edge = head_edge;
+
 
     //initialize struct to store the information about events found using the edge list
     event *current_event;
@@ -138,79 +167,64 @@ int main()
     double baseline;
     double badbaseline = 0;
     double goodbaseline = 0;
+    int64_t readlength = config->readlength;
     int64_t i;
     int64_t read;
     int64_t pos;
-    int endflag;
-    endflag = 0;
-    read = 0;
     pos = 0;
     char progressmsg[STRLENGTH];
     time_t start_time;
     time_t curr_time;
     time(&start_time);
-    for (pos = config->start; pos < config->finish; pos += read)
+    int64_t blocknum;
+    int tid;
+    #pragma omp parallel private(blocknum, read, baseline, tid)
     {
-        snprintf(progressmsg,STRLENGTH*sizeof(char)," %g seconds processed",(pos-config->start)/(double) config->samplingfreq);
-        progressbar(pos-config->start,config->finish-config->start,progressmsg,difftime(time(&curr_time),start_time));
-        read = read_current(input, signal, rawsignal, pos, intmin(config->readlength,config->finish - pos), config->datatype, config->daqsetup);
-        if (read < config->readlength || feof(input))
+        read = 0;
+        tid = omp_get_thread_num();
+        #pragma omp for reduction(+:goodbaseline, badbaseline)
+        for (pos = config->start; pos < config->finish; pos += readlength)
         {
-            endflag = 1;
+            blocknum = pos / readlength;
+            //snprintf(progressmsg,STRLENGTH*sizeof(char)," %g seconds processed",(pos-config->start)/(double) config->samplingfreq);
+            //progressbar(pos-config->start,config->finish-config->start,progressmsg,difftime(time(&curr_time),start_time));
+            read = read_current(input[tid], signal[tid], rawsignal[tid], pos, intmin(config->readlength,config->finish - pos), config->datatype, config->daqsetup);
+            if (config->usefilter)
+            {
+                filter_signal(signal[tid], paddedsignal[tid], lpfilter, read);
+            }
+            gauss_histogram(signal[tid], baseline_stats[tid], read);
+            baseline = baseline_stats[tid]->mean;
+            if (isnan(baseline_stats[tid]->mean) || isnan(baseline_stats[tid]->stdev))
+            {
+                baseline = 0;
+            }
+            //output_baseline_stats(baselinefile, baseline_stats[omp_get_thread_num()], pos, config->samplingfreq);
+            if (baseline < config->baseline_min || baseline > config->baseline_max)
+            {
+                badbaseline += read;
+            }
+            else
+            {
+                goodbaseline += read;
+                current_edge[tid] = detect_edges(signal[tid], baseline, read, current_edge[tid], config->threshold, baseline_stats[tid]->stdev, config->hysteresis, pos, config->event_direction, blocknum);
+            }
+            memset(signal[tid],'0',(config->readlength)*sizeof(double));
         }
-        if (config->usefilter)
-        {
-            filter_signal(signal, paddedsignal, lpfilter, read, 1);
-        }
-        gauss_histogram(signal, baseline_stats, read);
-        if (isnan(baseline_stats->mean) || isnan(baseline_stats->stdev))
-        {
-            printf("\nBaseline fit failed, check your baseline bounds\n");
-            exit(2);
-        }
-        baseline = baseline_stats->mean;
-        output_baseline_stats(baselinefile, baseline_stats, pos, config->samplingfreq);
-        if (baseline < config->baseline_min || baseline > config->baseline_max)
-        {
-            badbaseline += read;
-        }
-        else
-        {
-            goodbaseline += read;
-            current_edge = detect_edges(signal, baseline, read, current_edge, config->threshold, baseline_stats->stdev, config->hysteresis, pos, config->event_direction);
-        }
-        if (endflag)
-        {
-            pos += read;
-                break;
-        }
-        memset(signal,'0',(config->readlength)*sizeof(double));
+        snprintf(progressmsg,STRLENGTH*sizeof(char)," %g seconds processed",(pos-(readlength-read)-config->start)/(double) config->samplingfreq);
+        progressbar(pos - readlength + read -config->start,config->finish-config->start,progressmsg,difftime(time(&curr_time),start_time));
+        printf("\nRead %g seconds of good baseline\nRead %g seconds of bad baseline\n", goodbaseline/(double) config->samplingfreq, badbaseline / (double) config->samplingfreq);
+        fprintf(logfile, "\nRead %g seconds of good baseline\nRead %g seconds of bad baseline\n", goodbaseline/(double) config->samplingfreq, badbaseline / (double) config->samplingfreq);
+
+        current_edge[tid] = head_edge[tid];
+        free(paddedsignal[tid]);
     }
-    snprintf(progressmsg,STRLENGTH*sizeof(char)," %g seconds processed",(pos-config->start)/(double) config->samplingfreq);
-    progressbar(pos-config->start,config->finish-config->start,progressmsg,difftime(time(&curr_time),start_time));
-    printf("\nRead %g seconds of good baseline\nRead %g seconds of bad baseline\n", goodbaseline/(double) config->samplingfreq, badbaseline / (double) config->samplingfreq);
-    fprintf(logfile, "\nRead %g seconds of good baseline\nRead %g seconds of bad baseline\n", goodbaseline/(double) config->samplingfreq, badbaseline / (double) config->samplingfreq);
-
-    current_edge = head_edge;
-
-    if (!current_edge || current_edge->type == HEAD)
-    {
-        printf("It is %"PRId64"\n",current_edge->type);
-        printf("No edges found in signal, exiting\n");
-        fprintf(logfile, "No edges found in signal, exiting\n");
-        system("pause");
-        exit(8);
-    }
-
-
     free(paddedsignal);
-    if (config->usefilter)
-    {
-        free(filtered);
-    }
-    fclose(baselinefile);
 
 
+    //fclose(baselinefile);
+
+/*
     int64_t index = 0;
     int64_t numevents = 0;
     int64_t edgecount;
@@ -244,7 +258,7 @@ int main()
         identify_step_events(current_event, config->stepfit_samples, config->subevent_minpoints, config->attempt_recovery);
         filter_long_events(current_event, config->event_maxpoints);
         filter_short_events(current_event, config->event_minpoints);
-        generate_trace(input, current_event, config->datatype, rawsignal, logfile, lpfilter, config->eventfilter, config->daqsetup, current_edge, last_end, config->start, config->subevent_minpoints);
+        generate_trace(input[0], current_event, config->datatype, rawsignal, logfile, lpfilter, config->eventfilter, config->daqsetup, current_edge, last_end, config->start, config->subevent_minpoints);
         last_end = current_event->finish;
         cusum(current_event, config->cusum_delta, config->cusum_min_threshold, config->cusum_max_threshold, config->subevent_minpoints);
         typeswitch += average_cusum_levels(current_event, config->subevent_minpoints, config->cusum_minstep, config->attempt_recovery);
@@ -278,12 +292,21 @@ int main()
     fprintf(logfile, "Cleaning up memory usage...\n");
     free(current_event);
     free_edges(head_edge);
-    fclose(input);
+    #pragma omp parallel
+    {
+        fclose(input[omp_get_thread_num()]);
+    }
+    free(input);
     free(config->daqsetup);
     free(config);
     free(error_summary);
+    #pragma omp parallel
+    {
+        free(rawsignal[omp_get_thread_num()]);
+        free_baseline(baseline_stats[omp_get_thread_num()]);
+    }
     free(rawsignal);
-    free_baseline(baseline_stats);
+    free(baseline_stats);
 
 
     if (config->usefilter || config->eventfilter)
@@ -297,5 +320,5 @@ int main()
     fclose(events);
     fclose(rate);
     system("pause");
-    return 0;
+    return 0;*/
 }

@@ -402,7 +402,7 @@ void cusum(event *current_event, double delta, double minthreshold, double maxth
                     jumppos = anchor + locate_min(&cpos[anchor], k+1-anchor);
                     if (jumppos - current_edge->location > subevent_minpoints && length - jumppos > subevent_minpoints)
                     {
-                        current_edge = add_edge(current_edge, jumppos, 1, 0);
+                        current_edge = add_edge(current_edge, jumppos, 1, 0, 0);
                         numjumps++;
                     }
                 }
@@ -411,7 +411,7 @@ void cusum(event *current_event, double delta, double minthreshold, double maxth
                     jumpneg = anchor + locate_min(&cneg[anchor], k+1-anchor);
                     if (jumpneg - current_edge->location > subevent_minpoints && length - jumpneg > subevent_minpoints)
                     {
-                        current_edge = add_edge(current_edge, jumpneg, -1, 0);
+                        current_edge = add_edge(current_edge, jumpneg, -1, 0, 0);
                         numjumps++;
                     }
                 }
@@ -427,8 +427,7 @@ void cusum(event *current_event, double delta, double minthreshold, double maxth
                 varS = 0;
             }
         }
-        current_edge = add_edge(current_edge, length, 1, 0);
-        free(cpos);
+        current_edge = add_edge(current_edge, length, 1, 0, 0);
         free(cneg);
         free(gpos);
         free(gneg);
@@ -583,7 +582,7 @@ void generate_trace(FILE *input, event *current, int datatype, void *rawsignal, 
         }
         if (eventfilter)
         {
-            filter_signal(current->signal, current->paddedsignal, lpfilter, read, 0);
+            filter_signal(current->signal, current->paddedsignal, lpfilter, read);
         }
     }
 }
@@ -591,7 +590,7 @@ void generate_trace(FILE *input, event *current, int datatype, void *rawsignal, 
 
 
 
-edge *detect_edges(double *signal, double baseline, int64_t length, edge *current, double threshold, double stdev, double hysteresis, int64_t position, int event_direction)
+edge *detect_edges(double *signal, double baseline, int64_t length, edge *current, double threshold, double stdev, double hysteresis, int64_t position, int event_direction, int64_t blocknum)
 {
 
     int64_t i = 0;
@@ -621,12 +620,12 @@ edge *detect_edges(double *signal, double baseline, int64_t length, edge *curren
         {
             if (signal[i]*sign < down_threshold && state == 0) //if we are open pore state and detect a downspike
             {
-                current = add_edge(current, i+position, state, stdev);
+                current = add_edge(current, i+position, state, stdev, blocknum);
                 state = 1;
             }
             else if (signal[i]*sign > up_threshold && state == 1) //blocked state and detect an upspike
             {
-                current = add_edge(current, i+position, state, stdev);
+                current = add_edge(current, i+position, state, stdev, blocknum);
                 state = 0;
             }
         }
@@ -640,12 +639,12 @@ edge *detect_edges(double *signal, double baseline, int64_t length, edge *curren
         {
             if (signal[i]*sign > up_threshold && state == 0) //if we are open pore state and detect a downspike
             {
-                current = add_edge(current, i+position, state, stdev);
+                current = add_edge(current, i+position, state, stdev, blocknum);
                 state = 1;
             }
             else if (signal[i]*sign < down_threshold && state == 1) //blocked state and detect an upspike
             {
-                current = add_edge(current, i+position, state, stdev);
+                current = add_edge(current, i+position, state, stdev, blocknum);
                 state = 0;
             }
         }

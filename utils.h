@@ -120,6 +120,7 @@ typedef struct Event event;
 
 struct Edge
 {
+    int64_t blocknum;
     int64_t location;
     int64_t type;
     double local_stdev;
@@ -188,7 +189,7 @@ double ARL(int64_t length, double sigma, double mun, double h);
 
 int64_t count_edges(edge *head_edge);
 edge *initialize_edges(void);
-edge *add_edge(edge *current, int64_t location, int type, double stdev);
+edge *add_edge(edge *current, int64_t location, int type, double stdev, int64_t blocknum);
 void free_edges(edge *current);
 
 event *initialize_events(void);

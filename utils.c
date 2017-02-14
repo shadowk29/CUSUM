@@ -266,10 +266,11 @@ edge *initialize_edges(void)
 }
 
 
-edge *add_edge(edge *current, int64_t location, int type, double stdev)
+edge *add_edge(edge *current, int64_t location, int type, double stdev, int64_t blocknum)
 {
     if (current->type == HEAD) //if we are adding a new node to the head node that hasn't been filled yet
     {
+        current->blocknum = blocknum;
         current->location = location;
         current->type = type;
         current->local_stdev = stdev;
@@ -277,6 +278,7 @@ edge *add_edge(edge *current, int64_t location, int type, double stdev)
     else
     {//if the current node is filled with useful information and we actually need more memory
         current->next = calloc_and_check(1,sizeof(edge),"Cannot allocate next edge");
+        current->next->blocknum = blocknum;
         current->next->location = location;
         current->next->type = type;
         current->next->local_stdev = stdev;
