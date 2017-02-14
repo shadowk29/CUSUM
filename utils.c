@@ -20,6 +20,55 @@
 */
 #include"utils.h"
 
+
+edge_list *append_block_list(edge_list *block, int64_t blocknum, edge *first, edge *last)
+{
+    block->next = calloc_and_check(1, sizeof(edge_list), "Cannot allocate edge_list");
+    block = block->next;
+    block->blocklist = first;
+    block->last = last;
+    block->blocknum = blocknum;
+    block->next = NULL;
+    return block;
+}
+
+edge *sort_and_merge_edges(edge **unsorted, int numlists)
+{
+    edge_list *headblock = calloc_and_check(1, sizeof(edge_list), "Cannot allocate edge_list");
+    headblock->blocknum = unsorted[0]->blocknum;
+    headblock->blocklist = unsorted[0];
+    headblock->next = NULL;
+    edge_list *block = headblock;
+    edge *temp;
+    edge *last;
+    int i;
+    int64_t blocknum = headblock->blocknum;
+
+    for (i=0; i<numlists; i++)
+    {
+        temp = unsorted[i];
+        while (temp)
+        {
+            if (temp->blocknum != blocknum)
+            {
+                blocknum = temp->blocknum;
+                last = temp;
+                while (last->next && last->next->blocknum == blocknum)
+                {
+                    last = last->next;
+                }
+                block = append_block_list(block, temp->blocknum, temp, last);
+                temp = last;
+            }
+            else
+            {
+                temp = temp->next;
+            }
+
+        }
+    }
+}
+
 edge *sort_edges(edge **unsorted, int numlists)
 {
     edge *sorted_head = NULL;
@@ -27,6 +76,7 @@ edge *sort_edges(edge **unsorted, int numlists)
     edge *current_edge = NULL;
     edge *temp = NULL;
     int64_t blocknum;
+    int64_t index = 0;
 
     int i;
     int64_t minblock;
@@ -55,6 +105,14 @@ edge *sort_edges(edge **unsorted, int numlists)
                     minblock_index = i;
                 }
             }
+        }
+        if (minblock != index)
+        {
+            printf("Sorting failure for block %"PRId64"\n",minblock);
+        }
+        else
+        {
+            index++;
         }
         if (remaining == 0)
         {

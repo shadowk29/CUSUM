@@ -193,8 +193,9 @@ int main()
         for (pos = config->start; pos < config->finish; pos += readlength)
         {
             blocknum = pos / readlength;
-            snprintf(progressmsg,STRLENGTH*sizeof(char)," %g seconds processed",(pos-config->start)/(double) config->samplingfreq);
-            progressbar(pos-config->start,config->finish-config->start,progressmsg,difftime(time(&curr_time),start_time));
+            printf("Thread %d using block %"PRId64"\n",tid,blocknum);
+            //snprintf(progressmsg,STRLENGTH*sizeof(char)," %g seconds processed",(pos-config->start)/(double) config->samplingfreq);
+            //progressbar(pos-config->start,config->finish-config->start,progressmsg,difftime(time(&curr_time),start_time));
             read = read_current(input[tid], signal[tid], rawsignal[tid], pos, intmin(config->readlength,config->finish - pos), config->datatype, config->daqsetup);
             if (config->usefilter)
             {
@@ -239,12 +240,18 @@ int main()
     free(paddedsignal);
 
 
-    sorted_head = sort_edges(head_edge, nthreads);
+    sorted_head = sort_and_merge_edges(head_edge, nthreads);
     edge *sort_test = sorted_head;
     numedges = 0;
+    int64_t lastblock = -1;
     while (sort_test)
     {
-        numedges++;//printf("Block: %"PRId64"\tLocation: %"PRId64"\n",sort_test->blocknum, sort_test->location);
+        numedges++;
+        if (lastblock != sort_test->blocknum)
+        {
+            printf("Block: %"PRId64"\tLocation: %"PRId64"\n",sort_test->blocknum, sort_test->location);
+            lastblock = sort_test->blocknum;
+        }
         sort_test = sort_test->next;
     }
     printf("Total: %"PRId64"\n",numedges);

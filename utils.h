@@ -128,6 +128,14 @@ struct Edge
 };
 typedef struct Edge edge;
 
+struct Edge_list
+{
+    int64_t blocknum;
+    struct Edge *blocklist;
+    struct Edge *last;
+    struct Edge_list *next;
+};
+typedef struct Edge_list edge_list;
 
 struct Configuration
 {
@@ -221,4 +229,6 @@ int64_t locate_max(double *signal, int64_t length);
 
 
 edge *sort_edges(edge **unsorted, int numlists);
+edge *sort_and_merge_edges(edge **unsorted, int numlists);
+edge_list *append_block_list(edge_list *block, int64_t blocknum, edge *temp, edge *last);
 #endif // UTILS_H_INCLUDED
