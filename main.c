@@ -75,7 +75,7 @@ int main()
     rate = fopen64_and_check(config->ratefile,"w",21);
 
     FILE *baselinefile = NULL;
-    //baselinefile = fopen64_and_check(config->baselinefile,"w",21);
+    baselinefile = fopen64_and_check(config->baselinefile,"w",21);
 
     initialize_events_file(events, rate, baselinefile);
 
@@ -92,9 +92,10 @@ int main()
     }
     //allocate memory for file reading
 
-    edge *sorted_head;
-    edge **head_edge;
-    edge **current_edge;
+    edge *head_edge;
+    edge *current_edge;
+    edge **edge_array_head;
+    edge **edge_array_current;
     double **paddedsignal;
     double **signal;
     void **rawsignal;
@@ -111,8 +112,8 @@ int main()
             signal = calloc_and_check(nthreads, sizeof(double *), "Cannot allocate signal");
             rawsignal = calloc_and_check(nthreads, sizeof(void *), "Cannot allocate raw");
             baseline_stats = calloc_and_check(nthreads, sizeof(baseline_struct *), "Cannot allocate raw");
-            head_edge = calloc_and_check(nthreads, sizeof(edge *), "Cannot allocate head edge");
-            current_edge = calloc_and_check(nthreads, sizeof(edge *), "Cannot allocate current edge");
+            edge_array_head = calloc_and_check(nthreads, sizeof(edge *), "Cannot allocate head edge");
+            edge_array_current = calloc_and_check(nthreads, sizeof(edge *), "Cannot allocate current edge");
         }
         #pragma omp barrier
         paddedsignal[tid] = calloc_and_check(config->readlength + 2*(config->order + filterpadding),sizeof(double), "Cannot allocate file reading signal array");
@@ -132,8 +133,8 @@ int main()
                 rawsignal[tid] = calloc_and_check(config->readlength, 2*sizeof(uint64_t), "Cannot allocate f8 rawsignal array");
                 break;
         }
-        head_edge[tid] = initialize_edges();
-        current_edge[tid] = head_edge[tid];
+        edge_array_head[tid] = initialize_edges();
+        edge_array_current[tid] = edge_array_head[tid];
     }
 
 
@@ -216,7 +217,10 @@ int main()
             {
                 baseline = 0;
             }
-            //output_baseline_stats(baselinefile, baseline_stats[omp_get_thread_num()], pos, config->samplingfreq);
+            #pragma omp critical
+            {
+                output_baseline_stats(baselinefile, baseline_stats[tid], pos, config->samplingfreq);
+            }
             if (baseline < config->baseline_min || baseline > config->baseline_max)
             {
                 badbaseline += read;
@@ -224,51 +228,33 @@ int main()
             else
             {
                 goodbaseline += read;
-                current_edge[tid] = detect_edges(signal[tid], baseline, read, current_edge[tid], config->threshold, baseline_stats[tid]->stdev, config->hysteresis, pos, config->event_direction, blocknum, tid);
+                edge_array_current[tid] = detect_edges(signal[tid], baseline, read, edge_array_current[tid], config->threshold, baseline_stats[tid]->stdev, config->hysteresis, pos, config->event_direction, blocknum);
             }
-            //printf("Thread %d found %g and %g\n",tid,baseline_stats[tid]->mean, baseline_stats[tid]->stdev);
             memset(signal[tid],'0',(config->readlength)*sizeof(double));
         }
-        current_edge[tid] = head_edge[tid];
-
-        //printf("Thread %d first edge at %g from block %"PRId64"\n",tid,current_edge[tid]->location/(double) config->samplingfreq, current_edge[tid]->blocknum);
-        while (current_edge[tid]->next)
+        edge_array_current[tid] = edge_array_head[tid];
+        while (edge_array_current[tid]->next)
         {
             numedges++;
-            current_edge[tid] = current_edge[tid]->next;
+            edge_array_current[tid] = edge_array_current[tid]->next;
         }
         numedges++;
         printf("\nThread %d found %"PRId64"\n",tid,numedges);
 
         free(paddedsignal[tid]);
     }
-    snprintf(progressmsg,STRLENGTH*sizeof(char)," %g seconds processed",(pos-(readlength-read)-config->start)/(double) config->samplingfreq);
-    progressbar(pos -config->start,config->finish-config->start,progressmsg,difftime(time(&curr_time),start_time));
+    //snprintf(progressmsg,STRLENGTH*sizeof(char)," %g seconds processed",(pos-config->start)/(double) config->samplingfreq);
+    //progressbar(pos -config->start,config->finish-config->start,progressmsg,difftime(time(&curr_time),start_time));
     printf("\nRead %g seconds of good baseline\nRead %g seconds of bad baseline\n", goodbaseline/(double) config->samplingfreq, badbaseline / (double) config->samplingfreq);
     fprintf(logfile, "\nRead %g seconds of good baseline\nRead %g seconds of bad baseline\n", goodbaseline/(double) config->samplingfreq, badbaseline / (double) config->samplingfreq);
     free(paddedsignal);
 
 
-    sorted_head = merge_all_lists(head_edge, nthreads);
+    head_edge = merge_all_lists(edge_array_head, nthreads);
+    current_edge = head_edge;
 
-    edge *sort_test = sorted_head;
-    numedges = 0;
-    int64_t lastblock = -1;
-    while (sort_test)
-    {
-        numedges++;
-        if (lastblock != sort_test->blocknum)
-        {
-            printf("Block: %"PRId64"\tLocation: %"PRId64"\n",sort_test->blocknum, sort_test->location);
-            lastblock = sort_test->blocknum;
-        }
-        sort_test = sort_test->next;
-    }
-    printf("Total: %"PRId64"\n",numedges);
-    exit(999);
-    //fclose(baselinefile);
+    fclose(baselinefile);
 
-/*
     int64_t index = 0;
     int64_t numevents = 0;
     int64_t edgecount;
@@ -364,5 +350,5 @@ int main()
     fclose(events);
     fclose(rate);
     system("pause");
-    return 0;*/
+    return 0;
 }

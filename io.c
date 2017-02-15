@@ -216,9 +216,9 @@ type,\
 start_time_s,\
 end_time_s\n");
 
-/*fprintf(baselinefile, "time_s,\
+fprintf(baselinefile, "time_s,\
 baseline_pA,\
-stdev_pA\n");*/
+stdev_pA\n");
 }
 
 void print_event_line(FILE *events, FILE *rate, event *current, double timestep, int64_t lasttime)
