@@ -94,37 +94,41 @@ int main()
     double **signal;
     void **rawsignal;
     baseline_struct **baseline_stats;
-    #pragma omp parallel
+    int tid;
+    int nthreads;
+    #pragma omp parallel private (tid)
     {
+        tid = omp_get_thread_num();
         #pragma omp master
         {
-            paddedsignal = calloc_and_check(omp_get_num_threads(), sizeof(double *), "Cannot allocate paddedsignal");
-            signal = calloc_and_check(omp_get_num_threads(), sizeof(double *), "Cannot allocate signal");
-            rawsignal = calloc_and_check(omp_get_num_threads(), sizeof(void *), "Cannot allocate raw");
-            baseline_stats = calloc_and_check(omp_get_num_threads(), sizeof(baseline_struct *), "Cannot allocate raw");
-            head_edge = calloc_and_check(omp_get_num_threads(), sizeof(edge *), "Cannot allocate head edge");
-            current_edge = calloc_and_check(omp_get_num_threads(), sizeof(edge *), "Cannot allocate current edge");
+            nthreads = omp_get_num_threads();
+            paddedsignal = calloc_and_check(nthreads, sizeof(double *), "Cannot allocate paddedsignal");
+            signal = calloc_and_check(nthreads, sizeof(double *), "Cannot allocate signal");
+            rawsignal = calloc_and_check(nthreads, sizeof(void *), "Cannot allocate raw");
+            baseline_stats = calloc_and_check(nthreads, sizeof(baseline_struct *), "Cannot allocate raw");
+            head_edge = calloc_and_check(nthreads, sizeof(edge *), "Cannot allocate head edge");
+            current_edge = calloc_and_check(nthreads, sizeof(edge *), "Cannot allocate current edge");
         }
         #pragma omp barrier
-        paddedsignal[omp_get_thread_num()] = calloc_and_check(config->readlength + 2*(config->order + filterpadding),sizeof(double), "Cannot allocate file reading signal array");
-        signal[omp_get_thread_num()] = &paddedsignal[omp_get_thread_num()][config->order + filterpadding];
-        baseline_stats[omp_get_thread_num()] = NULL;
-        baseline_stats[omp_get_thread_num()] = initialize_baseline(baseline_stats[omp_get_thread_num()], config);
-        rawsignal[omp_get_thread_num()] = NULL;
+        paddedsignal[tid] = calloc_and_check(config->readlength + 2*(config->order + filterpadding),sizeof(double), "Cannot allocate file reading signal array");
+        signal[tid] = &paddedsignal[tid][config->order + filterpadding];
+        baseline_stats[tid] = NULL;
+        baseline_stats[tid] = initialize_baseline(baseline_stats[tid], config);
+        rawsignal[tid] = NULL;
         switch (config->datatype)
         {
             case 0:
-                rawsignal[omp_get_thread_num()] = calloc_and_check(config->readlength, sizeof(uint16_t), "Cannot allocate chimera rawsignal array");
+                rawsignal[tid] = calloc_and_check(config->readlength, sizeof(uint16_t), "Cannot allocate chimera rawsignal array");
                 break;
             case 16:
-                rawsignal[omp_get_thread_num()] = calloc_and_check(config->readlength, 2*sizeof(uint16_t), "Cannot allocate f2 rawsignal array");
+                rawsignal[tid] = calloc_and_check(config->readlength, 2*sizeof(uint16_t), "Cannot allocate f2 rawsignal array");
                 break;
             case 64:
-                rawsignal[omp_get_thread_num()] = calloc_and_check(config->readlength, 2*sizeof(uint64_t), "Cannot allocate f8 rawsignal array");
+                rawsignal[tid] = calloc_and_check(config->readlength, 2*sizeof(uint64_t), "Cannot allocate f8 rawsignal array");
                 break;
         }
-        head_edge[omp_get_thread_num()] = initialize_edges();
-        current_edge[omp_get_thread_num()] = head_edge[omp_get_thread_num()];
+        head_edge[tid] = initialize_edges();
+        current_edge[tid] = head_edge[tid];
     }
 
 
@@ -177,15 +181,15 @@ int main()
     time_t curr_time;
     time(&start_time);
     int64_t blocknum;
-    int tid;
     int64_t numedges;
-    int nthreads = 0;
+    nthreads = 0;
     #pragma omp parallel private(blocknum, read, baseline, tid, numedges)
     {
         #pragma omp master
         {
             nthreads = omp_get_num_threads();
         }
+        #pragma omp barrier
         read = 0;
         numedges = 0;
         tid = omp_get_thread_num();
