@@ -34,6 +34,12 @@ int main()
         exit(-1);
     }
 
+    int p = omp_get_num_procs();
+    omp_set_num_threads(p);
+    omp_set_dynamic(0);
+
+    printf("\n\n\n\n\n\n\n%d\n\n\n\n\n\n\n",p);
+
     //read the configuration file
     configuration *config;
     config = calloc_and_check(1,sizeof(configuration),"Cannot allocate config struct");
