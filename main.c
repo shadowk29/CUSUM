@@ -240,7 +240,14 @@ int main()
     free(paddedsignal);
 
 
-    sorted_head = sort_and_merge_edges(head_edge, nthreads);
+    sorted_head = merge_lists(head_edge[0], head_edge[1]);
+    sorted_head = merge_lists(sorted_head, head_edge[2]);
+    sorted_head = merge_lists(sorted_head, head_edge[3]);
+    sorted_head = merge_lists(sorted_head, head_edge[4]);
+    sorted_head = merge_lists(sorted_head, head_edge[5]);
+    sorted_head = merge_lists(sorted_head, head_edge[6]);
+    sorted_head = merge_lists(sorted_head, head_edge[7]);
+
     edge *sort_test = sorted_head;
     numedges = 0;
     int64_t lastblock = -1;

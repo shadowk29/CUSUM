@@ -20,123 +20,60 @@
 */
 #include"utils.h"
 
-
-edge_list *append_block_list(edge_list *block, int64_t blocknum, edge *first, edge *last)
+edge *merge_lists(edge *list1, edge *list2)
 {
-    block->next = calloc_and_check(1, sizeof(edge_list), "Cannot allocate edge_list");
-    block = block->next;
-    block->blocklist = first;
-    block->last = last;
-    block->blocknum = blocknum;
-    block->next = NULL;
-    return block;
-}
-
-edge *sort_and_merge_edges(edge **unsorted, int numlists)
-{
-    edge_list *headblock = calloc_and_check(1, sizeof(edge_list), "Cannot allocate edge_list");
-    headblock->blocknum = unsorted[0]->blocknum;
-    headblock->blocklist = unsorted[0];
-    headblock->next = NULL;
-    edge_list *block = headblock;
+    int64_t blocknum;
+    edge *merged;
     edge *temp;
-    edge *last;
-    int i;
-    int64_t blocknum = headblock->blocknum;
-
-    for (i=0; i<numlists; i++)
+    edge *tempshrink;
+    edge *current;
+    edge *shrink;
+    merged = list1->blocknum < list2->blocknum ? list1 : list2;
+    shrink = list1->blocknum < list2->blocknum ? list2 : list1;
+    current = merged;
+    if (!merged || !shrink)
     {
-        temp = unsorted[i];
-        while (temp)
+        return merged;
+    }
+    blocknum = shrink->blocknum;
+    while (shrink)
+    {
+        while (current->next)
         {
-            if (temp->blocknum != blocknum)
+            if (current->next->blocknum < blocknum)
             {
-                blocknum = temp->blocknum;
-                last = temp;
-                while (last->next && last->next->blocknum == blocknum)
-                {
-                    last = last->next;
-                }
-                block = append_block_list(block, temp->blocknum, temp, last);
-                temp = last;
+                current = current->next;
             }
             else
             {
-                temp = temp->next;
+                break;
             }
-
+        }
+        temp = current->next;
+        current->next = shrink;
+        current = current->next;
+        while (current->next)
+        {
+            if (current->next->blocknum == blocknum)
+            {
+                current = current->next;
+            }
+            else
+            {
+                break;
+            }
+        }
+        tempshrink = current->next;
+        current->next = temp;
+        shrink = tempshrink;
+        if (shrink)
+        {
+            blocknum = shrink->blocknum;
         }
     }
+    return merged;
 }
 
-edge *sort_edges(edge **unsorted, int numlists)
-{
-    edge *sorted_head = NULL;
-    edge *sorted_current = NULL;
-    edge *current_edge = NULL;
-    edge *temp = NULL;
-    int64_t blocknum;
-    int64_t index = 0;
-
-    int i;
-    int64_t minblock;
-    int remaining = numlists;
-    int first = 1;
-    int minblock_index;
-    while(remaining) //while there are still more lists to process
-    {
-        minblock = LLONG_MAX;
-        temp = NULL;
-        minblock_index = INT_MAX;
-        remaining = numlists;
-        for (i=0; i<numlists; i++) //loop over the list of head nodes to find the one with the smallest blocknum
-        {
-            if (!unsorted[i]) //when a lists is exhausted the lead node becomes NULL, and we decrement the counter
-            {
-                remaining--;
-            }
-            else //a simple minimum finding algorithm
-            {
-                current_edge = unsorted[i];
-                if (current_edge->blocknum < minblock)
-                {
-                    temp = current_edge;
-                    minblock = current_edge->blocknum;
-                    minblock_index = i;
-                }
-            }
-        }
-        if (minblock != index)
-        {
-            printf("Sorting failure for block %"PRId64"\n",minblock);
-        }
-        else
-        {
-            index++;
-        }
-        if (remaining == 0)
-        {
-            break;
-        }
-        if (first) //if we have not yet set up the head of the list, we have to save a pointer to the head
-        {
-            sorted_head = temp;
-            sorted_current = sorted_head;
-            first = 0;
-        }
-        else
-        {
-            sorted_current->next = temp;
-        }
-        blocknum = sorted_current->blocknum;
-        while (sorted_current->blocknum == blocknum && sorted_current->next) //skip through to the end of the block so that the next section we append will go on the end
-        {
-            sorted_current = sorted_current->next;
-        }
-        unsorted[minblock_index] = sorted_current->next; //reset the head of the unsorted list to the node after the block
-    }
-    return sorted_head;
-}
 
 int64_t locate_min(double *signal, int64_t length)
 {

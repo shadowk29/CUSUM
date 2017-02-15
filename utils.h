@@ -227,8 +227,5 @@ void free_baseline(baseline_struct *baseline);
 int64_t locate_min(double *signal, int64_t length);
 int64_t locate_max(double *signal, int64_t length);
 
-
-edge *sort_edges(edge **unsorted, int numlists);
-edge *sort_and_merge_edges(edge **unsorted, int numlists);
-edge_list *append_block_list(edge_list *block, int64_t blocknum, edge *temp, edge *last);
+edge *merge_lists(edge *list1, edge *list2);
 #endif // UTILS_H_INCLUDED
