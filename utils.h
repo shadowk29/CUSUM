@@ -29,6 +29,7 @@
 #include<string.h>
 #include<time.h>
 #include<limits.h>
+#include<omp.h>
 #define EPS 1e-50
 #define STRLENGTH 1024
 #define HEAD -1000
@@ -37,6 +38,9 @@
 #define SECONDS_TO_MICROSECONDS 1e6
 #define AMPS_TO_PICOAMPS 1e12
 #define FRACTION_TO_PERCENTAGE 100
+
+#define EDGE_TYPE_DOWN 0
+#define EDGE_TYPE_UP 1
 
 #define CUSUM 0
 #define STEPRESPONSE 1
@@ -229,4 +233,5 @@ int64_t locate_max(double *signal, int64_t length);
 
 edge *merge_lists(edge *list1, edge *list2);
 edge *merge_all_lists(edge **lists, int numlists);
+edge **split_all_lists(edge **head_array, edge *head, int64_t chunksize);
 #endif // UTILS_H_INCLUDED

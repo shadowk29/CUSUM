@@ -24,7 +24,7 @@
 #include"detector.h"
 #include"bessel.h"
 #include"stepfit.h"
-#define _VERSION_ "3.1.3"
+#define _VERSION_ "3.1.3p"
 
 int main()
 {
@@ -187,9 +187,8 @@ int main()
     time_t curr_time;
     time(&start_time);
     int64_t blocknum;
-    int64_t numedges;
     nthreads = 0;
-    #pragma omp parallel private(blocknum, read, baseline, tid, numedges)
+    #pragma omp parallel private(blocknum, read, baseline, tid)
     {
         #pragma omp master
         {
@@ -197,13 +196,11 @@ int main()
         }
         #pragma omp barrier
         read = 0;
-        numedges = 0;
         tid = omp_get_thread_num();
         #pragma omp for reduction(+:goodbaseline, badbaseline)
         for (pos = config->start; pos < config->finish; pos += readlength)
         {
             blocknum = pos / readlength;
-            printf("Thread %d using block %"PRId64"\n",tid,blocknum);
             //snprintf(progressmsg,STRLENGTH*sizeof(char)," %g seconds processed",(pos-config->start)/(double) config->samplingfreq);
             //progressbar(pos-config->start,config->finish-config->start,progressmsg,difftime(time(&curr_time),start_time));
             read = read_current(input[tid], signal[tid], rawsignal[tid], pos, intmin(config->readlength,config->finish - pos), config->datatype, config->daqsetup);
@@ -233,14 +230,6 @@ int main()
             memset(signal[tid],'0',(config->readlength)*sizeof(double));
         }
         edge_array_current[tid] = edge_array_head[tid];
-        while (edge_array_current[tid]->next)
-        {
-            numedges++;
-            edge_array_current[tid] = edge_array_current[tid]->next;
-        }
-        numedges++;
-        printf("\nThread %d found %"PRId64"\n",tid,numedges);
-
         free(paddedsignal[tid]);
     }
     //snprintf(progressmsg,STRLENGTH*sizeof(char)," %g seconds processed",(pos-config->start)/(double) config->samplingfreq);
@@ -270,6 +259,7 @@ int main()
     int64_t last_end = config->start;
     printf("Processing %"PRId64" edges\n", edgecount);
     time(&start_time);
+
     while (current_edge)
     {
 #ifdef DEBUG
@@ -288,7 +278,7 @@ int main()
         identify_step_events(current_event, config->stepfit_samples, config->subevent_minpoints, config->attempt_recovery);
         filter_long_events(current_event, config->event_maxpoints);
         filter_short_events(current_event, config->event_minpoints);
-        generate_trace(input[0], current_event, config->datatype, rawsignal, logfile, lpfilter, config->eventfilter, config->daqsetup, current_edge, last_end, config->start, config->subevent_minpoints);
+        generate_trace(input[0], current_event, config->datatype, rawsignal[0], logfile, lpfilter, config->eventfilter, config->daqsetup, current_edge, last_end, config->start, config->subevent_minpoints);
         last_end = current_event->finish;
         cusum(current_event, config->cusum_delta, config->cusum_min_threshold, config->cusum_max_threshold, config->subevent_minpoints);
         typeswitch += average_cusum_levels(current_event, config->subevent_minpoints, config->cusum_minstep, config->attempt_recovery);

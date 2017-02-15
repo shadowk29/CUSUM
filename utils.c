@@ -20,13 +20,49 @@
 */
 #include"utils.h"
 
+edge **split_all_lists(edge **head_array, edge *head, int64_t chunksize)
+{
+    edge *current;
+    int64_t i;
+    current = head;
+    int64_t tid;
+    tid = omp_get_thread_num();
+    for (i=0; i<tid*chunksize; i++)
+    {
+        current = current->next;
+    }
+    while (current->next)
+    {
+        if (current->type == EDGE_TYPE_UP && current->next->type == EDGE_TYPE_DOWN)
+        {
+            break;
+        }
+        else
+        {
+            current = current->next;
+        }
+    }
+    #pragma omp barrier
+    head_array[tid] = current->next;
+    current->next = NULL;
+    return head_array;
+}
+
 edge *merge_all_lists(edge **lists, int numlists)
 {
-    edge *sorted = merge_lists(lists[0], lists[1]);;
-    int i;
-    for (i=2; i<numlists; i++)
+    edge *sorted;
+    if (numlists > 1)
     {
-        sorted = merge_lists(sorted, lists[i]);
+        sorted = merge_lists(lists[0], lists[1]);;
+        int i;
+        for (i=2; i<numlists; i++)
+        {
+            sorted = merge_lists(sorted, lists[i]);
+        }
+    }
+    else
+    {
+        sorted = lists[0];
     }
     return sorted;
 }

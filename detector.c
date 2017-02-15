@@ -555,8 +555,6 @@ void generate_trace(FILE *input, event *current, int datatype, void *rawsignal, 
             return;
         }
 
-        printf("In gentrace: 1\n");
-        fflush(stdout);
         current->paddedsignal = calloc_and_check(current->length + current->padding_before + current->padding_after + 2*(filter_order + filter_padding),sizeof(double),"Cannot allocate event signal array");
         current->signal = &current->paddedsignal[filter_order + filter_padding];
         current->filtered_signal = calloc_and_check(current->length + current->padding_before + current->padding_after,sizeof(double),"Cannot allocate event filtered signal array");
@@ -570,12 +568,8 @@ void generate_trace(FILE *input, event *current, int datatype, void *rawsignal, 
             fflush(logfile);
             exit(17);
         }
-        printf("In gentrace: 2\n");
-        fflush(stdout);
         read = read_current(input, current->signal, rawsignal, position, current->length + current->padding_before + current->padding_after, datatype, daqsetup);
 
-        printf("In gentrace: 3\n");
-        fflush(stdout);
         if (read != current->length + current->padding_before + current->padding_after)
         {
             printf("Unable to read %" PRId64 " samples for event %" PRId64 ": obtained %" PRId64 "\n",current->length + + current->padding_before + current->padding_after,current->index,read);
@@ -583,14 +577,10 @@ void generate_trace(FILE *input, event *current, int datatype, void *rawsignal, 
             fflush(logfile);
             current->type = BADTRACE;
         }
-        printf("In gentrace:4\n");
-        fflush(stdout);
         if (eventfilter)
         {
             filter_signal(current->signal, current->paddedsignal, lpfilter, read, 0);
         }
-        printf("In gentrace: 5\n");
-        fflush(stdout);
     }
 }
 
