@@ -20,6 +20,17 @@
 */
 #include"utils.h"
 
+edge *merge_all_lists(edge **lists, int numlists)
+{
+    edge *sorted = merge_lists(lists[0], lists[1]);;
+    int i;
+    for (i=2; i<numlists; i++)
+    {
+        sorted = merge_lists(sorted, lists[i]);
+    }
+    return sorted;
+}
+
 edge *merge_lists(edge *list1, edge *list2)
 {
     int64_t blocknum;

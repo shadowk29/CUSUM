@@ -228,4 +228,5 @@ int64_t locate_min(double *signal, int64_t length);
 int64_t locate_max(double *signal, int64_t length);
 
 edge *merge_lists(edge *list1, edge *list2);
+edge *merge_all_lists(edge **lists, int numlists);
 #endif // UTILS_H_INCLUDED
