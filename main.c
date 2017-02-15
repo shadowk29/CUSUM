@@ -38,7 +38,6 @@ int main()
     omp_set_num_threads(p);
     omp_set_dynamic(0);
 
-    printf("\n\n\n\n\n\n\n%d\n\n\n\n\n\n\n",p);
 
     //read the configuration file
     configuration *config;
