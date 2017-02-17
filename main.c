@@ -35,7 +35,7 @@ int main()
     }
 
     int p = omp_get_num_procs();
-    omp_set_num_threads(1);
+    omp_set_num_threads(p);
     omp_set_dynamic(0);
 
 
@@ -172,7 +172,6 @@ int main()
     {
         risetime = 5;
     }
-    int64_t typeswitch = 0;
     double baseline;
     double badbaseline = 0;
     double goodbaseline = 0;
@@ -240,7 +239,14 @@ int main()
 
     head_edge = merge_all_lists(edge_array_head, nthreads);
     current_edge = head_edge;
-
+    int64_t numedgestest = 0;
+    while (current_edge)
+    {
+        numedgestest++;
+        current_edge = current_edge->next;
+    }
+    printf("We have %"PRId64" edges after merge\n",numedgestest);
+    current_edge = head_edge;
     fclose(baselinefile);
 
     int64_t index = 0;
@@ -259,14 +265,15 @@ int main()
     int64_t last_end;
     printf("Processing %"PRId64" edges\n", edgecount);
 
-    #pragma omp parallel private(current_edge, tid, lasttime, localindex, edgenum, last_end, edges, i,typeswitch) reduction(+:numevents)
+    #pragma omp parallel private(current_edge, tid, lasttime, localindex, edgenum, last_end, edges, i,nthreads) reduction(+:numevents)
     {
-        typeswitch = 0;
+        numevents = 0;
         event *current_event = NULL;
         current_event = initialize_events();
         last_end = config->start;
         lasttime = config->start;
         tid = omp_get_thread_num();
+        nthreads = omp_get_num_threads();
         int64_t localcount = 0;
         edge_array_head = split_all_lists(edge_array_head, head_edge, edgecount/nthreads);
         current_edge = edge_array_head[tid];
@@ -312,7 +319,7 @@ int main()
             generate_trace(input[tid], current_event, config->datatype, rawsignal[tid], logfile, lpfilter, config->eventfilter, config->daqsetup, current_edge, last_end, config->start, config->subevent_minpoints);
             last_end = current_event->finish;
             cusum(current_event, config->cusum_delta, config->cusum_min_threshold, config->cusum_max_threshold, config->subevent_minpoints);
-            typeswitch += average_cusum_levels(current_event, config->subevent_minpoints, config->cusum_minstep, config->attempt_recovery);
+            average_cusum_levels(current_event, config->subevent_minpoints, config->cusum_minstep, config->attempt_recovery);
             step_response(current_event, risetime, config->maxiters, config->cusum_minstep);
             populate_event_levels(current_event);
             calculate_level_noise(current_event, config->subevent_minpoints);

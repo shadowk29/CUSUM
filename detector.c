@@ -124,7 +124,7 @@ void filter_short_events(event *current, int64_t minpoints)
 }
 
 
-int64_t average_cusum_levels(event *current, int64_t subevent_minpoints, double cusum_minstep, int attempt_recovery)
+void average_cusum_levels(event *current, int64_t subevent_minpoints, double cusum_minstep, int attempt_recovery)
 {
 #ifdef DEBUG
     printf("Average CUSUM levels\n");
@@ -138,7 +138,6 @@ int64_t average_cusum_levels(event *current, int64_t subevent_minpoints, double 
         double baseline = signal_average(current->signal, current->padding_before);
         double lastlevel = baseline;
         int64_t j, nStates = 0;
-        int64_t typeswitch = 0;
         int passflag = 1;
         int64_t anchor = 0;
         int64_t prev_anchor = anchor;
@@ -180,7 +179,6 @@ int64_t average_cusum_levels(event *current, int64_t subevent_minpoints, double 
             if (attempt_recovery)
             {
                 current->type = STEPRESPONSE;
-                typeswitch = 1;
             }
             else
             {
@@ -188,9 +186,7 @@ int64_t average_cusum_levels(event *current, int64_t subevent_minpoints, double 
             }
         }
         current_edge = first_edge;
-        return typeswitch;
     }
-    return 0;
 }
 
 
