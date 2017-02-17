@@ -254,7 +254,7 @@ int main()
     int64_t edgecount;
     int64_t edgenum = 0;
     int64_t edges;
-    int64_t localindex = 0;
+    int64_t localindex;
 
 
     edgecount = count_edges(current_edge);
@@ -267,6 +267,7 @@ int main()
 
     #pragma omp parallel private(current_edge, tid, lasttime, localindex, edgenum, last_end, edges, i,nthreads) reduction(+:numevents)
     {
+        localindex = 0;
         numevents = 0;
         event *current_event = NULL;
         current_event = initialize_events();
