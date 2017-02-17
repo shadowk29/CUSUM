@@ -695,7 +695,7 @@ void fit_gaussian(baseline_struct *baseline)
     i = locate_max(y,numbins);
     while (i >= 0)
     {
-        if (y[i] < my_max(1,exp(-6.0)*maxval))
+        if (y[i] < my_max(1,exp(-6.0)*maxval) && y[i] > 0)
         {
             minbin = i;
             break;
@@ -705,7 +705,7 @@ void fit_gaussian(baseline_struct *baseline)
     i = locate_max(y,numbins);
     while (i < numbins)
     {
-        if (y[i] < my_max(1,exp(-6.0)*maxval))
+        if (y[i] < my_max(1,exp(-6.0)*maxval) && y[i] > 0)
         {
             maxbin = i;
             break;
