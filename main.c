@@ -265,6 +265,9 @@ int main()
     int64_t last_end;
     printf("Processing %"PRId64" edges\n", edgecount);
 
+    FILE *edgefile;
+    edgefile = fopen64_and_check("G:/Testing/output/parallel/edges_parallel.csv","w",999);
+
     #pragma omp parallel private(current_edge, tid, lasttime, localindex, edgenum, last_end, edges, i,nthreads) reduction(+:numevents)
     {
         localindex = 0;
@@ -281,6 +284,10 @@ int main()
         while (current_edge)
         {
             localcount++;
+            #pragma omp critical
+            {
+                fprintf(edgefile,"%"PRId64"\n",current_edge->location);
+            }
             current_edge = current_edge->next;
         }
         current_edge = edge_array_head[tid];
