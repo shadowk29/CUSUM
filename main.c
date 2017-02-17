@@ -258,6 +258,28 @@ int main()
     int64_t lasttime = config->start;
     int64_t last_end = config->start;
     printf("Processing %"PRId64" edges\n", edgecount);
+
+    #pragma omp parallel private(current_edge, tid)
+    {
+        tid = omp_get_thread_num();
+        int64_t localcount = 0;
+        edge_array_head = split_all_lists(edge_array_head, head_edge, edgecount/nthreads);
+        current_edge = edge_array_head[tid];
+        while (current_edge)
+        {
+            localcount++;
+            current_edge = current_edge->next;
+        }
+        current_edge = edge_array_head[tid];
+        if (localcount == 0)
+        {
+            printf("Unable to split edge array: Thread %d has no edges\n",tid);
+            exit(99);
+        }
+        printf("Thread %d has %"PRId64" edges\n",tid, localcount);
+    }
+    exit(99);
+
     time(&start_time);
 
     while (current_edge)

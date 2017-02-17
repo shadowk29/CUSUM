@@ -27,24 +27,35 @@ edge **split_all_lists(edge **head_array, edge *head, int64_t chunksize)
     current = head;
     int64_t tid;
     tid = omp_get_thread_num();
-    for (i=0; i<tid*chunksize; i++)
+    if (tid == 0)
     {
-        current = current->next;
+        head_array[tid] = current;
     }
-    while (current->next)
+    else
     {
-        if (current->type == EDGE_TYPE_UP && current->next->type == EDGE_TYPE_DOWN)
-        {
-            break;
-        }
-        else
+        for (i=0; i<tid*chunksize; i++)
         {
             current = current->next;
         }
+        while (current->next)
+        {
+            if (current->type == EDGE_TYPE_UP && current->next->type == EDGE_TYPE_DOWN)
+            {
+                break;
+            }
+            else
+            {
+                current = current->next;
+            }
+        }
     }
     #pragma omp barrier
-    head_array[tid] = current->next;
-    current->next = NULL;
+    if (tid > 0)
+    {
+        head_array[tid] = current->next;
+        current->next = NULL;
+    }
+    #pragma omp barrier
     return head_array;
 }
 
