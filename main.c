@@ -35,7 +35,7 @@ int main()
     }
 
     int p = omp_get_num_procs();
-    omp_set_num_threads(p);
+    omp_set_num_threads(1);
     omp_set_dynamic(0);
 
 
@@ -156,8 +156,7 @@ int main()
 
 
     //initialize struct to store the information about events found using the edge list
-    event *current_event;
-    current_event = initialize_events();
+
 
     fprintf(logfile, "<----RUN LOG BEGINS---->\n\n");
     printf("Locating events... \n");
@@ -249,18 +248,24 @@ int main()
     int64_t edgecount;
     int64_t edgenum = 0;
     int64_t edges;
+    int64_t localindex = 0;
 
 
     edgecount = count_edges(current_edge);
     current_edge = head_edge;
 
 
-    int64_t lasttime = config->start;
-    int64_t last_end = config->start;
+    int64_t lasttime;
+    int64_t last_end;
     printf("Processing %"PRId64" edges\n", edgecount);
 
-    #pragma omp parallel private(current_edge, tid)
+    #pragma omp parallel private(current_edge, tid, lasttime, localindex, edgenum, last_end, edges, i,typeswitch) reduction(+:numevents)
     {
+        typeswitch = 0;
+        event *current_event = NULL;
+        current_event = initialize_events();
+        last_end = config->start;
+        lasttime = config->start;
         tid = omp_get_thread_num();
         int64_t localcount = 0;
         edge_array_head = split_all_lists(edge_array_head, head_edge, edgecount/nthreads);
@@ -277,62 +282,71 @@ int main()
             exit(99);
         }
         printf("Thread %d has %"PRId64" edges\n",tid, localcount);
-    }
-    exit(99);
 
-    time(&start_time);
 
-    while (current_edge)
-    {
-#ifdef DEBUG
-    printf("Main Loop\n");
-    fflush(stdout);
-#endif // DEBUG
-        snprintf(progressmsg,STRLENGTH*sizeof(char)," %"PRId64" events processed",numevents);
-        progressbar(edgenum, edgecount, progressmsg,difftime(time(&curr_time),start_time));
-        edges = get_next_event(current_event, current_edge, index);
-        edgenum += edges;
-        for (i=0; i<edges; i++)
+        //time(&start_time);
+
+        while (current_edge)
         {
+    #ifdef DEBUG
+        printf("Main Loop\n");
+        fflush(stdout);
+    #endif // DEBUG
+            //snprintf(progressmsg,STRLENGTH*sizeof(char)," %"PRId64" events processed",numevents);
+            //progressbar(edgenum, edgecount, progressmsg,difftime(time(&curr_time),start_time));
+            #pragma omp critical
+            {
+                localindex = index;
+                index++;
+            }
+            edges = get_next_event(current_event, current_edge, localindex);
+            edgenum += edges;
+            for (i=0; i<edges; i++)
+            {
+                current_edge = current_edge->next;
+            }
+
+            identify_step_events(current_event, config->stepfit_samples, config->subevent_minpoints, config->attempt_recovery);
+            filter_long_events(current_event, config->event_maxpoints);
+            filter_short_events(current_event, config->event_minpoints);
+            generate_trace(input[tid], current_event, config->datatype, rawsignal[tid], logfile, lpfilter, config->eventfilter, config->daqsetup, current_edge, last_end, config->start, config->subevent_minpoints);
+            last_end = current_event->finish;
+            cusum(current_event, config->cusum_delta, config->cusum_min_threshold, config->cusum_max_threshold, config->subevent_minpoints);
+            typeswitch += average_cusum_levels(current_event, config->subevent_minpoints, config->cusum_minstep, config->attempt_recovery);
+            step_response(current_event, risetime, config->maxiters, config->cusum_minstep);
+            populate_event_levels(current_event);
+            calculate_level_noise(current_event, config->subevent_minpoints);
+            refine_event_estimates(current_event);
+            event_baseline(current_event, config->baseline_min, config->baseline_max);
+            event_max_blockage(current_event);
+            event_area(current_event, 1.0/config->samplingfreq);
+            print_event_signal(current_event->index, current_event, 1.0/config->samplingfreq*SECONDS_TO_MICROSECONDS,config->eventsfolder);
+            #pragma omp critical
+            {
+                print_event_line(events, rate, current_event, 1.0/config->samplingfreq, lasttime);
+                error_summary[current_event->type]++;
+            }
+            lasttime = current_event->start;
             current_edge = current_edge->next;
+            edgenum++;
+            numevents++;
+            free_single_event(current_event);
+    #ifdef DEBUG
+        printf("Done\n");
+        fflush(stdout);
+    #endif // DEBUG
         }
-        index++;
-        identify_step_events(current_event, config->stepfit_samples, config->subevent_minpoints, config->attempt_recovery);
-        filter_long_events(current_event, config->event_maxpoints);
-        filter_short_events(current_event, config->event_minpoints);
-        generate_trace(input[0], current_event, config->datatype, rawsignal[0], logfile, lpfilter, config->eventfilter, config->daqsetup, current_edge, last_end, config->start, config->subevent_minpoints);
-        last_end = current_event->finish;
-        cusum(current_event, config->cusum_delta, config->cusum_min_threshold, config->cusum_max_threshold, config->subevent_minpoints);
-        typeswitch += average_cusum_levels(current_event, config->subevent_minpoints, config->cusum_minstep, config->attempt_recovery);
-        step_response(current_event, risetime, config->maxiters, config->cusum_minstep);
-        populate_event_levels(current_event);
-        calculate_level_noise(current_event, config->subevent_minpoints);
-        refine_event_estimates(current_event);
-        event_baseline(current_event, config->baseline_min, config->baseline_max);
-        event_max_blockage(current_event);
-        event_area(current_event, 1.0/config->samplingfreq);
-        print_event_signal(current_event->index, current_event, 1.0/config->samplingfreq*SECONDS_TO_MICROSECONDS,config->eventsfolder);
-        print_event_line(events, rate, current_event, 1.0/config->samplingfreq, lasttime);
-        lasttime = current_event->start;
-        current_edge = current_edge->next;
-        edgenum++;
-        numevents++;
-        error_summary[current_event->type]++;
-        free_single_event(current_event);
-#ifdef DEBUG
-    printf("Done\n");
-    fflush(stdout);
-#endif // DEBUG
+        free(current_event);
     }
-    snprintf(progressmsg,STRLENGTH*sizeof(char)," %"PRId64" events processed",numevents);
-    progressbar(edgenum, edgecount, progressmsg,difftime(time(&curr_time),start_time));
+    //snprintf(progressmsg,STRLENGTH*sizeof(char)," %"PRId64" events processed",numevents);
+    //progressbar(edgenum, edgecount, progressmsg,difftime(time(&curr_time),start_time));
 
     print_error_summary(logfile, error_summary, numevents);
 
 
     printf("\nCleaning up memory usage...\n");
     fprintf(logfile, "Cleaning up memory usage...\n");
-    free(current_event);
+
     free_edges(head_edge);
     #pragma omp parallel
     {
