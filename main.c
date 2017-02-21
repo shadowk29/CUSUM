@@ -317,7 +317,7 @@ int main()
             identify_step_events(current_event, config->stepfit_samples, config->subevent_minpoints, config->attempt_recovery);
             filter_long_events(current_event, config->event_maxpoints);
             filter_short_events(current_event, config->event_minpoints);
-            generate_trace(input[tid], current_event, config->datatype, rawsignal[tid], logfile, lpfilter, config->eventfilter, config->daqsetup, current_edge, last_end, config->start, config->subevent_minpoints, tid);
+            generate_trace(input[tid], current_event, config->datatype, rawsignal[tid], lpfilter, config->eventfilter, config->daqsetup, current_edge, last_end, config->start, config->subevent_minpoints, tid);
             last_end = current_event->finish;
             cusum(current_event, config->cusum_delta, config->cusum_min_threshold, config->cusum_max_threshold, config->subevent_minpoints);
             average_cusum_levels(current_event, config->subevent_minpoints, config->cusum_minstep, config->attempt_recovery);

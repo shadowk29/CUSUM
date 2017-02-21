@@ -509,7 +509,7 @@ void event_baseline(event *current_event, double baseline_min, double baseline_m
 
 
 
-void generate_trace(FILE *input, event *current, int datatype, void *rawsignal, FILE *logfile, bessel *lpfilter, int eventfilter, chimera *daqsetup, edge *current_edge, int64_t last_end, int64_t start, int64_t subevent_minpoints, int tid)
+void generate_trace(FILE *input, event *current, int datatype, void *rawsignal, bessel *lpfilter, int eventfilter, chimera *daqsetup, edge *current_edge, int64_t last_end, int64_t start, int64_t subevent_minpoints, int tid)
 {
 #ifdef DEBUG
     printf("Generate Trace\n");
@@ -560,8 +560,6 @@ void generate_trace(FILE *input, event *current, int datatype, void *rawsignal, 
         if (fseeko64(input,(off64_t) position*2*sizeof(double),SEEK_SET))
         {
             printf("Cannot locate file position at sample %" PRId64 "\n",position);
-            fprintf(logfile,"Cannot locate file position at sample %" PRId64 "\n",position);
-            fflush(logfile);
             exit(17);
         }
         read = read_current(input, current->signal, rawsignal, position, current->length + current->padding_before + current->padding_after, datatype, daqsetup);
@@ -569,8 +567,6 @@ void generate_trace(FILE *input, event *current, int datatype, void *rawsignal, 
         if (read != current->length + current->padding_before + current->padding_after)
         {
             printf("Unable to read %" PRId64 " samples for event %" PRId64 ": obtained %" PRId64 "\n",current->length + + current->padding_before + current->padding_after,current->index,read);
-            fprintf(logfile,"Unable to read %" PRId64 " samples for event %" PRId64 ": obtained %" PRId64 "\n",current->length + + current->padding_before + current->padding_after,current->index,read);
-            fflush(logfile);
             current->type = BADTRACE;
         }
         if (eventfilter)
