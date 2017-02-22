@@ -277,8 +277,6 @@ bessel *initialize_filter(bessel *lpfilter, int64_t order, double cutoff, int64_
         #pragma omp barrier
         lpfilter->temp[omp_get_thread_num()] = calloc_and_check(length+2*(order+padding), sizeof(double),"Cannot allocate filter temp");
     }
-
-
     free(poles);
     free(zeros);
     return lpfilter;
@@ -292,6 +290,7 @@ void free_filter(bessel *lpfilter)
     {
         free(lpfilter->temp[omp_get_thread_num()]);
     }
+    #pragma omp barrier
     free(lpfilter->temp);
     free(lpfilter);
 }
