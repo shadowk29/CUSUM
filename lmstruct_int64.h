@@ -113,8 +113,8 @@ extern const lm_control_struct lm_control_float;
 
 /* Preset message texts. */
 
-extern const char* lm_infmsg[];
-extern const char* lm_shortmsg[];
+extern const char* const lm_infmsg[];
+extern const char* const lm_shortmsg[];
 
 __END_DECLS
 #endif /* LMSTRUCT_H */

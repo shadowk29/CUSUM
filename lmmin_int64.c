@@ -113,7 +113,7 @@ const lm_control_struct lm_control_float = {
 /*  Message texts (indexed by status.info)                                    */
 /******************************************************************************/
 
-const char* lm_infmsg[] = {
+const char* const lm_infmsg[] = {
     "found zero (sum of squares below underflow limit)",
     "converged  (the relative error in the sum of squares is at most tol)",
     "converged  (the relative error of the parameter vector is at most tol)",
@@ -128,7 +128,7 @@ const char* lm_infmsg[] = {
     "stopped    (break requested within function evaluation)",
     "found nan  (function value is not-a-number or infinite)"};
 
-const char* lm_shortmsg[] = {
+const char* const lm_shortmsg[] = {
     "found zero",
     "converged (f)",
     "converged (p)",
@@ -652,7 +652,7 @@ void lm_lmpar(const int64_t n, double* r, const int64_t ldr, const int64_t* Pivo
     int64_t i, iter, j, nsing;
     double dxnorm, fp, fp_old, gnorm, parc, parl, paru;
     double sum, temp;
-    static double p1 = 0.1;
+    static const double p1 = 0.1;
 
     /*** Compute and store in x the Gauss-Newton direction. If the Jacobian
          is rank-deficient, obtain a least-squares solution. ***/
