@@ -166,11 +166,12 @@ int main()
         if (isnan(baseline_stats->mean) || isnan(baseline_stats->stdev))
         {
             printf("\nBaseline fit failed, check your baseline bounds\n");
-            exit(2);
+            baseline_stats->mean = 0;
+            baseline_stats->stdev = 0;
         }
         baseline = baseline_stats->mean;
         output_baseline_stats(baselinefile, baseline_stats, pos, config->samplingfreq);
-        if (baseline < config->baseline_min || baseline > config->baseline_max)
+        if (baseline < config->baseline_min || baseline > config->baseline_max || d_abs(baseline_stats->stdev) < EPS)
         {
             badbaseline += read;
         }
