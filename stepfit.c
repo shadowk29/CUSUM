@@ -120,6 +120,8 @@ void step_response(event *current, double risetime, int64_t maxiters, double min
         if (status.outcome < 1 || status.outcome > 3)
         {
             current->type = FITERR;
+            free(time);
+            return;
         }
 
         double i0 = sign*maxbaseline/2.0 * (1.0 + tanh(par[0]));
@@ -134,6 +136,7 @@ void step_response(event *current, double risetime, int64_t maxiters, double min
         if (d_abs(b) < minstep || d_abs(b) < minstep)
         {
             current->type = FITSTEP;
+            free(time);
             return;
         }
 
