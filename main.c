@@ -281,7 +281,7 @@ int main()
     free_edges(head_edge);
     fclose(input);
     free(config->daqsetup);
-    free(config);
+
     free(error_summary);
     free(rawsignal);
     free_baseline(baseline_stats);
@@ -291,7 +291,7 @@ int main()
     {
         free_filter(lpfilter);
     }
-
+    free(config);
 
     fprintf(logfile, "<----RUN LOG ENDS---->\n\n");
     fclose(logfile);
