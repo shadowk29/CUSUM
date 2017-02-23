@@ -363,7 +363,7 @@ int main()
     }
     free(input);
     free(config->daqsetup);
-    free(config);
+
     free(error_summary);
     #pragma omp parallel
     {
@@ -378,7 +378,7 @@ int main()
     {
         free_filter(lpfilter);
     }
-
+    free(config);
 
     fprintf(logfile, "<----RUN LOG ENDS---->\n\n");
     fclose(logfile);
