@@ -424,6 +424,7 @@ void cusum(event *current_event, double delta, double minthreshold, double maxth
             }
         }
         current_edge = add_edge(current_edge, length, 1, 0, 0);
+        free(cpos);
         free(cneg);
         free(gpos);
         free(gneg);
