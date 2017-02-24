@@ -359,7 +359,7 @@ int main()
 
     #pragma omp parallel
     {
-        free_edges(head_edge_head[omp_get_thread_num()]);
+        free_edges(edge_array_head[omp_get_thread_num()]);
         fclose(input[omp_get_thread_num()]);
     }
     free(input);
