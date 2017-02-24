@@ -356,9 +356,10 @@ int main()
     printf("\nCleaning up memory usage...\n");
     fprintf(logfile, "Cleaning up memory usage...\n");
 
-    free_edges(head_edge);
+
     #pragma omp parallel
     {
+        free_edges(head_edge_head[omp_get_thread_num()]);
         fclose(input[omp_get_thread_num()]);
     }
     free(input);
