@@ -371,6 +371,7 @@ int main()
         free_baseline(baseline_stats[omp_get_thread_num()]);
     }
     free(rawsignal);
+    free(signal);
     free(baseline_stats);
     free(edge_array_head);
     free(edge_array_current);
