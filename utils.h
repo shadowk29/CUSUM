@@ -30,7 +30,7 @@
 #include<time.h>
 #include<limits.h>
 #include<omp.h>
-#define EPS 1e-50
+#define EPS 1e-30
 #define STRLENGTH 1024
 #define HEAD -1000
 #define NUMTYPES 10

@@ -342,7 +342,18 @@ int64_t get_filesize(FILE *input, int datatype)
 
 int signum(double num)
 {
-    return (EPS<num)-(num<-EPS);
+    if (num > EPS)
+    {
+        return 1;
+    }
+    else if (num < -EPS)
+    {
+        return -1;
+    }
+    else
+    {
+        return 0;
+    }
 }
 double my_min(double a, double b)
 {
