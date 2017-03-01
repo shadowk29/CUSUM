@@ -176,7 +176,7 @@ struct Configuration
 typedef struct Configuration configuration;
 
 FILE *fopen64_and_check(const char *fname, const char *mode, int error);
-void *calloc_and_check(size_t num, size_t size, char *msg);
+void *calloc_and_check(int64_t num, int64_t size, char *msg);
 int signum(double num);
 double my_min(double a, double b);
 double my_max(double a, double b);
