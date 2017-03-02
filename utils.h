@@ -29,7 +29,7 @@
 #include<string.h>
 #include<time.h>
 #include<limits.h>
-#define EPS 1e-30
+#define EPS 1.2e-16
 #define STRLENGTH 1024
 #define HEAD -1000
 #define NUMTYPES 10
