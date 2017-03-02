@@ -93,7 +93,7 @@ int64_t read_current_chimera(FILE *input, double *current, uint16_t *rawsignal, 
     int64_t test;
     int64_t read = 0;
 
-    if (_fseeki64(input,(off64_t) position*sizeof(uint16_t),SEEK_SET))
+    if (fseeko64(input,(off64_t) position*sizeof(uint16_t),SEEK_SET))
     {
         return 0;
     }
@@ -134,7 +134,7 @@ int64_t read_current_double(FILE *input, double *current, uint64_t *rawsignal, i
 
     int64_t read = 0;
 
-    if (_fseeki64(input,(off64_t) position*2*sizeof(double),SEEK_SET))
+    if (fseeko64(input,(off64_t) position*2*sizeof(double),SEEK_SET))
     {
         return 0;
     }
@@ -170,7 +170,7 @@ int64_t read_current_int16(FILE *input, double *current, uint16_t *rawsignal, in
 
     int64_t read = 0;
 
-    if (_fseeki64(input,(off64_t) position*2*sizeof(uint16_t),SEEK_SET))
+    if (fseeko64(input,(off64_t) position*2*sizeof(uint16_t),SEEK_SET))
     {
         return 0;
     }
@@ -330,7 +330,7 @@ void print_event_line(FILE *events, FILE *rate, event *current, double timestep,
 void print_signal(event *current, int64_t length, char *filename, double timestep)
 {
     FILE *output; //a test file for plotting output
-    if ((output = fopen64(filename,"w"))==NULL)
+    if ((output = fopen(filename,"w"))==NULL)
     {
         printf("Cannot open output file\n");
         exit(24);
@@ -488,7 +488,7 @@ FILE * read_config(configuration *config, const char *version)
     char *value;
     long int cutoff = 0;
     FILE *configfile;
-    if ((configfile = fopen64("config.txt","r"))==NULL)
+    if ((configfile = fopen("config.txt","r"))==NULL)
     {
         printf("Cannot find config file: \"config.txt\"!");
         exit(27);
@@ -688,7 +688,7 @@ FILE * read_config(configuration *config, const char *version)
     logfile = fopen64_and_check(config->logfile,"w", 4);
     printf("Using CUSUM version %s\n",version);
     fprintf(logfile,"Using CUSUM version %s\n",version);
-    _fseeki64(configfile,0,SEEK_SET);
+    fseek(configfile,0,SEEK_SET);
     fprintf(logfile, "<----CONFIGURATION BEGINS---->\n\n");
     while ((fgets(configline, STRLENGTH, configfile)) != NULL)
     {
