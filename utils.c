@@ -211,16 +211,16 @@ int64_t get_filesize(FILE *input, int datatype)
     int64_t length;
     if (datatype != 0)
     {
-        fseeko64(input, 0, SEEK_END);
-        length = ftello64(input);
-        fseeko64(input, 0, SEEK_SET);
+        _fseeki64(input, 0, SEEK_END);
+        length = _ftelli64(input);
+        _fseeki64(input, 0, SEEK_SET);
         return length / (datatype / 8 * 2);
     }
     else
     {
-        fseeko64(input, 0, SEEK_END);
-        length = ftello64(input);
-        fseeko64(input, 0, SEEK_SET);
+        _fseeki64(input, 0, SEEK_END);
+        length = _ftelli64(input);
+        _fseeki64(input, 0, SEEK_SET);
         return length / 2;
     }
 
