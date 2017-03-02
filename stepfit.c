@@ -110,7 +110,7 @@ void step_response(event *current, double risetime, int64_t maxiters, double min
 
         int64_t i;
 
-        lm_control_struct control = lm_control_float;
+        lm_control_struct control = lm_control_double;
         control.patience = maxiters;
         lm_status_struct status = {0,0,0,0};
 
