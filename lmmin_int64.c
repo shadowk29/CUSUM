@@ -346,7 +346,7 @@ void lmmin_int64(const int64_t n, double* x, const int64_t m, const void* data,
 
         for (j = 0; j < n; j++) {
             temp3 = fjac[j*m+j];
-            if (d_abs(temp3) < EPS) {
+            if (d_abs(temp3) > EPS) {
                 sum = 0;
                 for (i = j; i < m; i++)
                     sum += fjac[j*m+i] * wf[i];
@@ -361,7 +361,7 @@ void lmmin_int64(const int64_t n, double* x, const int64_t m, const void* data,
         /**  Compute norm of scaled gradient and detect degeneracy. **/
         gnorm = 0;
         for (j = 0; j < n; j++) {
-            if (d_abs(wa2[Pivot[j]])< EPS)
+            if (d_abs(wa2[Pivot[j]]) < EPS)
                 continue;
             sum = 0;
             for (i = 0; i <= j; i++)
@@ -379,7 +379,7 @@ void lmmin_int64(const int64_t n, double* x, const int64_t m, const void* data,
             if (C->scale_diag) {
                 /* diag := norms of the columns of the initial Jacobian */
                 for (j = 0; j < n; j++)
-                    d_abs(diag[j] - wa2[j]) < EPS ? wa2[j] : 1;
+                    diag[j] = d_abs(wa2[j]) > EPS ? wa2[j] : 1;
                 /* xnorm := || D x || */
                 for (j = 0; j < n; j++)
                     wa3[j] = diag[j] * x[j];
@@ -406,7 +406,7 @@ void lmmin_int64(const int64_t n, double* x, const int64_t m, const void* data,
                 goto terminate;
             }
             /* Initialize the step bound delta. */
-            if (d_abs(xnorm) < EPS)
+            if (d_abs(xnorm) > EPS)
                 delta = C->stepbound * xnorm;
             else
                 delta = C->stepbound;
@@ -467,7 +467,7 @@ void lmmin_int64(const int64_t n, double* x, const int64_t m, const void* data,
             actred = 1 - SQR(fnorm1 / fnorm);
 
             /* Ratio of actual to predicted reduction. */
-            d_abs(ratio - prered) < EPS ? actred / prered : 0;
+            ratio = d_abs(prered) > EPS ? actred / prered : 0;
 
             if (C->verbosity == 2) {
                 fprintf(msgfile, "lmmin (%"PRId64":%"PRId64") ", outer, inner);
