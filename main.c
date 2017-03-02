@@ -18,7 +18,12 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
+#ifdef _WIN64
+    #include<io.h>
+    #define fopen64 _fopeni64
+    #define ftello64 _ftelli64
+    #define fseeko64 _fseeki64
+#endif // _WIN64
 #include"io.h"
 #include"utils.h"
 #include"detector.h"
