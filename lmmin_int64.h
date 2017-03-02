@@ -64,6 +64,7 @@
 
 #include "lmstruct_int64.h"
 #include<inttypes.h>
+#include"utils.h"
 __BEGIN_DECLS
 
 /* Levenberg-Marquardt minimization. */

@@ -175,6 +175,7 @@ void lmmin_int64(const int64_t n, double* x, const int64_t m, const void* data,
     double lmpar = 0;  /* Levenberg-Marquardt parameter */
     double delta = 0;
     double xnorm = 0;
+    ratio = 0;
     double eps = sqrt(MAX(C->epsilon, LM_MACHEP)); /* for forward differences */
 
     int64_t nout = C->n_maxpri == -1 ? n : MIN(C->n_maxpri, n);
@@ -345,7 +346,7 @@ void lmmin_int64(const int64_t n, double* x, const int64_t m, const void* data,
 
         for (j = 0; j < n; j++) {
             temp3 = fjac[j*m+j];
-            if (temp3 != 0) {
+            if (d_abs(temp3) < EPS) {
                 sum = 0;
                 for (i = j; i < m; i++)
                     sum += fjac[j*m+i] * wf[i];
@@ -360,7 +361,7 @@ void lmmin_int64(const int64_t n, double* x, const int64_t m, const void* data,
         /**  Compute norm of scaled gradient and detect degeneracy. **/
         gnorm = 0;
         for (j = 0; j < n; j++) {
-            if (wa2[Pivot[j]] == 0)
+            if (d_abs(wa2[Pivot[j]])< EPS)
                 continue;
             sum = 0;
             for (i = 0; i <= j; i++)
@@ -378,7 +379,7 @@ void lmmin_int64(const int64_t n, double* x, const int64_t m, const void* data,
             if (C->scale_diag) {
                 /* diag := norms of the columns of the initial Jacobian */
                 for (j = 0; j < n; j++)
-                    diag[j] = wa2[j] ? wa2[j] : 1;
+                    d_abs(diag[j] - wa2[j]) < EPS ? wa2[j] : 1;
                 /* xnorm := || D x || */
                 for (j = 0; j < n; j++)
                     wa3[j] = diag[j] * x[j];
@@ -405,7 +406,7 @@ void lmmin_int64(const int64_t n, double* x, const int64_t m, const void* data,
                 goto terminate;
             }
             /* Initialize the step bound delta. */
-            if (xnorm)
+            if (d_abs(xnorm) < EPS)
                 delta = C->stepbound * xnorm;
             else
                 delta = C->stepbound;
@@ -466,7 +467,7 @@ void lmmin_int64(const int64_t n, double* x, const int64_t m, const void* data,
             actred = 1 - SQR(fnorm1 / fnorm);
 
             /* Ratio of actual to predicted reduction. */
-            ratio = prered ? actred / prered : 0;
+            d_abs(ratio - prered) < EPS ? actred / prered : 0;
 
             if (C->verbosity == 2) {
                 fprintf(msgfile, "lmmin (%"PRId64":%"PRId64") ", outer, inner);
@@ -493,7 +494,7 @@ void lmmin_int64(const int64_t n, double* x, const int64_t m, const void* data,
             } else if (ratio >= 0.75) {
                 delta = 2 * pnorm;
                 lmpar *= 0.5;
-            } else if (!lmpar) {
+            } else if (d_abs(lmpar) < EPS) {
                 delta = 2 * pnorm;
             }
 
@@ -660,7 +661,7 @@ void lm_lmpar(const int64_t n, double* r, const int64_t ldr, const int64_t* Pivo
     nsing = n;
     for (j = 0; j < n; j++) {
         aux[j] = qtb[j];
-        if (r[j*ldr+j] == 0 && nsing == n)
+        if (d_abs(r[j*ldr+j]) < EPS && nsing == n)
             nsing = j;
         if (nsing < n)
             aux[j] = 0;
@@ -719,7 +720,7 @@ void lm_lmpar(const int64_t n, double* r, const int64_t ldr, const int64_t* Pivo
     }
     gnorm = lm_enorm(n, aux);
     paru = gnorm / delta;
-    if (paru == 0)
+    if (d_abs(paru) < EPS)
         paru = LM_DWARF / MIN(delta, p1);
 
     /*** If the input par lies outside of the interval (parl,paru),
@@ -727,7 +728,7 @@ void lm_lmpar(const int64_t n, double* r, const int64_t ldr, const int64_t* Pivo
 
     *par = MAX(*par, parl);
     *par = MIN(*par, paru);
-    if (*par == 0)
+    if (d_abs(*par) < EPS)
         *par = gnorm / dxnorm;
 
     /*** Iterate. ***/
@@ -735,7 +736,7 @@ void lm_lmpar(const int64_t n, double* r, const int64_t ldr, const int64_t* Pivo
     for (iter = 0;; iter++) {
 
         /** Evaluate the function at the current value of par. **/
-        if (*par == 0)
+        if (d_abs(*par) < 0)
             *par = MAX(LM_DWARF, 0.001 * paru);
         temp = sqrt(*par);
         for (j = 0; j < n; j++)
@@ -754,7 +755,7 @@ void lm_lmpar(const int64_t n, double* r, const int64_t ldr, const int64_t* Pivo
             of par. Also test for the exceptional cases where parl
             is zero or the number of iterations has reached 10. **/
         if (fabs(fp) <= p1 * delta ||
-            (parl == 0 && fp <= fp_old && fp_old < 0) || iter == 10) {
+            (d_abs(parl) < EPS && fp <= fp_old && fp_old < 0) || iter == 10) {
 #ifdef LMFIT_DEBUG_MESSAGES
             printf("debug lmpar nsing=%d, iter=%d, "
                    "par=%.4e [%.4e %.4e], delta=%.4e, fp=%.4e\n",
@@ -874,7 +875,7 @@ void lm_qrfac(const int64_t m, const int64_t n, double* A, int64_t* Pivot, doubl
         /** Compute the Householder reflection vector w_j to reduce the
             j-th column of A to a multiple of the j-th unit vector. **/
         ajnorm = lm_enorm(m-j, &A[j*m+j]);
-        if (ajnorm == 0) {
+        if (d_abs(ajnorm) < EPS) {
             Rdiag[j] = 0;
             continue;
         }
@@ -903,14 +904,14 @@ void lm_qrfac(const int64_t m, const int64_t n, double* A, int64_t* Pivot, doubl
                 A[k*m+i] -= temp * A[j*m+i];
 
             /* No idea what happens here. */
-            if (Rdiag[k] != 0) {
+            if (d_abs(Rdiag[k]) > EPS) {
                 temp = A[m*k+j] / Rdiag[k];
                 if (fabs(temp) < 1) {
                     Rdiag[k] *= sqrt(1 - SQR(temp));
                     temp = Rdiag[k] / W[k];
                 } else
                     temp = 0;
-                if (temp == 0 || 0.05 * SQR(temp) <= LM_MACHEP) {
+                if (d_abs(temp) < EPS || 0.05 * SQR(temp) <= LM_MACHEP) {
                     Rdiag[k] = lm_enorm(m-j-1, &A[m*k+j+1]);
                     W[k] = Rdiag[k];
                 }
@@ -1009,7 +1010,7 @@ void lm_qrsolv(const int64_t n, double* r, const int64_t ldr, const int64_t* Piv
         /*** Prepare the row of D to be eliminated, locating the diagonal
              element using P from the QR factorization. ***/
 
-        if (diag[Pivot[j]] != 0) {
+        if (d_abs(diag[Pivot[j]]) > EPS) {
             for (k = j; k < n; k++)
                 Sdiag[k] = 0;
             Sdiag[j] = diag[Pivot[j]];
@@ -1023,7 +1024,7 @@ void lm_qrsolv(const int64_t n, double* r, const int64_t ldr, const int64_t* Piv
 
                 /** Determine a Givens rotation which eliminates the
                     appropriate element in the current row of D. **/
-                if (Sdiag[k] == 0)
+                if (d_abs(Sdiag[k]) < EPS)
                     continue;
                 kk = k + ldr * k;
                 if (fabs(r[kk]) < fabs(Sdiag[k])) {
@@ -1063,7 +1064,7 @@ void lm_qrsolv(const int64_t n, double* r, const int64_t ldr, const int64_t* Piv
 
     nsing = n;
     for (j = 0; j < n; j++) {
-        if (Sdiag[j] == 0 && nsing == n)
+        if (d_abs(Sdiag[j]) < EPS && nsing == n)
             nsing = j;
         if (nsing < n)
             W[j] = 0;
@@ -1132,15 +1133,15 @@ double lm_enorm(int64_t n, const double* x)
         } else if (xabs > x3max) {
             s3 = 1 + s3 * SQR(x3max / xabs);
             x3max = xabs;
-        } else if (xabs != 0) {
+        } else if (d_abs(xabs) > EPS) {
             s3 += SQR(xabs / x3max);
         }
     }
 
     /** Calculate the norm. **/
-    if (s1 != 0)
+    if (d_abs(s1) > EPS)
         return x1max * sqrt(s1 + (s2 / x1max) / x1max);
-    else if (s2 != 0)
+    else if (d_abs(s2) > EPS)
         if (s2 >= x3max)
             return sqrt(s2 * (1 + (x3max / s2) * (x3max * s3)));
         else
