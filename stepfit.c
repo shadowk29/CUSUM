@@ -27,7 +27,7 @@
 */
 #include "stepfit.h"
 
-double stepfunc(double time, const double *p, double maxlength, double maxstep, double maxbaseline, double risetime, int sign)
+double stepfunc(double time, const long double *p, double maxlength, double maxstep, double maxbaseline, double risetime, int sign)
 {
     double sigma1, sigma2, a, b;
     double t1 = maxlength/2.0 * (1.0 + tanh(p[2])); //constrain t1 to (0, maxlength)
@@ -57,7 +57,7 @@ void time_array(double *time, int64_t m)
     }
 }
 
-void evaluate(const double *p, int64_t length, const void *data, double *fvec, int64_t *userbreak)
+void evaluate(const long double *p, int64_t length, const void *data, long double *fvec, int64_t *userbreak)
 {
     data_struct *D;
     D = (data_struct*)data;
@@ -83,7 +83,7 @@ void step_response(event *current, double risetime, int64_t maxiters, double min
         time = calloc_and_check(length, sizeof(double), "cannot allocate stepfit time array"); //time array
         time_array(time, length);
         int64_t n = 7; // number of parameters in model function f
-        double par[n];  // parameter array
+        long double par[n];  // parameter array
 
 
         double maxsignal = signal_max(current->signal, current->length + current->padding_before + current->padding_after);
