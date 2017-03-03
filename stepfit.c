@@ -133,7 +133,7 @@ void step_response(event *current, double risetime, int64_t maxiters, double min
         double rc2 = risetime * exp(par[6]);
         double residual = 0;
 
-        if (d_abs(b) < minstep || d_abs(b) < minstep)
+        if (d_abs(a) < minstep || d_abs(b) < minstep)
         {
             current->type = FITSTEP;
             free(time);
