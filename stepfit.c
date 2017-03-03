@@ -137,7 +137,7 @@ void step_response(event *current, double risetime, int64_t maxiters, double min
         {
             FILE *errors = fopen64_and_check("errors.csv","a",111);
             current->type = FITSTEP;
-            fprintf(errors,"%"PRId64",%"PRId64",%g,%g,%g\n",current->index, current->start, a, b, minstep);
+            fprintf(errors,"%"PRId64",%"PRId64",%.15g,%.15g,%.15g\n",current->index, current->start, a, b, minstep);
             fclose(errors);
             free(time);
             return;
