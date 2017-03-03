@@ -119,7 +119,7 @@ void step_response(event *current, double risetime, int64_t maxiters, double min
 
         if (status.outcome < 1 || status.outcome > 3)
         {
-            current->type = FITERR;
+            current->type = status.outcome + 10;
             free(time);
             return;
         }

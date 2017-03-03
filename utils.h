@@ -32,7 +32,7 @@
 #define EPS 1e-30
 #define STRLENGTH 1024
 #define HEAD -1000
-#define NUMTYPES 10
+#define NUMTYPES 22
 
 #define SECONDS_TO_MICROSECONDS 1e6
 #define AMPS_TO_PICOAMPS 1e12
