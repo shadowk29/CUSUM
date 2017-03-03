@@ -68,9 +68,9 @@
 __BEGIN_DECLS
 
 /* Levenberg-Marquardt minimization. */
-void lmmin_int64(const int64_t n_par, double* par, const int64_t m_dat, const void* data,
-           void (*evaluate)(const double* par, const int64_t m_dat,
-                            const void* data, double* fvec, int64_t* userbreak),
+void lmmin_int64(const int64_t n_par, long double* par, const int64_t m_dat, const void* data,
+           void (*evaluate)(const long double* par, const int64_t m_dat,
+                            const void* data, long double* fvec, int64_t* userbreak),
            const lm_control_struct* control, lm_status_struct* status);
 /*
  *   This routine contains the core algorithm of our library.
@@ -111,7 +111,7 @@ void lmmin_int64(const int64_t n_par, double* par, const int64_t m_dat, const vo
  */
 
 /* Refined calculation of Eucledian norm. */
-double lm_enorm(int64_t, const double*);
+long double lm_enorm(int64_t, const long double*);
 
 __END_DECLS
 #endif /* LMMIN_H */
