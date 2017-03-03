@@ -136,7 +136,7 @@ void step_response(event *current, double risetime, int64_t maxiters, double min
         if (d_abs(a) < minstep || d_abs(b) < minstep)
         {
             current->type = FITSTEP;
-            printf("\n%"PRId64":\t%"PRId64"\t%g\t%g\n",current->index, current->start, a, b);
+            printf("\n%"PRId64":\t%"PRId64"\t%g\t%g\t%g\n",current->index, current->start, a, b, minstep);
             free(time);
             return;
         }
