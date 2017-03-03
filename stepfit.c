@@ -27,12 +27,12 @@
 */
 #include "stepfit.h"
 
-double stepfunc(double time, const long double *p, double maxlength, double maxstep, double maxbaseline, double risetime, int sign)
+long double stepfunc(long double time, const long double *p, long double maxlength, long double maxstep, long double maxbaseline, long double risetime, int sign)
 {
-    double sigma1, sigma2, a, b;
-    double t1 = maxlength/2.0 * (1.0 + tanh(p[2])); //constrain t1 to (0, maxlength)
-    double t2 = maxlength/2.0 * (1.0 + tanh(p[5])); //constrint t2 to (0, maxlength)
-    double fitval = sign*maxbaseline/2.0 * (1.0 + tanh(p[0])); //constrain baseline to sign * (0, maxbaseline)
+    long double sigma1, sigma2, a, b;
+    long double t1 = maxlength/2.0 * (1.0 + tanh(p[2])); //constrain t1 to (0, maxlength)
+    long double t2 = maxlength/2.0 * (1.0 + tanh(p[5])); //constrint t2 to (0, maxlength)
+    long double fitval = sign*maxbaseline/2.0 * (1.0 + tanh(p[0])); //constrain baseline to sign * (0, maxbaseline)
     if (time > t1)
     {
         sigma1 = risetime * exp(p[3]); //constrain sigma1 to (0, inf)
@@ -48,7 +48,7 @@ double stepfunc(double time, const long double *p, double maxlength, double maxs
     return fitval;
 }
 
-void time_array(double *time, int64_t m)
+void time_array(long double *time, int64_t m)
 {
     int64_t i;
     for (i=0; i<m; i++)
@@ -69,7 +69,7 @@ void evaluate(const long double *p, int64_t length, const void *data, long doubl
     }
 }
 
-void step_response(event *current, double risetime, int64_t maxiters, double minstep)
+void step_response(event *current, long double risetime, int64_t maxiters, long double minstep)
 {
 #ifdef DEBUG
     printf("StepResponse\n");
@@ -79,23 +79,23 @@ void step_response(event *current, double risetime, int64_t maxiters, double min
     {
         minstep *= current->local_stdev;
         int64_t length = current->length + current->padding_before + current->padding_after; //number of data points
-        double *time;
-        time = calloc_and_check(length, sizeof(double), "cannot allocate stepfit time array"); //time array
+        long double *time;
+        time = calloc_and_check(length, sizeof(long double), "cannot allocate stepfit time array"); //time array
         time_array(time, length);
         int64_t n = 7; // number of parameters in model function f
         long double par[n];  // parameter array
 
 
-        double maxsignal = signal_max(current->signal, current->length + current->padding_before + current->padding_after);
-        double minsignal = signal_min(current->signal, current->length + current->padding_before + current->padding_after);
-        double baseline = signal_average(current->signal,current->padding_before);
+        long double maxsignal = signal_max(current->signal, current->length + current->padding_before + current->padding_after);
+        long double minsignal = signal_min(current->signal, current->length + current->padding_before + current->padding_after);
+        long double baseline = signal_average(current->signal,current->padding_before);
         int sign = signum(baseline);
         int64_t start = current->padding_before;
         int64_t end = current->length + current->padding_before;
-        double stepguess = 0.66 * sign * (minsignal - maxsignal);
-        double maxlength = (double) length;
-        double maxstep = d_abs(maxsignal - minsignal);
-        double maxbaseline = my_max(d_abs(maxsignal),d_abs(minsignal));
+        long double stepguess = 0.66 * sign * (minsignal - maxsignal);
+        long double maxlength = (long double) length;
+        long double maxstep = d_abs(maxsignal - minsignal);
+        long double maxbaseline = my_max(d_abs(maxsignal),d_abs(minsignal));
 
 
         data_struct data = {time, current->signal, maxlength, maxstep, maxbaseline, risetime, sign, stepfunc};
@@ -124,26 +124,26 @@ void step_response(event *current, double risetime, int64_t maxiters, double min
             return;
         }
 
-        double i0 = sign*maxbaseline/2.0 * (1.0 + tanh(par[0]));
-        double a = sign*maxstep/2.0 * (1.0 + tanh(par[1]));
+        long double i0 = sign*maxbaseline/2.0 * (1.0 + tanh(par[0]));
+        long double a = sign*maxstep/2.0 * (1.0 + tanh(par[1]));
         int64_t u1 = maxlength/2.0 * (1.0 + tanh(par[2]));
-        double rc1 = risetime * exp(par[3]);
-        double b = sign*maxstep/2.0 * (1.0 + tanh(par[4]));
+        long double rc1 = risetime * exp(par[3]);
+        long double b = sign*maxstep/2.0 * (1.0 + tanh(par[4]));
         int64_t u2 = maxlength/2.0 * (1.0 + tanh(par[5]));
-        double rc2 = risetime * exp(par[6]);
-        double residual = 0;
+        long double rc2 = risetime * exp(par[6]);
+        long double residual = 0;
 
         if (d_abs(a) < minstep || d_abs(b) < minstep)
         {
             FILE *errors = fopen64_and_check("errors.csv","a",111);
             current->type = FITSTEP;
-            fprintf(errors,"%"PRId64",%"PRId64",%.15g,%.15g,%.15g\n",current->index, current->start, a, b, minstep);
+            fprintf(errors,"%"PRId64",%"PRId64",%.15g,%.15g,%.15g\n",current->index, current->start, (double) a, (double) b, (double) minstep);
             fclose(errors);
             free(time);
             return;
         }
 
-        double t;
+        long double t;
         for (i=0; i<u1; i++) //if all went well, populate the filtered trace
         {
             current->filtered_signal[i] = i0;
