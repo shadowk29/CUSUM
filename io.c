@@ -391,7 +391,7 @@ void configure_defaults(configuration *config)
     config->event_direction = 0;
     config->cusum_min_threshold = 0.1;
     config->cusum_max_threshold = 100.0;
-    config->maxiters = 1000;
+    config->maxiters = 2000;
     config->stepfit_samples = 0;
     config->attempt_recovery = 0;
 }
