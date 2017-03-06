@@ -40,13 +40,13 @@ struct Data_Struct
     volatile long double maxbaseline;
     volatile long double risetime;
     int sign;
-    long double (*stepfunc)(volatile long double time, volatile long double *p, volatile long double maxlength, volatile long double maxstep, volatile long double maxbaseline, volatile long double risetime, int sign);
+    long double (*stepfunc)(volatile long double time, const long double *p, volatile long double maxlength, volatile long double maxstep, volatile long double maxbaseline, volatile long double risetime, int sign);
 };
 typedef struct Data_Struct data_struct;
 
-long double stepfunc(volatile long double time, volatile long double *p, volatile long double maxlength, volatile long double maxstep,long  double maxbaseline, volatile long double risetime, int sign);
+long double stepfunc(volatile long double time, const long double *p, volatile long double maxlength, volatile long double maxstep,long  double maxbaseline, volatile long double risetime, int sign);
 void time_array(volatile long double *time, int64_t m);
 void step_response(event *current, volatile long double risetime, int64_t maxiters, volatile long double minstep);
-void evaluate(volatile long double *p, int64_t length, const void *data, volatile long double *fvec, int64_t *userbreak);
+void evaluate(const long double *p, int64_t length, const void *data, volatile long double *fvec, int64_t *userbreak);
 
 #endif //STEPFIT_H_INCLUDED

@@ -69,7 +69,7 @@ __BEGIN_DECLS
 
 /* Levenberg-Marquardt minimization. */
 void lmmin_int64(const int64_t n_par, volatile long double* par, const int64_t m_dat, const void* data,
-           void (*evaluate)(volatile long double* par, const int64_t m_dat,
+           void (*evaluate)(const long double* par, const int64_t m_dat,
                             const void* data, volatile long double* fvec, int64_t* userbreak),
            const lm_control_struct* control, lm_status_struct* status);
 /*
@@ -111,7 +111,7 @@ void lmmin_int64(const int64_t n_par, volatile long double* par, const int64_t m
  */
 
 /* Refined calculation of Eucledian norm. */
-long double lm_enorm(int64_t, volatile long double*);
+long double lm_enorm(int64_t, const long double*);
 
 __END_DECLS
 #endif /* LMMIN_H */
