@@ -69,7 +69,7 @@
    Dependences: lmmin calls lmpar, which calls qrfac and qrsolv. */
 void lm_lmpar(const int64_t n, long double* r, const int64_t ldr, const int64_t* Pivot,
               const long double* diag, const long double* qtb, const long double delta,
-              long double* par, long double* x, long double* Sdiag, long double* aux, long double* xdi);
+              volatile long double* par, long double* x, long double* Sdiag, long double* aux, long double* xdi);
 void lm_qrfac(const int64_t m, const int64_t n, long double* A, int64_t* Pivot, long double* Rdiag,
               long double* Acnorm, long double* W);
 void lm_qrsolv(const int64_t n, long double* r, const int64_t ldr, const int64_t* Pivot,
@@ -165,18 +165,18 @@ void lmmin_int64(const int64_t n, long double* x, const int64_t m, const void* d
            const lm_control_struct* C, lm_status_struct* S)
 {
     int64_t j, i;
-    long double actred, dirder, fnorm, fnorm1, gnorm, pnorm, prered, ratio, step,
+    volatile long double actred, dirder, fnorm, fnorm1, gnorm, pnorm, prered, ratio, step,
         sum, temp, temp1, temp2, temp3;
     /***  Initialize internal variables.  ***/
 
     int64_t maxfev = C->patience * (n+1);
 
     int64_t inner_success; /* flag for loop control */
-    long double lmpar = 0;  /* Levenberg-Marquardt parameter */
-    long double delta = 0;
-    long double xnorm = 0;
+    volatile long double lmpar = 0;  /* Levenberg-Marquardt parameter */
+    volatile long double delta = 0;
+    volatile long double xnorm = 0;
     ratio = 0;
-    long double eps = sqrt(MAX(C->epsilon, LM_MACHEP)); /* for forward differences */
+    volatile long double eps = sqrt(MAX(C->epsilon, LM_MACHEP)); /* for forward differences */
 
     int64_t nout = C->n_maxpri == -1 ? n : MIN(C->n_maxpri, n);
 
@@ -581,7 +581,7 @@ terminate:
 
 void lm_lmpar(const int64_t n, long double* r, const int64_t ldr, const int64_t* Pivot,
               const long double* diag, const long double* qtb, const long double delta,
-              long double* par, long double* x, long double* Sdiag, long double* aux, long double* xdi)
+              volatile long double* par, long double* x, long double* Sdiag, long double* aux, long double* xdi)
 /*     Given an m by n matrix A, an n by n nonsingular diagonal matrix D,
  *     an m-vector b, and a positive number delta, the problem is to
  *     determine a parameter value par such that if x solves the system
