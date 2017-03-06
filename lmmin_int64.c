@@ -233,11 +233,11 @@ void lmmin_int64(const int64_t n, long double* x, const int64_t m, const void* d
 
     /* Allocate total workspace with just one system call */
     char* ws;
-    if ((ws = malloc((2*m + 5*n + m*n) * sizeof(long double) + n * sizeof(int64_t))) == NULL) {
+    if ((ws = malloc((2*m + 5*n + m*n) * sizeof(long double) +
+                     n * sizeof(int64_t))) == NULL) {
         S->outcome = 9;
         return;
     }
-    memset(ws,0,(2*m + 5*n + m*n) * sizeof(long double) + n * sizeof(int64_t));
     /* Assign workspace segments. */
     char* pws = ws;
     long double* fvec = (long double*)pws;
