@@ -67,14 +67,14 @@
 /* Declare functions that do the heavy numerics.
    Implementions are in this source file, below lmmin.
    Dependences: lmmin calls lmpar, which calls qrfac and qrsolv. */
-void lm_lmpar(const int64_t n, volatile long double* r, const int64_t ldr, const int64_t* Pivot,
+void lm_lmpar(const int64_t n, long double* r, const int64_t ldr, const int64_t* Pivot,
               const long double* diag, const long double* qtb, const long double delta,
-              volatile long double* par, volatile long double* x, volatile long double* Sdiag, volatile long double* aux, volatile long double* xdi);
-void lm_qrfac(const int64_t m, const int64_t n, volatile long double* A, int64_t* Pivot, volatile long double* Rdiag,
-              volatile long double* Acnorm, volatile long double* W);
-void lm_qrsolv(const int64_t n, volatile long double* r, const int64_t ldr, const int64_t* Pivot,
-               const long double* diag, const long double* qtb, volatile long double* x,
-               volatile long double* Sdiag, volatile long double* W);
+              long double* par, long double* x, long double* Sdiag, long double* aux, long double* xdi);
+void lm_qrfac(const int64_t m, const int64_t n, long double* A, int64_t* Pivot, long double* Rdiag,
+              long double* Acnorm, long double* W);
+void lm_qrsolv(const int64_t n, long double* r, const int64_t ldr, const int64_t* Pivot,
+               const long double* diag, const long double* qtb, long double* x,
+               long double* Sdiag, long double* W);
 
 /******************************************************************************/
 /*  Numeric constants                                                         */
@@ -159,24 +159,24 @@ void lm_print_pars(int64_t nout, const long double* par, FILE* fout)
 /*  lmmin (main minimization routine)                                         */
 /******************************************************************************/
 
-void lmmin_int64(const int64_t n, volatile long double* x, const int64_t m, const void* data,
+void lmmin_int64(const int64_t n, long double* x, const int64_t m, const void* data,
            void (*evaluate)(const long double* par, const int64_t m_dat,
-                            const void* data, volatile long double* fvec, int64_t* userbreak),
+                            const void* data, long double* fvec, int64_t* userbreak),
            const lm_control_struct* C, lm_status_struct* S)
 {
     int64_t j, i;
-    volatile long double actred, dirder, fnorm, fnorm1, gnorm, pnorm, prered, ratio, step,
+    long double actred, dirder, fnorm, fnorm1, gnorm, pnorm, prered, ratio, step,
         sum, temp, temp1, temp2, temp3;
     /***  Initialize internal variables.  ***/
 
     int64_t maxfev = C->patience * (n+1);
 
     int64_t inner_success; /* flag for loop control */
-    volatile long double lmpar = 0;  /* Levenberg-Marquardt parameter */
-    volatile long double delta = 0;
-    volatile long double xnorm = 0;
+    long double lmpar = 0;  /* Levenberg-Marquardt parameter */
+    long double delta = 0;
+    long double xnorm = 0;
     ratio = 0;
-    volatile long double eps = sqrt(MAX(C->epsilon, LM_MACHEP)); /* for forward differences */
+    long double eps = sqrt(MAX(C->epsilon, LM_MACHEP)); /* for forward differences */
 
     int64_t nout = C->n_maxpri == -1 ? n : MIN(C->n_maxpri, n);
 
@@ -233,29 +233,29 @@ void lmmin_int64(const int64_t n, volatile long double* x, const int64_t m, cons
 
     /* Allocate total workspace with just one system call */
     char* ws;
-    if ((ws = malloc((2*m + 5*n + m*n) * sizeof(volatile long double) +
+    if ((ws = malloc((2*m + 5*n + m*n) * sizeof(long double) +
                      n * sizeof(int64_t))) == NULL) {
         S->outcome = 9;
         return;
     }
     /* Assign workspace segments. */
     char* pws = ws;
-    volatile long double* fvec = (volatile long double*)pws;
-    pws += m * sizeof(volatile long double) / sizeof(char);
-    volatile long double* diag = (volatile long double*)pws;
-    pws += n * sizeof(volatile long double) / sizeof(char);
-    volatile long double* qtf = (volatile long double*)pws;
-    pws += n * sizeof(volatile long double) / sizeof(char);
-    volatile long double* fjac = (volatile long double*)pws;
-    pws += n * m * sizeof(volatile long double) / sizeof(char);
-    volatile long double* wa1 = (volatile long double*)pws;
-    pws += n * sizeof(volatile long double) / sizeof(char);
-    volatile long double* wa2 = (volatile long double*)pws;
-    pws += n * sizeof(volatile long double) / sizeof(char);
-    volatile long double* wa3 = (volatile long double*)pws;
-    pws += n * sizeof(volatile long double) / sizeof(char);
-    volatile long double* wf = (volatile long double*)pws;
-    pws += m * sizeof(volatile long double) / sizeof(char);
+    long double* fvec = (long double*)pws;
+    pws += m * sizeof(long double) / sizeof(char);
+    long double* diag = (long double*)pws;
+    pws += n * sizeof(long double) / sizeof(char);
+    long double* qtf = (long double*)pws;
+    pws += n * sizeof(long double) / sizeof(char);
+    long double* fjac = (long double*)pws;
+    pws += n * m * sizeof(long double) / sizeof(char);
+    long double* wa1 = (long double*)pws;
+    pws += n * sizeof(long double) / sizeof(char);
+    long double* wa2 = (long double*)pws;
+    pws += n * sizeof(long double) / sizeof(char);
+    long double* wa3 = (long double*)pws;
+    pws += n * sizeof(long double) / sizeof(char);
+    long double* wf = (long double*)pws;
+    pws += m * sizeof(long double) / sizeof(char);
     int64_t* Pivot = (int64_t*)pws;
     pws += n * sizeof(int64_t) / sizeof(char);
 
@@ -579,9 +579,9 @@ terminate:
 /*  lm_lmpar (determine Levenberg-Marquardt parameter)                        */
 /******************************************************************************/
 
-void lm_lmpar(const int64_t n, volatile long double* r, const int64_t ldr, const int64_t* Pivot,
+void lm_lmpar(const int64_t n, long double* r, const int64_t ldr, const int64_t* Pivot,
               const long double* diag, const long double* qtb, const long double delta,
-              volatile long double* par, volatile long double* x, volatile long double* Sdiag, volatile long double* aux, volatile long double* xdi)
+              long double* par, long double* x, long double* Sdiag, long double* aux, long double* xdi)
 /*     Given an m by n matrix A, an n by n nonsingular diagonal matrix D,
  *     an m-vector b, and a positive number delta, the problem is to
  *     determine a parameter value par such that if x solves the system
@@ -651,9 +651,9 @@ void lm_lmpar(const int64_t n, volatile long double* r, const int64_t ldr, const
  */
 {
     int64_t i, iter, j, nsing;
-    volatile long double dxnorm, fp, fp_old, gnorm, parc, parl, paru;
-    volatile long double sum, temp;
-    static volatile long double p1 = 0.1;
+    long double dxnorm, fp, fp_old, gnorm, parc, parl, paru;
+    long double sum, temp;
+    static long double p1 = 0.1;
 
     /*** Compute and store in x the Gauss-Newton direction. If the Jacobian
          is rank-deficient, obtain a least-squares solution. ***/
@@ -792,8 +792,8 @@ void lm_lmpar(const int64_t n, volatile long double* r, const int64_t ldr, const
 /*  lm_qrfac (QR factorization, from lapack)                                  */
 /******************************************************************************/
 
-void lm_qrfac(const int64_t m, const int64_t n, volatile long double* A, int64_t* Pivot, volatile long double* Rdiag,
-              volatile long double* Acnorm, volatile long double* W)
+void lm_qrfac(const int64_t m, const int64_t n, long double* A, int64_t* Pivot, long double* Rdiag,
+              long double* Acnorm, long double* W)
 /*
  *     This subroutine uses Householder transformations with column pivoting
  *     to compute a QR factorization of the m by n matrix A. That is, qrfac
@@ -834,7 +834,7 @@ void lm_qrfac(const int64_t m, const int64_t n, volatile long double* A, int64_t
  */
 {
     int64_t i, j, k, kmax;
-    volatile long double ajnorm, sum, temp;
+    long double ajnorm, sum, temp;
 
 #ifdef LMFIT_DEBUG_MESSAGES
     printf("debug qrfac\n");
@@ -926,9 +926,9 @@ void lm_qrfac(const int64_t m, const int64_t n, volatile long double* A, int64_t
 /*  lm_qrsolv (linear least-squares)                                          */
 /******************************************************************************/
 
-void lm_qrsolv(const int64_t n, volatile long double* r, const int64_t ldr, const int64_t* Pivot,
-               const long double* diag, const long double* qtb, volatile long double* x,
-               volatile long double* Sdiag, volatile long double* W)
+void lm_qrsolv(const int64_t n, long double* r, const int64_t ldr, const int64_t* Pivot,
+               const long double* diag, const long double* qtb, long double* x,
+               long double* Sdiag, long double* W)
 /*
  *     Given an m by n matrix A, an n by n diagonal matrix D, and an
  *     m-vector b, the problem is to determine an x which solves the
@@ -990,8 +990,8 @@ void lm_qrsolv(const int64_t n, volatile long double* r, const int64_t ldr, cons
  */
 {
     int64_t i, kk, j, k, nsing;
-    volatile long double qtbpj, sum, temp;
-    volatile long double _sin, _cos, _tan, _cot; /* local variables, not functions */
+    long double qtbpj, sum, temp;
+    long double _sin, _cos, _tan, _cot; /* local variables, not functions */
 
     /*** Copy R and Q^T*b to preserve input and initialize S.
          In particular, save the diagonal elements of R in x. ***/
@@ -1109,7 +1109,7 @@ long double lm_enorm(int64_t n, const long double* x)
  */
 {
     int64_t i;
-    volatile long double agiant, s1, s2, s3, xabs, x1max, x3max;
+    long double agiant, s1, s2, s3, xabs, x1max, x3max;
 
     s1 = 0;
     s2 = 0;
