@@ -27,7 +27,7 @@
 */
 #include "stepfit.h"
 
-long double stepfunc(volatile long double time, const long double *p, volatile long double maxlength, volatile long double maxstep, volatile long double maxbaseline, volatile long double risetime, int sign)
+long double stepfunc(volatile long double time, volatile long double *p, volatile long double maxlength, volatile long double maxstep, volatile long double maxbaseline, volatile long double risetime, int sign)
 {
     volatile long double sigma1, sigma2, a, b;
     volatile long double t1 = maxlength/2.0 * (1.0 + tanh(p[2])); //constrain t1 to (0, maxlength)
@@ -57,7 +57,7 @@ void time_array(volatile long double *time, int64_t m)
     }
 }
 
-void evaluate(const long double *p, int64_t length, const void *data, volatile long double *fvec, int64_t *userbreak)
+void evaluate(volatile long double *p, int64_t length, const void *data, volatile long double *fvec, int64_t *userbreak)
 {
     data_struct *D;
     D = (data_struct*)data;

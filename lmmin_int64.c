@@ -68,12 +68,12 @@
    Implementions are in this source file, below lmmin.
    Dependences: lmmin calls lmpar, which calls qrfac and qrsolv. */
 void lm_lmpar(const int64_t n, volatile long double* r, const int64_t ldr, const int64_t* Pivot,
-              const long double* diag, const long double* qtb, const long double delta,
+              volatile long double* diag, volatile long double* qtb, volatile long double delta,
               volatile long double* par, volatile long double* x, volatile long double* Sdiag, volatile long double* aux, volatile long double* xdi);
 void lm_qrfac(const int64_t m, const int64_t n, volatile long double* A, int64_t* Pivot, volatile long double* Rdiag,
               volatile long double* Acnorm, volatile long double* W);
 void lm_qrsolv(const int64_t n, volatile long double* r, const int64_t ldr, const int64_t* Pivot,
-               const long double* diag, const long double* qtb, volatile long double* x,
+               volatile long double* diag, volatile long double* qtb, volatile long double* x,
                volatile long double* Sdiag, volatile long double* W);
 
 /******************************************************************************/
@@ -147,7 +147,7 @@ const char* lm_shortmsg[] = {
 /*  Monitoring auxiliaries.                                                   */
 /******************************************************************************/
 
-void lm_print_pars(int64_t nout, const long double* par, FILE* fout)
+void lm_print_pars(int64_t nout, volatile long double* par, FILE* fout)
 {
     int64_t i;
     for (i = 0; i < nout; ++i)
@@ -160,7 +160,7 @@ void lm_print_pars(int64_t nout, const long double* par, FILE* fout)
 /******************************************************************************/
 
 void lmmin_int64(const int64_t n, volatile long double* x, const int64_t m, const void* data,
-           void (*evaluate)(const long double* par, const int64_t m_dat,
+           void (*evaluate)(volatile long double* par, const int64_t m_dat,
                             const void* data, volatile long double* fvec, int64_t* userbreak),
            const lm_control_struct* C, lm_status_struct* S)
 {
@@ -580,7 +580,7 @@ terminate:
 /******************************************************************************/
 
 void lm_lmpar(const int64_t n, volatile long double* r, const int64_t ldr, const int64_t* Pivot,
-              const long double* diag, const long double* qtb, const long double delta,
+              volatile long double* diag, volatile long double* qtb, volatile long double delta,
               volatile long double* par, volatile long double* x, volatile long double* Sdiag, volatile long double* aux, volatile long double* xdi)
 /*     Given an m by n matrix A, an n by n nonsingular diagonal matrix D,
  *     an m-vector b, and a positive number delta, the problem is to
@@ -927,7 +927,7 @@ void lm_qrfac(const int64_t m, const int64_t n, volatile long double* A, int64_t
 /******************************************************************************/
 
 void lm_qrsolv(const int64_t n, volatile long double* r, const int64_t ldr, const int64_t* Pivot,
-               const long double* diag, const long double* qtb, volatile long double* x,
+               volatile long double* diag, volatile long double* qtb, volatile long double* x,
                volatile long double* Sdiag, volatile long double* W)
 /*
  *     Given an m by n matrix A, an n by n diagonal matrix D, and an
@@ -1088,7 +1088,7 @@ void lm_qrsolv(const int64_t n, volatile long double* r, const int64_t ldr, cons
 /*  lm_enorm (Euclidean norm)                                                 */
 /******************************************************************************/
 
-long double lm_enorm(int64_t n, const long double* x)
+long double lm_enorm(int64_t n, volatile long double* x)
 /*     This function calculates the Euclidean norm of an n-vector x.
  *
  *     The Euclidean norm is computed by accumulating the sum of squares
