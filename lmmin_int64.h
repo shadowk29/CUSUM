@@ -68,9 +68,9 @@
 __BEGIN_DECLS
 
 /* Levenberg-Marquardt minimization. */
-void lmmin_int64(const int64_t n_par, long double* par, const int64_t m_dat, const void* data,
+void lmmin_int64(const int64_t n_par, volatile long double* par, const int64_t m_dat, const void* data,
            void (*evaluate)(const long double* par, const int64_t m_dat,
-                            const void* data, long double* fvec, int64_t* userbreak),
+                            const void* data, volatile long double* fvec, int64_t* userbreak),
            const lm_control_struct* control, lm_status_struct* status);
 /*
  *   This routine contains the core algorithm of our library.
