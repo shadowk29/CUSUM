@@ -135,10 +135,7 @@ void step_response(event *current, long double risetime, int64_t maxiters, long 
 
         if (d_abs(a) < minstep || d_abs(b) < minstep)
         {
-            FILE *errors = fopen64_and_check("errors.csv","a",111);
             current->type = FITSTEP;
-            fprintf(errors,"%"PRId64",%"PRId64",%.15g,%.15g,%.15g\n",current->index, current->start, (double) a, (double) b, (double) minstep);
-            fclose(errors);
             free(time);
             return;
         }
