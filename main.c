@@ -302,5 +302,8 @@ int main()
     fclose(logfile);
     fclose(events);
     fclose(rate);
-    return system("pause");
+#ifdef _WIN64
+    system("pause");
+#endif
+    return 0;
 }
