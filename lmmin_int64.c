@@ -88,17 +88,17 @@ void lm_qrsolv(const int64_t n, long double* r, const int64_t ldr, const int64_t
 //#define LM_USERTOL 30 * LM_MACHEP   /* users are recommended to require this */
 
 /* If the above values do not work, the following seem good for an x86:*/
-#define LM_MACHEP     .555e-16
-#define  LM_DWARF      9.9e-324
-#define LM_SQRT_DWARF 1.e-160
-#define  LM_SQRT_GIANT 1.e150
-#define  LM_USERTOL   1.e-14
+//#define LM_MACHEP     .555e-16
+//#define  LM_DWARF      9.9e-324
+//#define LM_SQRT_DWARF 1.e-160
+//#define  LM_SQRT_GIANT 1.e150
+//#define  LM_USERTOL   1.e-14
 /*   The following values should work on any machine:*/
-//#define LM_MACHEP     1.2e-11
-//#define LM_DWARF      1.0e-38
-//#define LM_SQRT_DWARF 3.834e-20
-//#define  LM_SQRT_GIANT 1.304e19
-//#define  LM_USERTOL   1.e-10
+#define LM_MACHEP     1.2e-11
+#define LM_DWARF      1.0e-38
+#define LM_SQRT_DWARF 3.834e-20
+#define  LM_SQRT_GIANT 1.304e19
+#define  LM_USERTOL   1.e-10
 
 
 /* Predefined control parameter sets (msgfile=NULL means stdout). */
