@@ -59,7 +59,7 @@ void polymult(double complex *roots, int64_t N, double *rcoefs);
 double scale_filter(double complex *poles, int64_t N, double warped, double scale);
 double bilinear(double complex *poles, int64_t N, double scale, double fs);
 void transform_filter(double complex *poles, double complex *zeros, int64_t N, double scale, double *b, double *a);
-bessel *initialize_filter(bessel *lpfilter, int64_t order, double cutoff, int64_t length, int64_t padding);
+bessel *initialize_filter(int usefilter, int eventfilter, int64_t order, double cutoff, int64_t length);
 void free_filter(bessel *lpfilter);
 void filter_signal(double *signal, double *paddedsignal, bessel *lpfilter, int64_t length);
 

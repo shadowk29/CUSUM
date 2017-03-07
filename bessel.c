@@ -216,41 +216,42 @@ void transform_filter(double complex *poles, double complex *zeros, int64_t N, d
     }
 }
 
-bessel *initialize_filter(bessel *lpfilter, int64_t order, double cutoff, int64_t length, int64_t padding)
+bessel *initialize_filter(int usefilter, int eventfilter, int64_t order, double cutoff, int64_t length)
 {
-    if ((lpfilter = malloc(sizeof(bessel)))==NULL)
+    if (usefilter || eventfilter)
     {
-        printf("Cannot allocate filter memory\n");
-        exit(36);
+        bessel *lpfilter;
+        lpfilter = calloc_and_check(1,sizeof(bessel),"cannot allocate filter struct");
+        lpfilter->order = order;
+        lpfilter->cutoff = cutoff;
+        lpfilter->padding = 100 * 2.0 / cutoff;;
+
+        double complex *poles;
+        double complex *zeros;
+
+        poles = calloc_and_check(order,sizeof(double complex),"Cannot allocate Bessel poles");
+        zeros = calloc_and_check(order,sizeof(double complex),"Cannot allocate Bessel zeros");
+
+        lpfilter->ccof = calloc_and_check(order+1,sizeof(double complex),"Cannot allocate ccof");
+        lpfilter->dcof = calloc_and_check(order+1,sizeof(double complex),"Cannot allocate dcof");
+
+        double fs = 2.0;
+        double warped = 2.0 * fs * tan(M_PI * cutoff / fs);
+        double scale = 1;
+
+        besselap(order, poles, zeros);
+        scale = scale_filter(poles,order, warped, scale);
+        scale = bilinear(poles, order, scale, fs);
+        transform_filter(poles, zeros, order, scale, lpfilter->ccof, lpfilter->dcof);
+
+        lpfilter->temp = NULL;
+        lpfilter->temp = calloc_and_check(length+2*(order+lpfilter->padding), sizeof(double),"Cannot allocate filter temp");
+
+        free(poles);
+        free(zeros);
+        return lpfilter;
     }
-    lpfilter->order = order;
-    lpfilter->cutoff = cutoff;
-    lpfilter->padding = padding;
-
-    double complex *poles;
-    double complex *zeros;
-
-    poles = calloc_and_check(order,sizeof(double complex),"Cannot allocate Bessel poles");
-    zeros = calloc_and_check(order,sizeof(double complex),"Cannot allocate Bessel zeros");
-
-    lpfilter->ccof = calloc_and_check(order+1,sizeof(double complex),"Cannot allocate ccof");
-    lpfilter->dcof = calloc_and_check(order+1,sizeof(double complex),"Cannot allocate dcof");
-
-    double fs = 2.0;
-    double warped = 2.0 * fs * tan(M_PI * cutoff / fs);
-    double scale = 1;
-
-    besselap(order, poles, zeros);
-    scale = scale_filter(poles,order, warped, scale);
-    scale = bilinear(poles, order, scale, fs);
-    transform_filter(poles, zeros, order, scale, lpfilter->ccof, lpfilter->dcof);
-
-    lpfilter->temp = NULL;
-    lpfilter->temp = calloc_and_check(length+2*(order+padding), sizeof(double),"Cannot allocate filter temp");
-
-    free(poles);
-    free(zeros);
-    return lpfilter;
+    return NULL;
 }
 
 void free_filter(bessel *lpfilter)

@@ -19,7 +19,20 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include"io.h"
- void initialize_io(io_struct *io, configuration *config)
+void check_filesize(configuration *config, FILE *input)
+{
+    int64_t filesize = get_filesize(input, config->datatype);
+    if (config->finish == 0)
+    {
+        config->finish = filesize;
+    }
+    else
+    {
+        config->finish = filesize < config->finish ? filesize : config->finish;
+    }
+
+}
+void initialize_files(io_struct *io, configuration *config)
 {
     io->input = fopen64_and_check(config->filepath,"rb", 4);
     io->events = fopen64_and_check(config->eventsfile,"w",21);
@@ -37,7 +50,6 @@ void free_io(io_struct *io)
     fclose(io->baselinefile);
     free(io);
 }
-
 
 void output_baseline_stats(FILE *baselinefile, baseline_struct *baseline_stats, int64_t pos, double samplingfreq)
 {
@@ -417,6 +429,12 @@ void configure_defaults(configuration *config)
 
 void config_sanity_check(configuration *config, FILE *logfile)
 {
+    if (config->datatype != 16 && config->datatype != 64 && config->datatype !=0)
+    {
+        printf("datatype currently can only be 0, 16, or 64\n");
+        exit(43);
+    }
+
     int correctionflag = 0;
     printf("\nVerifying config parameters\n\n");
     fprintf(logfile,"\nVerifying config parameters\n\n");
@@ -507,11 +525,7 @@ FILE * read_config(configuration *config, const char *version)
     char *value;
     long int cutoff = 0;
     FILE *configfile;
-    if ((configfile = fopen64("config.txt","r"))==NULL)
-    {
-        printf("Cannot find config file: \"config.txt\"!");
-        exit(27);
-    }
+    configfile = fopen64_and_check("config.txt","r",1);
     config->outputfolder[0]='\0';
 
 

@@ -27,187 +27,53 @@
 
 int main()
 {
-    if (!(sizeof(double) * CHAR_BIT == 64))
-    {
-        printf("CUSUM requires 64-bit doubles\nPlease recompile with an appropriate compiler\n");
-        exit(-1);
-    }
-
-    //read the configuration file
-    configuration *config;
-    config = calloc_and_check(1,sizeof(configuration),"Cannot allocate config struct");
+    check_bits(); //verify that doubles are 64-bit for bit-shifting later
+    configuration *config = calloc_and_check(1,sizeof(configuration),"Cannot allocate config struct");
     config->daqsetup = calloc_and_check(1,sizeof(chimera),"Cannot allocate DAQ struct");
 
     io_struct *io = calloc_and_check(1, sizeof(io_struct),"Cannot allocate io_struct");
-    io->logfile = read_config(config, _VERSION_);
-    initialize_io(io, config);
+    io->logfile = read_config(config, _VERSION_); //read config.txt for the run setup and open the logfile
+    initialize_files(io, config); //open all other files used for IO
 
-    if (config->datatype != 16 && config->datatype != 64 && config->datatype !=0)
-    {
-        printf("datatype currently can only be 0, 16, or 64\n");
-        exit(43);
-    }
+    bessel *lpfilter = initialize_filter(config->usefilter, config->eventfilter, config->order, config->cutoff, config->readlength); //if turned on, intialize the bessel filter
 
-    bessel *lpfilter = NULL;
-    double *filtered = NULL;
+    int64_t *error_summary = calloc_and_check(NUMTYPES, sizeof(int64_t), "Cannot allocate error array"); //error summary to keep track of why analysis fails
 
-    int64_t *error_summary = calloc_and_check(NUMTYPES, sizeof(int64_t), "Cannot allocate error array");
+    signal_struct *sig = initialize_signal(config, lpfilter ? lpfilter->padding : 0); //allocate memory for all the main signal arrays used for IO
 
-    //initialize the low-pass filter and allocate necessary memory
-    int64_t filterpadding = 0;
-    if (config->usefilter || config->eventfilter)
-    {
-        filterpadding = 100 * 2.0 / config->cutoff;
-        lpfilter = initialize_filter(lpfilter, config->order, config->cutoff, config->readlength, filterpadding);
-    }
-    //allocate memory for file reading
+    baseline_struct *baseline_stats = initialize_baseline(config); //keeps track of local baseline
 
-    double *paddedsignal = calloc_and_check(config->readlength + 2*(config->order + filterpadding),sizeof(double), "Cannot allocate file reading signal array");
-    double *signal = &paddedsignal[config->order + filterpadding];
-    void *rawsignal = NULL;
-    switch (config->datatype)
-    {
-        case 0:
-            rawsignal = calloc_and_check(config->readlength, sizeof(uint16_t), "Cannot allocate chimera rawsignal array");
-            break;
-        case 16:
-            rawsignal = calloc_and_check(config->readlength, 2*sizeof(uint16_t), "Cannot allocate f2 rawsignal array");
-            break;
-        case 64:
-            rawsignal = calloc_and_check(config->readlength, 2*sizeof(uint64_t), "Cannot allocate f8 rawsignal array");
-            break;
-    }
+    check_filesize(config, io->input); //check how big the file is and assign file reading parameters accordingly
 
-
-    baseline_struct *baseline_stats = NULL;
-    baseline_stats = initialize_baseline(baseline_stats, config);
-
-    //find out how big the file is for use in a progressbar
-    int64_t filesize = get_filesize(io->input, config->datatype);
-    if (config->finish == 0)
-    {
-        config->finish = filesize;
-    }
-    else
-    {
-        config->finish = filesize < config->finish ? filesize : config->finish;
-    }
-
-
-    //initialize linked list to store the locations of edges in the input file
-    edge *head_edge;
-    edge *current_edge;
+    edge *head_edge, *current_edge; //initialize linked list to store the locations of edges in the input file
     head_edge = initialize_edges();
     current_edge = head_edge;
 
-    //initialize struct to store the information about events found using the edge list
-    event *current_event;
-    current_event = initialize_events();
+    //main loop over input file, finds and logs rough event locations for a more focused pass later
+    current_edge = find_edges(config, io, sig, baseline_stats, lpfilter, current_edge, head_edge);
 
-    fprintf(io->logfile, "<----RUN LOG BEGINS---->\n\n");
-    printf("Locating events... \n");
-    fprintf(io->logfile, "Locating events...\n ");
-    fflush(stdout);
-
-    double risetime;
-    if (config->eventfilter || config->usefilter)
-    {
-        risetime = 2.0/config->cutoff;
-    }
-    else
-    {
-        risetime = 5;
-    }
-    int64_t typeswitch = 0;
-    double baseline;
-    double badbaseline = 0;
-    double goodbaseline = 0;
-    int64_t i;
-    int64_t read;
-    int64_t pos;
-    int endflag;
-    endflag = 0;
-    read = 0;
-    pos = 0;
-    char progressmsg[STRLENGTH];
-    time_t start_time;
-    time_t curr_time;
-    time(&start_time);
-    for (pos = config->start; pos < config->finish; pos += read)
-    {
-        snprintf(progressmsg,STRLENGTH*sizeof(char)," %g seconds processed",(pos-config->start)/(double) config->samplingfreq);
-        progressbar(pos-config->start,config->finish-config->start,progressmsg,difftime(time(&curr_time),start_time));
-        read = read_current(io->input, signal, rawsignal, pos, intmin(config->readlength,config->finish - pos), config->datatype, config->daqsetup);
-        if (read < config->readlength || feof(io->input))
-        {
-            endflag = 1;
-        }
-        if (config->usefilter)
-        {
-            filter_signal(signal, paddedsignal, lpfilter, read);
-        }
-        gauss_histogram(signal, baseline_stats, read);
-        if (isnan(baseline_stats->mean) || isnan(baseline_stats->stdev))
-        {
-            printf("\nBaseline fit failed, check your baseline bounds\n");
-            baseline_stats->mean = 0;
-            baseline_stats->stdev = 0;
-        }
-        baseline = baseline_stats->mean;
-        output_baseline_stats(io->baselinefile, baseline_stats, pos, config->samplingfreq);
-        if (baseline < config->baseline_min || baseline > config->baseline_max || d_abs(baseline_stats->stdev) < EPS)
-        {
-            badbaseline += read;
-        }
-        else
-        {
-            goodbaseline += read;
-            current_edge = detect_edges(signal, baseline, read, current_edge, config->threshold, baseline_stats->stdev, config->hysteresis, pos, config->event_direction);
-        }
-        if (endflag)
-        {
-            pos += read;
-                break;
-        }
-        memset(signal,'0',(config->readlength)*sizeof(double));
-    }
-    snprintf(progressmsg,STRLENGTH*sizeof(char)," %g seconds processed",(pos-config->start)/(double) config->samplingfreq);
-    progressbar(pos-config->start,config->finish-config->start,progressmsg,difftime(time(&curr_time),start_time));
-    printf("\nRead %g seconds of good baseline\nRead %g seconds of bad baseline\n", goodbaseline/(double) config->samplingfreq, badbaseline / (double) config->samplingfreq);
-    fprintf(io->logfile, "\nRead %g seconds of good baseline\nRead %g seconds of bad baseline\n", goodbaseline/(double) config->samplingfreq, badbaseline / (double) config->samplingfreq);
-
-    current_edge = head_edge;
-
-    if (!current_edge || current_edge->type == HEAD)
-    {
-        printf("It is %"PRId64"\n",current_edge->type);
-        printf("No edges found in signal, exiting\n");
-        fprintf(io->logfile, "No edges found in signal, exiting\n");
-        exit(8);
-    }
-
-
-    free(paddedsignal);
-    if (config->usefilter)
-    {
-        free(filtered);
-    }
-
+    free(sig->paddedsignal);
 
     int64_t index = 0;
-    int64_t numevents = 0;
     int64_t edgecount;
     int64_t edgenum = 0;
     int64_t edges;
 
 
     edgecount = count_edges(current_edge);
-    current_edge = head_edge;
-
+    printf("Processing %"PRId64" edges\n", edgecount);
+    event *current_event;
+    current_event = initialize_events();
 
     int64_t lasttime = config->start;
     int64_t last_end = config->start;
-    printf("Processing %"PRId64" edges\n", edgecount);
+
+    time_t start_time;
+    time_t curr_time;
+    char progressmsg[STRLENGTH];
+    int64_t numevents = 0;
+    int64_t i;
+    int64_t typeswitch = 0;
     time(&start_time);
     while (current_edge)
     {
@@ -227,11 +93,11 @@ int main()
         identify_step_events(current_event, config->stepfit_samples, config->subevent_minpoints, config->attempt_recovery);
         filter_long_events(current_event, config->event_maxpoints);
         filter_short_events(current_event, config->event_minpoints);
-        generate_trace(io->input, current_event, config->datatype, rawsignal, io->logfile, lpfilter, config->eventfilter, config->daqsetup, current_edge, last_end, config->start, config->subevent_minpoints);
+        generate_trace(io->input, current_event, config->datatype, sig->rawsignal, io->logfile, lpfilter, config->eventfilter, config->daqsetup, current_edge, last_end, config->start, config->subevent_minpoints);
         last_end = current_event->finish;
         cusum(current_event, config->cusum_delta, config->cusum_min_threshold, config->cusum_max_threshold, config->subevent_minpoints);
         typeswitch += average_cusum_levels(current_event, config->subevent_minpoints, config->cusum_minstep, config->attempt_recovery);
-        step_response(current_event, risetime, config->maxiters, config->cusum_minstep);
+        step_response(current_event, config->usefilter || config->eventfilter ? 2.0/config->cutoff : 5, config->maxiters, config->cusum_minstep);
         populate_event_levels(current_event);
         calculate_level_noise(current_event, config->subevent_minpoints);
         refine_event_estimates(current_event);
@@ -256,7 +122,6 @@ int main()
 
     print_error_summary(io->logfile, error_summary, numevents);
 
-
     printf("\nCleaning up memory usage...\n");
     fprintf(io->logfile, "Cleaning up memory usage...\n");
     free(current_event);
@@ -264,7 +129,8 @@ int main()
     free(config->daqsetup);
 
     free(error_summary);
-    free(rawsignal);
+    free(sig->rawsignal);
+    free(sig);
     free_baseline(baseline_stats);
 
 

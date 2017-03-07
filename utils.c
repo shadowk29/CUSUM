@@ -19,6 +19,38 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include"utils.h"
+signal_struct *initialize_signal(configuration *config, int64_t filterpadding)
+{
+    signal_struct *sig = calloc_and_check(1,sizeof(signal_struct), "cannot allocate signal struct");
+    sig->paddedsignal = calloc_and_check(config->readlength + 2*(config->order + filterpadding),sizeof(double), "Cannot allocate file reading signal array");
+    sig->signal = &sig->paddedsignal[config->order + filterpadding];
+    sig->rawsignal = NULL;
+    switch (config->datatype)
+    {
+        case 0:
+            sig->rawsignal = calloc_and_check(config->readlength, sizeof(uint16_t), "Cannot allocate chimera rawsignal array");
+            break;
+        case 16:
+            sig->rawsignal = calloc_and_check(config->readlength, 2*sizeof(uint16_t), "Cannot allocate f2 rawsignal array");
+            break;
+        case 64:
+            sig->rawsignal = calloc_and_check(config->readlength, 2*sizeof(uint64_t), "Cannot allocate f8 rawsignal array");
+            break;
+    }
+    return sig;
+}
+
+
+
+
+void check_bits(void)
+{
+    if (!(sizeof(double) * CHAR_BIT == 64))
+    {
+        printf("CUSUM requires 64-bit doubles\nPlease recompile with an appropriate compiler\n");
+        exit(-1);
+    }
+}
 
 int64_t locate_min(double *signal, int64_t length)
 {
@@ -419,9 +451,10 @@ double ARL(int64_t length, double sigma, double mun, double h)
     return (exp(-2.0*mun*(h/sigma+1.166))-1.0+2.0*mun*(h/sigma+1.166))/(2.0*mun*mun)-(double) length;
 }
 
-baseline_struct *initialize_baseline(baseline_struct *baseline, configuration *config)
+baseline_struct *initialize_baseline(configuration *config)
 {
     int64_t i;
+    baseline_struct * baseline = NULL;
     baseline = calloc_and_check(1, sizeof(baseline_struct), "Cannot allocate baseline structure");
     baseline->baseline_min = config->baseline_min;
     baseline->baseline_max = config->baseline_max;

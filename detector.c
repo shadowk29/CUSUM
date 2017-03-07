@@ -19,7 +19,84 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include"detector.h"
+edge *find_edges(configuration *config, io_struct *io, signal_struct *sig, baseline_struct *baseline_stats, bessel *lpfilter, edge *current_edge, edge *head_edge)
+{
+    fprintf(io->logfile, "<----RUN LOG BEGINS---->\n\n");
+    printf("Locating events... \n");
+    fprintf(io->logfile, "Locating events...\n ");
+    fflush(stdout);
 
+    int64_t typeswitch = 0;
+    double baseline;
+    double badbaseline = 0;
+    double goodbaseline = 0;
+    int64_t i;
+    int64_t read;
+    int64_t pos;
+    int endflag;
+    endflag = 0;
+    read = 0;
+    pos = 0;
+    char progressmsg[STRLENGTH];
+    time_t start_time;
+    time_t curr_time;
+    time(&start_time);
+    for (pos = config->start; pos < config->finish; pos += read)
+    {
+        snprintf(progressmsg,STRLENGTH*sizeof(char)," %g seconds processed",(pos-config->start)/(double) config->samplingfreq);
+        progressbar(pos-config->start,config->finish-config->start,progressmsg,difftime(time(&curr_time),start_time));
+        read = read_current(io->input, sig->signal, sig->rawsignal, pos, intmin(config->readlength,config->finish - pos), config->datatype, config->daqsetup);
+        if (read < config->readlength || feof(io->input))
+        {
+            endflag = 1;
+        }
+        if (config->usefilter)
+        {
+            filter_signal(sig->signal, sig->paddedsignal, lpfilter, read);
+        }
+        gauss_histogram(sig->signal, baseline_stats, read);
+        if (isnan(baseline_stats->mean) || isnan(baseline_stats->stdev))
+        {
+            printf("\nBaseline fit failed, check your baseline bounds\n");
+            baseline_stats->mean = 0;
+            baseline_stats->stdev = 0;
+        }
+        baseline = baseline_stats->mean;
+        output_baseline_stats(io->baselinefile, baseline_stats, pos, config->samplingfreq);
+        if (baseline < config->baseline_min || baseline > config->baseline_max || d_abs(baseline_stats->stdev) < EPS)
+        {
+            badbaseline += read;
+        }
+        else
+        {
+            goodbaseline += read;
+            current_edge = detect_edges(sig->signal, baseline, read, current_edge, config->threshold, baseline_stats->stdev, config->hysteresis, pos, config->event_direction);
+        }
+        if (endflag)
+        {
+            pos += read;
+                break;
+        }
+        memset(sig->signal,'0',(config->readlength)*sizeof(double));
+    }
+    snprintf(progressmsg,STRLENGTH*sizeof(char)," %g seconds processed",(pos-config->start)/(double) config->samplingfreq);
+    progressbar(pos-config->start,config->finish-config->start,progressmsg,difftime(time(&curr_time),start_time));
+    printf("\nRead %g seconds of good baseline\nRead %g seconds of bad baseline\n", goodbaseline/(double) config->samplingfreq, badbaseline / (double) config->samplingfreq);
+    fprintf(io->logfile, "\nRead %g seconds of good baseline\nRead %g seconds of bad baseline\n", goodbaseline/(double) config->samplingfreq, badbaseline / (double) config->samplingfreq);
+
+    current_edge = head_edge;
+
+    if (!current_edge || current_edge->type == HEAD)
+    {
+        printf("It is %"PRId64"\n",current_edge->type);
+        printf("No edges found in signal, exiting\n");
+        fprintf(io->logfile, "No edges found in signal, exiting\n");
+        exit(8);
+    }
+
+    current_edge = head_edge;
+    return current_edge;
+}
 int64_t get_next_event_start(edge *current_edge)
 {
     while (current_edge->type != 0 && current_edge->next) //if for some reason there are multiple of the same type in a row, skip them.

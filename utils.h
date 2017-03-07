@@ -50,6 +50,13 @@
 #define FITSTEP 9
 
 //#define DEBUG
+struct Signal_Struct
+{
+    double *paddedsignal;
+    double *signal;
+    void *rawsignal;
+};
+typedef struct Signal_Struct signal_struct;
 
 struct IO_struct
 {
@@ -186,6 +193,9 @@ struct Configuration
 typedef struct Configuration configuration;
 
 
+signal_struct *initialize_signal(configuration *config, int64_t filterpadding);
+void free_signal(signal_struct *sig);
+void check_bits(void);
 FILE *fopen64_and_check(const char *fname, const char *mode, int error);
 void *calloc_and_check(int64_t num, int64_t size, char *msg);
 int signum(double num);
@@ -223,7 +233,7 @@ void progressbar(int64_t pos, int64_t finish, const char *msg, double elapsed);
 
 
 void invert_matrix(double m[3][3], double inverse[3][3]);
-baseline_struct *initialize_baseline(baseline_struct *baseline, configuration *config);
+baseline_struct *initialize_baseline(configuration *config);
 void free_baseline(baseline_struct *baseline);
 
 int64_t locate_min(double *signal, int64_t length);

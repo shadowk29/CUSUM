@@ -40,7 +40,8 @@ union int16bits
     uint16_t bits;
     int16_t currentval;
 };
-void initialize_io(io_struct *io, configuration *config);
+void check_filesize(configuration *config, FILE *input);
+void initialize_files(io_struct *io, configuration *config);
 void free_io(io_struct *io);
 void configure_defaults(configuration *config);
 void config_sanity_check(configuration *config, FILE *logfile);
