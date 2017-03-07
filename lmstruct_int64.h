@@ -68,21 +68,21 @@ __BEGIN_DECLS
 
 /* Collection of input parameters for fit control. */
 typedef struct {
-    long double ftol;      /* Relative error desired in the sum of squares.
+    double ftol;      /* Relative error desired in the sum of squares.
                          Termination occurs when both the actual and
                          predicted relative reductions in the sum of squares
                          are at most ftol. */
-    long double xtol;      /* Relative error between last two approximations.
+    double xtol;      /* Relative error between last two approximations.
                          Termination occurs when the relative error between
                          two consecutive iterates is at most xtol. */
-    long double gtol;      /* Orthogonality desired between fvec and its derivs.
+    double gtol;      /* Orthogonality desired between fvec and its derivs.
                          Termination occurs when the cosine of the angle
                          between fvec and any column of the Jacobian is at
                          most gtol in absolute value. */
-    long double epsilon;   /* Step used to calculate the Jacobian, should be
+    double epsilon;   /* Step used to calculate the Jacobian, should be
                          slightly larger than the relative error in the
                          user-supplied functions. */
-    long double stepbound; /* Used in determining the initial step bound. This
+    double stepbound; /* Used in determining the initial step bound. This
                          bound is set to the product of stepbound and the
                          Euclidean norm of diag*x if nonzero, or else to
                          stepbound itself. In most cases stepbound should lie
@@ -100,7 +100,7 @@ typedef struct {
 
 /* Collection of output parameters for status info. */
 typedef struct {
-    long double fnorm;  /* norm of the residue vector fvec. */
+    double fnorm;  /* norm of the residue vector fvec. */
     int64_t nfev;      /* actual number of iterations. */
     int64_t outcome;   /* Status indicator. Nonnegative values are used as index
                       for the message text lm_infmsg, set in lmmin.c. */

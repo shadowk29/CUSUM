@@ -33,20 +33,20 @@
 
 struct Data_Struct
 {
-    long double *time;
+    double *time;
     double *signal;
-    long double maxlength;
-    long double maxstep;
-    long double maxbaseline;
-    long double risetime;
+    double maxlength;
+    double maxstep;
+    double maxbaseline;
+    double risetime;
     int sign;
-    long double (*stepfunc)(long double time, const long double *p, long double maxlength, long double maxstep, long double maxbaseline, long double risetime, int sign);
+    double (*stepfunc)(double time, const double *p, double maxlength, double maxstep, double maxbaseline, double risetime, int sign);
 };
 typedef struct Data_Struct data_struct;
 
-long double stepfunc(long double time, const long double *p, long double maxlength, long double maxstep,long  double maxbaseline, long double risetime, int sign);
-void time_array(long double *time, int64_t m);
-void step_response(event *current, long double risetime, int64_t maxiters, long double minstep);
-void evaluate(const long double *p, int64_t length, const void *data, long double *fvec, int64_t *userbreak);
+double stepfunc(double time, const double *p, double maxlength, double maxstep, double maxbaseline, double risetime, int sign);
+void time_array(double *time, int64_t m);
+void step_response(event *current, double risetime, int64_t maxiters, double minstep);
+void evaluate(const double *p, int64_t length, const void *data, double *fvec, int64_t *userbreak);
 
 #endif //STEPFIT_H_INCLUDED
