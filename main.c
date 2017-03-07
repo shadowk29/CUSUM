@@ -18,12 +18,6 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifdef _WIN64
-    #include<io.h>
-    #define fopen64 _fopeni64
-    #define ftello64 _ftelli64
-    #define fseeko64 _fseeki64
-#endif // _WIN64
 #include"io.h"
 #include"utils.h"
 #include"detector.h"
@@ -44,30 +38,15 @@ int main()
     config = calloc_and_check(1,sizeof(configuration),"Cannot allocate config struct");
     config->daqsetup = calloc_and_check(1,sizeof(chimera),"Cannot allocate DAQ struct");
 
-    FILE *logfile;
-    logfile = read_config(config, _VERSION_);
-
+    io_struct *io = calloc_and_check(1, sizeof(io_struct),"Cannot allocate io_struct");
+    io->logfile = read_config(config, _VERSION_);
+    initialize_io(io, config);
 
     if (config->datatype != 16 && config->datatype != 64 && config->datatype !=0)
     {
         printf("datatype currently can only be 0, 16, or 64\n");
         exit(43);
     }
-
-    //open the input file
-    FILE *input;
-    input = fopen64_and_check(config->filepath,"rb", 4);
-
-    FILE *events;
-    events = fopen64_and_check(config->eventsfile,"w",21);
-
-    FILE *rate;
-    rate = fopen64_and_check(config->ratefile,"w",21);
-
-    FILE *baselinefile;
-    baselinefile = fopen64_and_check(config->baselinefile,"w",21);
-
-    initialize_events_file(events, rate, baselinefile);
 
     bessel *lpfilter = NULL;
     double *filtered = NULL;
@@ -104,7 +83,7 @@ int main()
     baseline_stats = initialize_baseline(baseline_stats, config);
 
     //find out how big the file is for use in a progressbar
-    int64_t filesize = get_filesize(input, config->datatype);
+    int64_t filesize = get_filesize(io->input, config->datatype);
     if (config->finish == 0)
     {
         config->finish = filesize;
@@ -125,9 +104,9 @@ int main()
     event *current_event;
     current_event = initialize_events();
 
-    fprintf(logfile, "<----RUN LOG BEGINS---->\n\n");
+    fprintf(io->logfile, "<----RUN LOG BEGINS---->\n\n");
     printf("Locating events... \n");
-    fprintf(logfile, "Locating events...\n ");
+    fprintf(io->logfile, "Locating events...\n ");
     fflush(stdout);
 
     double risetime;
@@ -158,8 +137,8 @@ int main()
     {
         snprintf(progressmsg,STRLENGTH*sizeof(char)," %g seconds processed",(pos-config->start)/(double) config->samplingfreq);
         progressbar(pos-config->start,config->finish-config->start,progressmsg,difftime(time(&curr_time),start_time));
-        read = read_current(input, signal, rawsignal, pos, intmin(config->readlength,config->finish - pos), config->datatype, config->daqsetup);
-        if (read < config->readlength || feof(input))
+        read = read_current(io->input, signal, rawsignal, pos, intmin(config->readlength,config->finish - pos), config->datatype, config->daqsetup);
+        if (read < config->readlength || feof(io->input))
         {
             endflag = 1;
         }
@@ -175,7 +154,7 @@ int main()
             baseline_stats->stdev = 0;
         }
         baseline = baseline_stats->mean;
-        output_baseline_stats(baselinefile, baseline_stats, pos, config->samplingfreq);
+        output_baseline_stats(io->baselinefile, baseline_stats, pos, config->samplingfreq);
         if (baseline < config->baseline_min || baseline > config->baseline_max || d_abs(baseline_stats->stdev) < EPS)
         {
             badbaseline += read;
@@ -195,7 +174,7 @@ int main()
     snprintf(progressmsg,STRLENGTH*sizeof(char)," %g seconds processed",(pos-config->start)/(double) config->samplingfreq);
     progressbar(pos-config->start,config->finish-config->start,progressmsg,difftime(time(&curr_time),start_time));
     printf("\nRead %g seconds of good baseline\nRead %g seconds of bad baseline\n", goodbaseline/(double) config->samplingfreq, badbaseline / (double) config->samplingfreq);
-    fprintf(logfile, "\nRead %g seconds of good baseline\nRead %g seconds of bad baseline\n", goodbaseline/(double) config->samplingfreq, badbaseline / (double) config->samplingfreq);
+    fprintf(io->logfile, "\nRead %g seconds of good baseline\nRead %g seconds of bad baseline\n", goodbaseline/(double) config->samplingfreq, badbaseline / (double) config->samplingfreq);
 
     current_edge = head_edge;
 
@@ -203,7 +182,7 @@ int main()
     {
         printf("It is %"PRId64"\n",current_edge->type);
         printf("No edges found in signal, exiting\n");
-        fprintf(logfile, "No edges found in signal, exiting\n");
+        fprintf(io->logfile, "No edges found in signal, exiting\n");
         exit(8);
     }
 
@@ -213,7 +192,6 @@ int main()
     {
         free(filtered);
     }
-    fclose(baselinefile);
 
 
     int64_t index = 0;
@@ -249,7 +227,7 @@ int main()
         identify_step_events(current_event, config->stepfit_samples, config->subevent_minpoints, config->attempt_recovery);
         filter_long_events(current_event, config->event_maxpoints);
         filter_short_events(current_event, config->event_minpoints);
-        generate_trace(input, current_event, config->datatype, rawsignal, logfile, lpfilter, config->eventfilter, config->daqsetup, current_edge, last_end, config->start, config->subevent_minpoints);
+        generate_trace(io->input, current_event, config->datatype, rawsignal, io->logfile, lpfilter, config->eventfilter, config->daqsetup, current_edge, last_end, config->start, config->subevent_minpoints);
         last_end = current_event->finish;
         cusum(current_event, config->cusum_delta, config->cusum_min_threshold, config->cusum_max_threshold, config->subevent_minpoints);
         typeswitch += average_cusum_levels(current_event, config->subevent_minpoints, config->cusum_minstep, config->attempt_recovery);
@@ -261,7 +239,7 @@ int main()
         event_max_blockage(current_event);
         event_area(current_event, 1.0/config->samplingfreq);
         print_event_signal(current_event->index, current_event, 1.0/config->samplingfreq*SECONDS_TO_MICROSECONDS,config->eventsfolder);
-        print_event_line(events, rate, current_event, 1.0/config->samplingfreq, lasttime);
+        print_event_line(io->events, io->rate, current_event, 1.0/config->samplingfreq, lasttime);
         lasttime = current_event->start;
         current_edge = current_edge->next;
         edgenum++;
@@ -276,14 +254,13 @@ int main()
     snprintf(progressmsg,STRLENGTH*sizeof(char)," %"PRId64" events processed",numevents);
     progressbar(edgenum, edgecount, progressmsg,difftime(time(&curr_time),start_time));
 
-    print_error_summary(logfile, error_summary, numevents);
+    print_error_summary(io->logfile, error_summary, numevents);
 
 
     printf("\nCleaning up memory usage...\n");
-    fprintf(logfile, "Cleaning up memory usage...\n");
+    fprintf(io->logfile, "Cleaning up memory usage...\n");
     free(current_event);
     free_edges(head_edge);
-    fclose(input);
     free(config->daqsetup);
 
     free(error_summary);
@@ -297,9 +274,7 @@ int main()
     }
     free(config);
 
-    fprintf(logfile, "<----RUN LOG ENDS---->\n\n");
-    fclose(logfile);
-    fclose(events);
-    fclose(rate);
+    fprintf(io->logfile, "<----RUN LOG ENDS---->\n\n");
+    free_io(io);
     return 0;
 }

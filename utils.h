@@ -51,6 +51,16 @@
 
 //#define DEBUG
 
+struct IO_struct
+{
+    FILE *logfile;
+    FILE *events;
+    FILE *rate;
+    FILE *input;
+    FILE *baselinefile;
+};
+typedef struct IO_struct io_struct;
+
 struct Chimera
 {
     double samplerate;
@@ -174,6 +184,7 @@ struct Configuration
     chimera *daqsetup;
 };
 typedef struct Configuration configuration;
+
 
 FILE *fopen64_and_check(const char *fname, const char *mode, int error);
 void *calloc_and_check(int64_t num, int64_t size, char *msg);

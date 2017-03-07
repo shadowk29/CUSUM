@@ -19,6 +19,25 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include"io.h"
+ void initialize_io(io_struct *io, configuration *config)
+{
+    io->input = fopen64_and_check(config->filepath,"rb", 4);
+    io->events = fopen64_and_check(config->eventsfile,"w",21);
+    io->rate = fopen64_and_check(config->ratefile,"w",21);
+    io->baselinefile = fopen64_and_check(config->baselinefile,"w",21);
+    initialize_events_file(io->events, io->rate, io->baselinefile);
+}
+
+void free_io(io_struct *io)
+{
+    fclose(io->logfile);
+    fclose(io->input);
+    fclose(io->events);
+    fclose(io->rate);
+    fclose(io->baselinefile);
+    free(io);
+}
+
 
 void output_baseline_stats(FILE *baselinefile, baseline_struct *baseline_stats, int64_t pos, double samplingfreq)
 {
