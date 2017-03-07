@@ -232,12 +232,9 @@ void lmmin_int64(const int64_t n, long double* x, const int64_t m, const void* d
     /***  Allocate work space.  ***/
 
     /* Allocate total workspace with just one system call */
-    char* ws;
-    if ((ws = malloc((2*m + 5*n + m*n) * sizeof(long double) +
-                     n * sizeof(int64_t))) == NULL) {
-        S->outcome = 9;
-        return;
-    }
+        char* ws;
+    int64_t bytes = (2*m + 5*n + m*n) * sizeof(double) + n * sizeof(int64_t);
+    ws = calloc_and_check(bytes, 1, "cannot allocate ws");
     /* Assign workspace segments. */
     char* pws = ws;
     long double* fvec = (long double*)pws;
