@@ -260,7 +260,7 @@ void lmmin_int64(const int64_t n, long double* x, const int64_t m, const void* d
     pws += n * sizeof(int64_t) / sizeof(char);
 
     /* Initialize diag. */
-    if (!C->scale_diag)
+    if (C->scale_diag)
         for (j = 0; j < n; j++)
             diag[j] = 1;
 
