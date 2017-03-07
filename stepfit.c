@@ -110,7 +110,7 @@ void step_response(event *current, long double risetime, int64_t maxiters, long 
 
         int64_t i;
 
-        lm_control_struct control = lm_control_float;
+        lm_control_struct control = lm_control_double;
         control.patience = maxiters;
         lm_status_struct status = {0,0,0,0};
 
@@ -150,13 +150,13 @@ void step_response(event *current, long double risetime, int64_t maxiters, long 
         {
             t = i;
             current->filtered_signal[i] = i0-a;
-            residual += (current->signal[i]-(i0+a*(exp(-(t-u1)/rc1)-1)))*(current->signal[i]-(i0+a*(exp(-(t-u1)/rc1)-1)));
+            residual += (current->signal[i]-(i0+a*(exp(-(t-u1)/rc1)-1.0)))*(current->signal[i]-(i0+a*(exp(-(t-u1)/rc1)-1.0)));
         }
         for (i=(int64_t) u2; i<length; i++)
         {
             t = i;
             current->filtered_signal[i] = i0-a+b;
-            residual += (current->signal[i]-(i0+a*(exp(-(t-u1)/rc1)-1)+b*(1-exp(-(t-u2)/rc2))))*(current->signal[i]-(i0+a*(exp(-(t-u1)/rc1)-1)+b*(1-exp(-(t-u2)/rc2))));
+            residual += (current->signal[i]-(i0+a*(exp(-(t-u1)/rc1)-1.0)+b*(1.0-exp(-(t-u2)/rc2))))*(current->signal[i]-(i0+a*(exp(-(t-u1)/rc1)-1.0)+b*(1.0-exp(-(t-u2)/rc2))));
         }
         current->rc1 = rc1;
         current->rc2 = rc2;
