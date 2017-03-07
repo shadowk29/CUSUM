@@ -24,6 +24,7 @@
 #include"utils.h"
 #include"io.h"
 #include"bessel.h"
+#include"stepfit.h"
 #include<inttypes.h>
 #include<stdint.h>
 #include<string.h>
@@ -34,6 +35,7 @@
 #define HISTOGRAM 0
 #define FIRST_DERIV 1
 #define SCND_DERIV 2
+int64_t fit_events(configuration *config, io_struct *io, double *rawsignal, event *current_event, bessel *lpfilter, edge *current_edge, int64_t *error_summary, int64_t edgecount);
 edge *find_edges(configuration *config, io_struct *io, signal_struct *sig, baseline_struct *baseline_stats, bessel *lpfilter, edge *current_edge, edge *head_edge);
 int64_t get_next_event(event *current_event, edge *current_edge, int64_t index);
 int64_t get_next_event_start(edge *current_edge);

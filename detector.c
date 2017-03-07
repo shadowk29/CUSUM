@@ -19,6 +19,67 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include"detector.h"
+
+int64_t fit_events(configuration *config, io_struct *io, double *rawsignal, event *current_event, bessel *lpfilter, edge *current_edge, int64_t *error_summary, int64_t edgecount)
+{
+    int64_t lasttime = config->start;
+    int64_t last_end = config->start;
+    int64_t edgenum = 0;
+    int64_t edges;
+    int64_t index = 0;
+    time_t start_time;
+    time_t curr_time;
+    char progressmsg[STRLENGTH];
+    int64_t numevents = 0;
+    int64_t i;
+    int64_t typeswitch = 0;
+    time(&start_time);
+    while (current_edge)
+    {
+#ifdef DEBUG
+    printf("Main Loop\n");
+    fflush(stdout);
+#endif // DEBUG
+        snprintf(progressmsg,STRLENGTH*sizeof(char)," %"PRId64" events processed",numevents);
+        progressbar(edgenum, edgecount, progressmsg,difftime(time(&curr_time),start_time));
+        edges = get_next_event(current_event, current_edge, index);
+        edgenum += edges;
+        for (i=0; i<edges; i++)
+        {
+            current_edge = current_edge->next;
+        }
+        index++;
+        identify_step_events(current_event, config->stepfit_samples, config->subevent_minpoints, config->attempt_recovery);
+        filter_long_events(current_event, config->event_maxpoints);
+        filter_short_events(current_event, config->event_minpoints);
+        generate_trace(io->input, current_event, config->datatype, rawsignal, io->logfile, lpfilter, config->eventfilter, config->daqsetup, current_edge, last_end, config->start, config->subevent_minpoints);
+        last_end = current_event->finish;
+        cusum(current_event, config->cusum_delta, config->cusum_min_threshold, config->cusum_max_threshold, config->subevent_minpoints);
+        typeswitch += average_cusum_levels(current_event, config->subevent_minpoints, config->cusum_minstep, config->attempt_recovery);
+        step_response(current_event, config->usefilter || config->eventfilter ? 2.0/config->cutoff : 5, config->maxiters, config->cusum_minstep);
+        populate_event_levels(current_event);
+        calculate_level_noise(current_event, config->subevent_minpoints);
+        refine_event_estimates(current_event);
+        event_baseline(current_event, config->baseline_min, config->baseline_max);
+        event_max_blockage(current_event);
+        event_area(current_event, 1.0/config->samplingfreq);
+        print_event_signal(current_event->index, current_event, 1.0/config->samplingfreq*SECONDS_TO_MICROSECONDS,config->eventsfolder);
+        print_event_line(io->events, io->rate, current_event, 1.0/config->samplingfreq, lasttime);
+        lasttime = current_event->start;
+        current_edge = current_edge->next;
+        edgenum++;
+        numevents++;
+        error_summary[current_event->type]++;
+        free_single_event(current_event);
+#ifdef DEBUG
+    printf("Done\n");
+    fflush(stdout);
+#endif // DEBUG
+    }
+    snprintf(progressmsg,STRLENGTH*sizeof(char)," %"PRId64" events processed",numevents);
+    progressbar(edgenum, edgecount, progressmsg,difftime(time(&curr_time),start_time));
+    return numevents;
+}
 edge *find_edges(configuration *config, io_struct *io, signal_struct *sig, baseline_struct *baseline_stats, bessel *lpfilter, edge *current_edge, edge *head_edge)
 {
     fprintf(io->logfile, "<----RUN LOG BEGINS---->\n\n");
@@ -26,11 +87,9 @@ edge *find_edges(configuration *config, io_struct *io, signal_struct *sig, basel
     fprintf(io->logfile, "Locating events...\n ");
     fflush(stdout);
 
-    int64_t typeswitch = 0;
     double baseline;
     double badbaseline = 0;
     double goodbaseline = 0;
-    int64_t i;
     int64_t read;
     int64_t pos;
     int endflag;
