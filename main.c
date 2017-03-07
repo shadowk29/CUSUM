@@ -302,6 +302,5 @@ int main()
     fclose(logfile);
     fclose(events);
     fclose(rate);
-    system("pause");
-    return 0;
+    return system("pause");
 }
