@@ -524,7 +524,7 @@ void generate_trace(FILE *input, event *current, int datatype, void *rawsignal, 
     {
         int64_t filter_order = 0;
         int64_t filter_padding = 0;
-        int64_t padding = intmin(500, 2*current->length);
+        int64_t padding = intmin(500, current->length);
         if (lpfilter)
         {
             filter_order = lpfilter->order;
