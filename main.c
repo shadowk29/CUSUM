@@ -204,7 +204,6 @@ int main()
         printf("It is %"PRId64"\n",current_edge->type);
         printf("No edges found in signal, exiting\n");
         fprintf(logfile, "No edges found in signal, exiting\n");
-        system("pause");
         exit(8);
     }
 
