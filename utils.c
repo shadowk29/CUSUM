@@ -287,7 +287,7 @@ double my_max(double a, double b)
 
 double d_abs(double num)
 {
-    return num > 0 ? num : -num;
+    return num >= 0 ? num : -num;
 }
 
 int64_t intmin(int64_t a, int64_t b)
