@@ -491,7 +491,8 @@ void lmmin_int64(const int64_t n, long double* x, const int64_t m, const void* d
             } else if (ratio >= 0.75) {
                 delta = 2 * pnorm;
                 lmpar *= 0.5;
-            } else if (d_abs(lmpar) < EPS) {
+            } else if (d_abs(lmpar) > EPS) {
+                printf("this happened\n");
                 delta = 2 * pnorm;
             }
 
