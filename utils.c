@@ -19,6 +19,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include"utils.h"
+
+
+
 signal_struct *initialize_signal(configuration *config, int64_t filterpadding)
 {
     signal_struct *sig = calloc_and_check(1,sizeof(signal_struct), "cannot allocate signal struct");

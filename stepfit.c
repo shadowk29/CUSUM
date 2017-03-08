@@ -117,9 +117,21 @@ void step_response(event *current, long double risetime, int64_t maxiters, long 
         lmmin_int64(n, par, length, (const void*) &data, evaluate, &control, &status );
 
 
-        if (status.outcome < 1 || status.outcome > 3)
+        /*if (status.outcome < 1 || status.outcome > 3)
         {
             current->type = status.outcome + 10;
+            free(time);
+            return;
+        }*/
+        if (status.outcome == 0)
+        {
+            current->type = 9;
+            free(time);
+            return;
+        }
+        else if (status.outcome > 3)
+        {
+            current->type = status.outcome += 6;
             free(time);
             return;
         }

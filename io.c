@@ -58,31 +58,52 @@ void output_baseline_stats(FILE *baselinefile, baseline_struct *baseline_stats, 
 
 void print_error_summary(FILE *logfile, int64_t *error_summary, int64_t numevents)
 {
+    const char* error_type[] = {
+    "cusum success",
+    "stepfit success",
+    "baseline differs",
+    "too long",
+    "too short",
+    "too few levels",
+    "cannot read data",
+    "cannot pad event",
+    "fitted step too small",
+    "stepfit found zero",
+    "stepfit degenerate",
+    "maxiters reached",
+    "stepfit failed (f)",
+    "stepfit failed (o)",
+    "stepfit failed (p)",
+    "stepfit out of memory",
+    "stepfit invalid input",
+    "stepfit user interrupt",
+    "stepfit found NaN"};
+
     int i;
 
 
-    printf("\n\n---------------------------------\nEvent Summary: %"PRId64" events detected\n\n",numevents);
-    fprintf(logfile,"\n\n---------------------------------\nEvent Summary: %"PRId64" events detected\n\n",numevents);
+    printf("\n\n--------------------------------------------------------\nEvent Summary: %"PRId64" events detected\n\n",numevents);
+    fprintf(logfile,"\n\n--------------------------------------------------------\nEvent Summary: %"PRId64" events detected\n\n",numevents);
 
 
-    printf("Success: %.3g %%\nFailed: %.3g %%\n---------------------------------\n",FRACTION_TO_PERCENTAGE*(error_summary[CUSUM]+error_summary[STEPRESPONSE])/(double) numevents, FRACTION_TO_PERCENTAGE*(numevents - (error_summary[CUSUM]+error_summary[STEPRESPONSE]))/(double) numevents);
-    fprintf(logfile,"Success: %.3g\nFailed: %.3g\n---------------------------------\n",FRACTION_TO_PERCENTAGE*(error_summary[CUSUM]+error_summary[STEPRESPONSE])/(double) numevents, FRACTION_TO_PERCENTAGE*(numevents - (error_summary[CUSUM]+error_summary[STEPRESPONSE]))/(double) numevents);
+    printf("Success: %.3g %%\nFailed: %.3g %%\t%s\n--------------------------------------------------------\n",FRACTION_TO_PERCENTAGE*(error_summary[CUSUM]+error_summary[STEPRESPONSE])/(double) numevents, FRACTION_TO_PERCENTAGE*(numevents - (error_summary[CUSUM]+error_summary[STEPRESPONSE]))/(double) numevents,error_type[CUSUM]);
+    fprintf(logfile,"Success: %.3g\nFailed: %.3g\t%s\n--------------------------------------------------------\n",FRACTION_TO_PERCENTAGE*(error_summary[CUSUM]+error_summary[STEPRESPONSE])/(double) numevents, FRACTION_TO_PERCENTAGE*(numevents - (error_summary[CUSUM]+error_summary[STEPRESPONSE]))/(double) numevents,error_type[STEPRESPONSE]);
 
     printf("Event Type\tCount\tPercentage\n\n");
     fprintf(logfile,"Event Type\tCount\tPercentage\n\n");
 
     for (i=0; i<NUMTYPES; i++)
     {
-        printf("%d\t\t%"PRId64"\t%.3g %%\n",i,error_summary[i],FRACTION_TO_PERCENTAGE*error_summary[i]/(double)numevents);
-        fprintf(logfile,"%d\t\t%"PRId64"\t%.3g %%\n",i,error_summary[i],FRACTION_TO_PERCENTAGE*error_summary[i]/(double)numevents);
+        printf("%d\t\t%"PRId64"\t%.3g %%\t%s\n",i,error_summary[i],FRACTION_TO_PERCENTAGE*error_summary[i]/(double)numevents,error_type[i]);
+        fprintf(logfile,"%d\t\t%"PRId64"\t%.3g %%\t%s\n",i,error_summary[i],FRACTION_TO_PERCENTAGE*error_summary[i]/(double)numevents,error_type[i]);
         if (i==1)
         {
-            printf("---------------------------------\n");
-            fprintf(logfile,"---------------------------------\n");
+            printf("--------------------------------------------------------\n");
+            fprintf(logfile,"--------------------------------------------------------\n");
         }
     }
-    printf("---------------------------------\n");
-    fprintf(logfile,"---------------------------------\n");
+    printf("--------------------------------------------------------\n");
+    fprintf(logfile,"--------------------------------------------------------\n");
 }
 
 int64_t read_current(FILE *input, double *signal, void *rawsignal, int64_t position, int64_t length, int datatype, chimera *daqsetup)

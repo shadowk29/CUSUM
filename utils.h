@@ -32,7 +32,7 @@
 #define EPS 1e-10
 #define STRLENGTH 1024
 #define HEAD -1000
-#define NUMTYPES 22
+#define NUMTYPES 19
 
 #define SECONDS_TO_MICROSECONDS 1e6
 #define AMPS_TO_PICOAMPS 1e12
@@ -46,8 +46,7 @@
 #define BADLEVELS 5
 #define BADTRACE 6
 #define BADPADDING 7
-#define FITERR 8
-#define FITSTEP 9
+#define FITSTEP 8
 
 //#define DEBUG
 struct Signal_Struct
