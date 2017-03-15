@@ -19,6 +19,24 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include"io.h"
+void print_license(FILE *logfile)
+{
+    char license[] =
+"Copyright (C) 2015-2016 Kyle Briggs (kbrig035<at>uottawa.ca)\n\nThis file is part of CUSUM.\n\n\
+This program is free software: you can redistribute it and/or modify \
+it under the terms of the GNU General Public License as published by \
+the Free Software Foundation, either version 3 of the License, or \
+(at your option) any later version.\n\n\
+This program is distributed in the hope that it will be useful, \
+but WITHOUT ANY WARRANTY; without even the implied warranty of \
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the \
+GNU General Public License for more details.\n\n\
+You should have received a copy of the GNU General Public License \
+along with this program. If not, see <http://www.gnu.org/licenses/>.";
+
+    printf("%s\n\n",license);
+    fprintf(logfile,"%s\n\n",license);
+}
 void check_filesize(configuration *config, FILE *input)
 {
     int64_t filesize = get_filesize(input, config->datatype);

@@ -27,12 +27,14 @@
 
 int main()
 {
+
     check_bits(); //verify that doubles are 64-bit for bit-shifting later
     configuration *config = calloc_and_check(1,sizeof(configuration),"Cannot allocate config struct");
     config->daqsetup = calloc_and_check(1,sizeof(chimera),"Cannot allocate DAQ struct");
 
     io_struct *io = calloc_and_check(1, sizeof(io_struct),"Cannot allocate io_struct");
     io->logfile = read_config(config, _VERSION_); //read config.txt for the run setup and open the logfile
+    print_license(io->logfile);
     initialize_files(io, config); //open all other files used for IO
 
     bessel *lpfilter = initialize_filter(config->usefilter, config->eventfilter, config->order, config->cutoff, config->readlength); //if turned on, intialize the bessel filter
