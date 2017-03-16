@@ -403,7 +403,7 @@ void print_signal(event *current, int64_t length, char *filename, double timeste
     if ((output = fopen64(filename,"w"))==NULL)
     {
         printf("Cannot open output file\n");
-        exit(24);
+        pause_and_exit(24);
     }
     int64_t i;
     if (current->type == STEPRESPONSE)
@@ -471,7 +471,7 @@ void config_sanity_check(configuration *config, FILE *logfile)
     if (config->datatype != 16 && config->datatype != 64 && config->datatype !=0)
     {
         printf("datatype currently can only be 0, 16, or 64\n");
-        exit(43);
+        pause_and_exit(43);
     }
 
     int correctionflag = 0;
@@ -481,7 +481,7 @@ void config_sanity_check(configuration *config, FILE *logfile)
     {
         printf("Fractional threshold and hysteresis are no longer supported! Use a multiple of the baseline standard deviation.\n");
         correctionflag = 1;
-        exit(1);
+        pause_and_exit(1);
     }
     if (config->readlength < 2 * config->event_maxpoints)
     {
@@ -727,33 +727,33 @@ FILE * read_config(configuration *config, const char *version)
         if ((test=snprintf(config->outputfolder,STRLENGTH-1,"output")) < 0 || test >= STRLENGTH)
         {
             printf("Cannot write default output folder string\n");
-            exit(1);
+            pause_and_exit(1);
         }
     }
     if ((test=snprintf(config->eventsfolder,STRLENGTH-1,"%s/events",config->outputfolder)) < 0 || test >= STRLENGTH)
     {
         printf("Cannot write eventsfolder string\n");
-        exit(1);
+        pause_and_exit(1);
     }
     if ((test=snprintf(config->eventsfile,STRLENGTH-1,"%s/events.csv",config->outputfolder)) < 0 || test >= STRLENGTH)
     {
         printf("Cannot write eventsfile string\n");
-        exit(1);
+        pause_and_exit(1);
     }
     if ((test=snprintf(config->ratefile,STRLENGTH-1,"%s/rate.csv",config->outputfolder)) < 0 || test >= STRLENGTH)
     {
         printf("Cannot write ratefile string\n");
-        exit(1);
+        pause_and_exit(1);
     }
     if ((test=snprintf(config->logfile,STRLENGTH-1,"%s/summary.txt",config->outputfolder)) < 0 || test >= STRLENGTH)
     {
         printf("Cannot write logfile string\n");
-        exit(1);
+        pause_and_exit(1);
     }
     if ((test=snprintf(config->baselinefile,STRLENGTH-1,"%s/baseline.csv",config->outputfolder)) < 0 || test >= STRLENGTH)
     {
         printf("Cannot write baselinefile string\n");
-        exit(1);
+        pause_and_exit(1);
     }
 
     FILE *logfile;

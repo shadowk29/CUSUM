@@ -20,7 +20,12 @@
 */
 #include"utils.h"
 
-
+void pause_and_exit(int error)
+{
+    printf("\nCUSUM has encountered and unrecoverable error\nPress any key to continue\n");
+    getchar();
+    exit(error);
+}
 
 signal_struct *initialize_signal(configuration *config, int64_t filterpadding)
 {
@@ -51,7 +56,7 @@ void check_bits(void)
     if (!(sizeof(double) * CHAR_BIT == 64))
     {
         printf("CUSUM requires 64-bit doubles\nPlease recompile with an appropriate compiler\n");
-        exit(-1);
+        pause_and_exit(-1);
     }
 }
 
@@ -189,7 +194,7 @@ FILE *fopen64_and_check(const char *fname, const char *mode, int error)
     if ((buffer=fopen64(fname,mode))==NULL)
     {
         printf("Cannot open file %s\n",fname);
-        exit(error);
+        pause_and_exit(error);
     }
     return buffer;
 }
@@ -200,7 +205,7 @@ void *calloc_and_check(int64_t num, int64_t size, char *msg)
     if ((block=calloc(num,size))==NULL)
     {
         printf("%s\n",msg);
-        exit(1);
+        pause_and_exit(1);
     }
     return block;
 }

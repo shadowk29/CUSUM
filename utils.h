@@ -191,7 +191,7 @@ struct Configuration
 };
 typedef struct Configuration configuration;
 
-
+void pause_and_exit(int error);
 signal_struct *initialize_signal(configuration *config, int64_t filterpadding);
 void free_signal(signal_struct *sig);
 void check_bits(void);

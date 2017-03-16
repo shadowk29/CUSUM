@@ -150,7 +150,7 @@ edge *find_edges(configuration *config, io_struct *io, signal_struct *sig, basel
         printf("It is %"PRId64"\n",current_edge->type);
         printf("No edges found in signal, exiting\n");
         fprintf(io->logfile, "No edges found in signal, exiting\n");
-        exit(8);
+        pause_and_exit(8);
     }
 
     current_edge = head_edge;
@@ -704,7 +704,7 @@ void generate_trace(FILE *input, event *current, int datatype, void *rawsignal, 
             printf("Cannot locate file position at sample %" PRId64 "\n",position);
             fprintf(logfile,"Cannot locate file position at sample %" PRId64 "\n",position);
             fflush(logfile);
-            exit(17);
+            pause_and_exit(17);
         }
 
         read = read_current(input, current->signal, rawsignal, position, current->length + current->padding_before + current->padding_after, datatype, daqsetup);
