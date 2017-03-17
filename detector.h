@@ -56,7 +56,7 @@ double get_cusum_threshold(int64_t length, double minthreshold, double maxthresh
 
 void refine_event_estimates(event *current);
 
-void event_max_blockage(event *current);
+void event_max_blockage(event *current, double minstep);
 
 
 

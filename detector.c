@@ -61,7 +61,7 @@ int64_t fit_events(configuration *config, io_struct *io, double *rawsignal, even
         calculate_level_noise(current_event, config->subevent_minpoints);
         refine_event_estimates(current_event);
         event_baseline(current_event, config->baseline_min, config->baseline_max);
-        event_max_blockage(current_event);
+        event_max_blockage(current_event, config->cusum_minstep);
         event_area(current_event, 1.0/config->samplingfreq);
         print_event_signal(current_event->index, current_event, 1.0/config->samplingfreq*SECONDS_TO_MICROSECONDS,config->eventsfolder);
         print_event_line(io->events, io->rate, current_event, 1.0/config->samplingfreq, lasttime);
@@ -371,7 +371,7 @@ void populate_event_levels(event *current)
 }
 
 
-void event_max_blockage(event *current)
+void event_max_blockage(event *current, double minstep)
 {
 #ifdef DEBUG
     printf("Max Blockage\n");
@@ -379,11 +379,14 @@ void event_max_blockage(event *current)
 #endif // DEBUG
     if (current->type == CUSUM || current->type == STEPRESPONSE)
     {
+        minstep *= current->local_stdev;
         cusumlevel *current_level = current->first_level;
         double baseline = 0.5*(current->baseline_before + current->baseline_after);
         double blockage;
         double maxblockage = 0;
+        double minblockage = DBL_MAX;
         int64_t maxsamples = 0;
+        int64_t minsamples = 0;
         while (current_level)
         {
             blockage = d_abs(baseline - current_level->current);
@@ -392,10 +395,17 @@ void event_max_blockage(event *current)
                 maxblockage = blockage;
                 maxsamples = current_level->length;
             }
+            if (blockage < minblockage && blockage > minstep)
+            {
+                minblockage = blockage;
+                minsamples = current_level->length;
+            }
             current_level = current_level->next;
         }
         current->max_blockage = maxblockage;
         current->max_length = maxsamples;
+        current->min_blockage = minblockage;
+        current->min_length = minsamples;
     }
 }
 

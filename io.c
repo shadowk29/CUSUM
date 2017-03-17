@@ -276,6 +276,9 @@ rc_const1_us,\
 rc_const2_us,\
 residual_pA,\
 max_deviation_pA,\
+min_blockage_pA,\
+relative_min_blockage,\
+min_blockage_duration_us,\
 level_current_pA,\
 level_duration_us,\
 blockages_pA,\
@@ -328,6 +331,9 @@ void print_event_line(FILE *events, FILE *rate, event *current, double timestep,
             %g,\
             %g,\
             %g,\
+            %g,\
+            %g,\
+            %g,\
             %g,",\
             current->index, \
             current->type, \
@@ -348,7 +354,10 @@ void print_event_line(FILE *events, FILE *rate, event *current, double timestep,
             current->rc1 * timestep * SECONDS_TO_MICROSECONDS, \
             current->rc2 * timestep * SECONDS_TO_MICROSECONDS, \
             current->residual, \
-            current->maxdeviation);
+            current->maxdeviation, \
+            current->min_blockage, \
+            d_abs(current->min_blockage / (0.5 * (current->baseline_before + current->baseline_after))), \
+            current->min_length * timestep * SECONDS_TO_MICROSECONDS);
         while (level)
         {
             fprintf(events,"%g",level->current);

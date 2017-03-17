@@ -117,6 +117,8 @@ struct Event
     double average_blockage;
     double max_blockage;
     int64_t max_length;
+    double min_blockage;
+    int64_t min_length;
     double *signal;
     double *paddedsignal;
     double *filtered_signal;
