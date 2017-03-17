@@ -34,7 +34,6 @@ GNU General Public License for more details.\n\n\
 You should have received a copy of the GNU General Public License \
 along with this program. If not, see <http://www.gnu.org/licenses/>.";
 
-    printf("%s\n\n",license);
     fprintf(logfile,"%s\n\n",license);
 }
 void check_filesize(configuration *config, FILE *input)

@@ -23,10 +23,11 @@
 #include"detector.h"
 #include"bessel.h"
 #include"stepfit.h"
-#define _VERSION_ "3.1.6"
+#define _VERSION_ "3.1.7"
 
 int main()
 {
+    print_license(stdout);
     check_bits(); //verify that doubles are 64-bit for bit-shifting later
     configuration *config = calloc_and_check(1,sizeof(configuration),"Cannot allocate config struct");
     config->daqsetup = calloc_and_check(1,sizeof(chimera),"Cannot allocate DAQ struct");
