@@ -89,5 +89,7 @@ int main()
     free(config);
     fprintf(io->logfile, "<----RUN LOG ENDS---->\n\n");
     free_io(io);
+    printf("\nFinished successfully\nPress any key to continue\n");
+    getchar();
     return 0;
 }
