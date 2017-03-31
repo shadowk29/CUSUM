@@ -301,8 +301,8 @@ void print_event_line(FILE *events, FILE *rate, event *current, double timestep,
 #endif // DEBUG
     fprintf(rate,"%"PRId64",\
             %d,\
-            %.6f,\
-            %.6f\n",\
+            %.16g,\
+            %.16g\n",\
             current->index, \
             current->type, \
             current->start * timestep, \
@@ -313,27 +313,27 @@ void print_event_line(FILE *events, FILE *rate, event *current, double timestep,
         cusumlevel *level = current->first_level;
         fprintf(events,"%"PRId64",\
             %d,\
-            %.6f,\
-            %.6f,\
-            %g,\
-            %g,\
-            %g,\
-            %g,\
-            %g,\
-            %g,\
-            %g,\
-            %g,\
-            %g,\
-            %g,\
-            %g,\
+            %.16g,\
+            %.16g,\
+            %.16g,\
+            %.16g,\
+            %.16g,\
+            %.16g,\
+            %.16g,\
+            %.16g,\
+            %.16g,\
+            %.16g,\
+            %.16g,\
+            %.16g,\
+            %.16g,\
             %d,\
-            %g,\
-            %g,\
-            %g,\
-            %g,\
-            %g,\
-            %g,\
-            %g,",\
+            %.16g,\
+            %.16g,\
+            %.16g,\
+            %.16g,\
+            %.16g,\
+            %.16g,\
+            %.16g,",\
             current->index, \
             current->type, \
             current->start * timestep, \
@@ -359,7 +359,7 @@ void print_event_line(FILE *events, FILE *rate, event *current, double timestep,
             current->min_length * timestep * SECONDS_TO_MICROSECONDS);
         while (level)
         {
-            fprintf(events,"%g",level->current);
+            fprintf(events,"%.16g",level->current);
             if (level->next)
             {
                 fprintf(events,";");
@@ -370,7 +370,7 @@ void print_event_line(FILE *events, FILE *rate, event *current, double timestep,
         level = current->first_level;
         while (level)
         {
-            fprintf(events,"%g",level->length * timestep * SECONDS_TO_MICROSECONDS);
+            fprintf(events,"%.16g",level->length * timestep * SECONDS_TO_MICROSECONDS);
             if (level->next)
             {
                 fprintf(events,";");
@@ -381,7 +381,7 @@ void print_event_line(FILE *events, FILE *rate, event *current, double timestep,
         level = current->first_level;
         while (level)
         {
-            fprintf(events,"%g",level->current-0.5*(current->baseline_after+current->baseline_before));
+            fprintf(events,"%.16g",level->current-0.5*(current->baseline_after+current->baseline_before));
             if (level->next)
             {
                 fprintf(events,";");
@@ -392,7 +392,7 @@ void print_event_line(FILE *events, FILE *rate, event *current, double timestep,
         level = current->first_level;
         while (level)
         {
-            fprintf(events,"%g",level->stdev);
+            fprintf(events,"%.16g",level->stdev);
             if (level->next)
             {
                 fprintf(events,";");
