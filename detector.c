@@ -687,11 +687,11 @@ void generate_trace(FILE *input, event *current, int datatype, void *rawsignal, 
         {
             current->padding_before = current->start - start;
         }
-        else if (current->start - current->padding_before < last_end)
+        if (current->start - current->padding_before < last_end)
         {
             current->padding_before = current->start - last_end;
         }
-        else if (current->padding_after + current->finish > next_start && current->finish != next_start)
+        if (current->padding_after + current->finish > next_start && current->finish != next_start)
         {
             current->padding_after = next_start - current->finish;
         }
