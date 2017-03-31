@@ -385,6 +385,7 @@ void event_max_blockage(event *current, double minstep)
         double blockage;
         double maxblockage = 0;
         double minblockage = DBL_MAX;
+        int minfound = 0;
         int64_t maxsamples = 0;
         int64_t minsamples = 0;
         while (current_level)
@@ -399,6 +400,7 @@ void event_max_blockage(event *current, double minstep)
             {
                 minblockage = blockage;
                 minsamples = current_level->length;
+                minfound = 1;
             }
             current_level = current_level->next;
         }
@@ -406,6 +408,10 @@ void event_max_blockage(event *current, double minstep)
         current->max_length = maxsamples;
         current->min_blockage = minblockage;
         current->min_length = minsamples;
+        if (!minfound)
+        {
+            current->type = BADBASELINE;
+        }
     }
 }
 
