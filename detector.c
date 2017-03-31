@@ -696,7 +696,7 @@ void generate_trace(FILE *input, event *current, int datatype, void *rawsignal, 
             current->padding_after = next_start - current->finish;
         }
         position = current->start - current->padding_before;
-        if (position > current->start || current->padding_before < subevent_minpoints || current->padding_after < subevent_minpoints || current->start < last_end)
+        if (position > current->start || current->padding_before < subevent_minpoints || current->padding_after < subevent_minpoints || current->start - current->padding_before < last_end)
         {
             current->type = BADPADDING;
             return;
