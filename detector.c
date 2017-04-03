@@ -846,29 +846,51 @@ void fit_gaussian(baseline_struct *baseline)
     double x2lny = 0;
     int64_t minbin = 0;
     int64_t maxbin = numbins;
-    int64_t i;
+    int64_t i,sign,max_location;
     double maxval = signal_max(y,numbins);
+    int64_t interval;
+
 
     i = locate_max(y,numbins);
-    while (i >= 0)
+    max_location = i;
+    sign = signum(baseline->current[i]);
+
+    if (sign < 0)
     {
-        if (y[i] < my_max(1,exp(-3.0)*maxval) && y[i] > 0)
+        while (i >= 0)
         {
-            minbin = i;
-            break;
+            if (y[i] < my_max(1,exp(-4.5)*maxval) && y[i] > 0)
+            {
+                minbin = i;
+                break;
+            }
+            i--;
         }
-        i--;
+        interval = max_location - minbin;
+        maxbin = max_location + (int64_t) (interval/3.0 * sqrt(2.0 * log(2.0)));
     }
-    i = locate_max(y,numbins);
-    while (i < numbins)
+    else if (sign > 0)
     {
-        if (y[i] < my_max(1,exp(-3.0)*maxval) && y[i] > 0)
+        while (i < numbins)
         {
-            maxbin = i;
-            break;
+            if (y[i] < my_max(1,exp(-4.5)*maxval) && y[i] > 0)
+            {
+                maxbin = i;
+                break;
+            }
+            i++;
         }
-        i++;
+        interval = maxbin - max_location;
+        minbin = max_location - (int64_t) (interval/3.0 * sqrt(2.0 * log(2.0)));
     }
+    else
+    {
+        baseline->stdev = 0;
+        baseline->mean = 0;
+        baseline->amplitude = 0;
+        return;
+    }
+    printf("\nFitting from %g to %g\n",baseline->current[minbin], baseline->current[maxbin]);
     for (i=minbin; i<maxbin; i++)
     {
         x0 += y[i];
