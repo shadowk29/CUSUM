@@ -867,7 +867,7 @@ void fit_gaussian(baseline_struct *baseline)
             i--;
         }
         interval = max_location - minbin;
-        maxbin = max_location + (int64_t) (interval/3.0 * sqrt(2.0 * log(2.0)));
+        maxbin = intmin(max_location + (int64_t) (interval/3.0 * sqrt(2.0 * log(2.0))),numbins-1);
     }
     else if (sign > 0)
     {
@@ -881,7 +881,7 @@ void fit_gaussian(baseline_struct *baseline)
             i++;
         }
         interval = maxbin - max_location;
-        minbin = max_location - (int64_t) (interval/3.0 * sqrt(2.0 * log(2.0)));
+        minbin = intmax(0,max_location - (int64_t) (interval/3.0 * sqrt(2.0 * log(2.0))));
     }
     else
     {
