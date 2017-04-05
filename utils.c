@@ -406,18 +406,22 @@ void free_single_event(event *current)
     if (current->paddedsignal)
     {
         free(current->paddedsignal);
+        current->paddedsignal = NULL;
     }
     if (current->filtered_signal)
     {
         free(current->filtered_signal);
+        current->filtered_signal = NULL;
     }
     if (current->first_edge)
     {
         free_edges(current->first_edge);
+        current->first_edge = NULL;
     }
     if (current->first_level)
     {
         free_levels(current->first_level);
+        current->first_level = NULL;
     }
 }
 
