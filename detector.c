@@ -102,7 +102,7 @@ edge *find_edges(configuration *config, io_struct *io, signal_struct *sig, basel
     time(&start_time);
     for (pos = config->start; pos < config->finish; pos += read)
     {
-        snprintf(progressmsg,STRLENGTH*sizeof(char)," %g seconds processed",(pos-config->start)/(double) config->samplingfreq);
+        snprintf(progressmsg,STRLENGTH*sizeof(char)," %g seconds processed (%d%% good)",(pos-config->start)/(double) config->samplingfreq, pos > config->start ? (int) (100.0 * (pos-config->start - badbaseline)/(double) (pos-config->start)) : 100);
         progressbar(pos-config->start,config->finish-config->start,progressmsg,difftime(time(&curr_time),start_time));
         read = read_current(io->input, sig->signal, sig->rawsignal, pos, intmin(config->readlength,config->finish - pos), config->datatype, config->daqsetup);
         if (read < config->readlength || feof(io->input))
@@ -116,7 +116,6 @@ edge *find_edges(configuration *config, io_struct *io, signal_struct *sig, basel
         gauss_histogram(sig->signal, baseline_stats, read);
         if (isnan(baseline_stats->mean) || isnan(baseline_stats->stdev))
         {
-            printf("\nBaseline fit failed, check your baseline bounds\n");
             baseline_stats->mean = 0;
             baseline_stats->stdev = 0;
         }
@@ -138,7 +137,7 @@ edge *find_edges(configuration *config, io_struct *io, signal_struct *sig, basel
         }
         memset(sig->signal,'0',(config->readlength)*sizeof(double));
     }
-    snprintf(progressmsg,STRLENGTH*sizeof(char)," %g seconds processed",(pos-config->start)/(double) config->samplingfreq);
+    snprintf(progressmsg,STRLENGTH*sizeof(char)," %g seconds processed (%d%% good)",(pos-config->start)/(double) config->samplingfreq, pos > config->start ? (int) (100.0 * (pos-config->start - badbaseline)/(double) (pos-config->start)) : 100);
     progressbar(pos-config->start,config->finish-config->start,progressmsg,difftime(time(&curr_time),start_time));
     printf("\nRead %g seconds of good baseline\nRead %g seconds of bad baseline\n", goodbaseline/(double) config->samplingfreq, badbaseline / (double) config->samplingfreq);
     fprintf(io->logfile, "\nRead %g seconds of good baseline\nRead %g seconds of bad baseline\n", goodbaseline/(double) config->samplingfreq, badbaseline / (double) config->samplingfreq);
@@ -890,7 +889,6 @@ void fit_gaussian(baseline_struct *baseline)
         baseline->amplitude = 0;
         return;
     }
-    printf("\nFitting from %g to %g\n",baseline->current[minbin], baseline->current[maxbin]);
     for (i=minbin; i<maxbin; i++)
     {
         x0 += y[i];
