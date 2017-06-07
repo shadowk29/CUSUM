@@ -1,7 +1,7 @@
 /*
 
                                 COPYRIGHT
-    Copyright (C) 2015-2016 Kyle Briggs (kbrig035<at>uottawa.ca)
+    Copyright (C) 2015-2017 Kyle Briggs (kbrig035<at>uottawa.ca)
 
     This file is part of CUSUM.
 
@@ -22,7 +22,7 @@
 void print_license(FILE *logfile)
 {
     char license[] =
-"Copyright (C) 2015-2016 Kyle Briggs (kbrig035<at>uottawa.ca)\n\nThis file is part of CUSUM.\n\n\
+"Copyright (C) 2015-2017 Kyle Briggs (kbrig035<at>uottawa.ca)\n\nThis file is part of CUSUM.\n\n\
 This program is free software: you can redistribute it and/or modify \
 it under the terms of the GNU General Public License as published by \
 the Free Software Foundation, either version 3 of the License, or \
