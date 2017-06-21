@@ -825,6 +825,7 @@ void gauss_histogram(double *signal, baseline_struct *baseline, int64_t length)
         }
     }
     fit_gaussian(baseline);
+    //printf("\n\ng\t%g\t%g\n\n",baseline->mean, baseline->stdev);
 }
 
 void fit_gaussian(baseline_struct *baseline)
@@ -889,18 +890,25 @@ void fit_gaussian(baseline_struct *baseline)
         baseline->amplitude = 0;
         return;
     }
+
+    //printf("\n%"PRId64"\t%"PRId64"\t%"PRId64"\n",minbin,maxbin,max_location);
+    double rough_mean = x[max_location];
+    double rough_stdev = (double) (interval / 3.0 * (x[1]-x[0]));
+    double rough_x[numbins];
     for (i=minbin; i<maxbin; i++)
     {
+        y[i] /= (double) maxval;
+        rough_x[i] = (x[i] - rough_mean)/rough_stdev;
         x0 += y[i];
-        x1 += x[i]*y[i];
-        x2 += x[i]*x[i]*y[i];
-        x3 += x[i]*x[i]*x[i]*y[i];
-        x4 += x[i]*x[i]*x[i]*x[i]*y[i];
+        x1 += rough_x[i]*y[i];
+        x2 += rough_x[i]*rough_x[i]*y[i];
+        x3 += rough_x[i]*rough_x[i]*rough_x[i]*y[i];
+        x4 += rough_x[i]*rough_x[i]*rough_x[i]*rough_x[i]*y[i];
         if (y[i] > 0)
         {
             lny += log(y[i])*y[i];
-            xlny += x[i]*log(y[i])*y[i];
-            x2lny += x[i]*x[i]*log(y[i])*y[i];
+            xlny += rough_x[i]*log(y[i])*y[i];
+            x2lny += rough_x[i]*rough_x[i]*log(y[i])*y[i];
         }
     }
 
@@ -925,9 +933,27 @@ void fit_gaussian(baseline_struct *baseline)
     params[1] = xTxinv[1][0]*xnlny[0] + xTxinv[1][1]*xnlny[1] + xTxinv[1][2]*xnlny[2];
     params[2] = xTxinv[2][0]*xnlny[0] + xTxinv[2][1]*xnlny[1] + xTxinv[2][2]*xnlny[2];
 
+    //printf("\n\n%g\t%g\t%g\n",params[0],params[1],params[2]);
     baseline->stdev = sqrt(-1.0/(2*params[0]));
     baseline->mean = baseline->stdev*baseline->stdev*params[1];
     baseline->amplitude = exp(params[2] + baseline->mean * baseline->mean/(2.0*baseline->stdev*baseline->stdev));
+    //printf("\n%g\t%g\t%g\n",baseline->stdev,baseline->mean,baseline->amplitude);
+    baseline->stdev *= rough_stdev;
+    baseline->mean += rough_mean;
+    baseline->amplitude *= maxval;
+    //printf("\n%g\t%g\t%g\n",baseline->stdev,baseline->mean,baseline->amplitude);
+    //if (params[0] > 0)
+    //{
+    /*    FILE *histogramfile;
+        histogramfile = fopen64_and_check("G:\\Debug\\Phil\\output\\baseline_hist.csv","w",-5);
+        //int64_t i;
+        for (i=0; i<numbins; i++)
+        {
+            fprintf(histogramfile,"%g,%g\n",x[i],y[i]);
+        }
+        exit(-6);
+    //}*/
+
 }
 
 
