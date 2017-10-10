@@ -131,7 +131,7 @@ void step_response(event *current, long double risetime, int64_t maxiters, long 
         }
         else if (status.outcome > 3)
         {
-            current->type = status.outcome += 6;
+            current->type = status.outcome + 6;
             free(time);
             return;
         }
