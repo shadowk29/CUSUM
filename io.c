@@ -123,7 +123,7 @@ void print_error_summary(FILE *logfile, int64_t *error_summary, int64_t numevent
     fprintf(logfile,"--------------------------------------------------------\n");
 }
 
-int64_t read_current(FILE *input, double *signal, void *rawsignal, int64_t position, int64_t length, int datatype, chimera *daqsetup)
+int64_t read_current(FILE *input, double *signal, void *rawsignal, int64_t position, int64_t length, int datatype, chimera *daqsetup, double savegain)
 {
     int64_t read = 0;
     if (datatype == 64)
@@ -132,7 +132,7 @@ int64_t read_current(FILE *input, double *signal, void *rawsignal, int64_t posit
     }
     else if (datatype == 16)
     {
-        read = read_current_int16(input, signal, (uint16_t *) rawsignal, position, length);
+        read = read_current_int16(input, signal, (uint16_t *) rawsignal, position, length, savegain);
     }
     else if (datatype == 0)
     {
@@ -218,7 +218,7 @@ int64_t read_current_double(FILE *input, double *current, uint64_t *rawsignal, i
 }
 
 
-void swapByteOrder_int16(double *current, uint16_t *rawsignal, int64_t length)
+void swapByteOrder_int16(double *current, uint16_t *rawsignal, int64_t length, double savegain)
 {
     union int16bits bitval;
 
@@ -228,12 +228,13 @@ void swapByteOrder_int16(double *current, uint16_t *rawsignal, int64_t length)
         bitval.bits = rawsignal[2*i];
         bitval.bits = (bitval.bits << 8) | (bitval.bits >> 8);
         current[i] = (double) bitval.currentval;
+        current[i] *= savegain;
     }
 }
 
 
 
-int64_t read_current_int16(FILE *input, double *current, uint16_t *rawsignal, int64_t position, int64_t length)
+int64_t read_current_int16(FILE *input, double *current, uint16_t *rawsignal, int64_t position, int64_t length, double savegain)
 {
     int64_t test;
 
@@ -249,7 +250,7 @@ int64_t read_current_int16(FILE *input, double *current, uint16_t *rawsignal, in
     {
         perror("End of file reached");
     }
-    swapByteOrder_int16(current, rawsignal, length);
+    swapByteOrder_int16(current, rawsignal, length, savegain);
     return read;
 }
 
@@ -581,6 +582,7 @@ FILE * read_config(configuration *config, const char *version)
     config->start = 0;
     config->usefilter = 0;
     config->eventfilter = 0;
+    config->savegain = 1;
 
     while ((fgets(configline, STRLENGTH, configfile)) != NULL)
     {
@@ -679,6 +681,10 @@ FILE * read_config(configuration *config, const char *version)
         else if (strcmp(name,"datatype") == 0)
         {
             config->datatype = strtol(value,NULL,10);
+        }
+        else if (strcmp(name,"savegain") == 0)
+        {
+            config->savegain = strtod(value,NULL);
         }
         else if (strcmp(name,"stepfit_samples") == 0)
         {

@@ -189,6 +189,7 @@ struct Configuration
     int64_t maxiters;
     int attempt_recovery;
     int datatype;
+    double savegain;
     chimera *daqsetup;
 };
 typedef struct Configuration configuration;
