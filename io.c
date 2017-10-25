@@ -382,7 +382,7 @@ void print_event_line(FILE *events, FILE *rate, event *current, double timestep,
         level = current->first_level;
         while (level)
         {
-            fprintf(events,"%.16g",level->current-0.5*(current->baseline_after+current->baseline_before));
+            fprintf(events,"%.16g",-1.0*signum(current->baseline_before)*(level->current-0.5*(current->baseline_after+current->baseline_before)));
             if (level->next)
             {
                 fprintf(events,";");
