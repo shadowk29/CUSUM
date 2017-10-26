@@ -22,7 +22,7 @@
 
 void pause_and_exit(int error)
 {
-    printf("\nCUSUM has encountered and unrecoverable error\nPress any key to continue\n");
+    printf("\nCUSUM has encountered an unrecoverable error\nPress any key to continue\n");
     getchar();
     exit(error);
 }
@@ -172,7 +172,6 @@ double signal_variance(double *signal, int64_t length)
 {
     if (length < 2)
     {
-        printf("Cannot calculate variance with less than 2 samples\n");
         return 0;
     }
     int64_t i;

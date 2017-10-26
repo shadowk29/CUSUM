@@ -146,9 +146,8 @@ edge *find_edges(configuration *config, io_struct *io, signal_struct *sig, basel
 
     if (!current_edge || current_edge->type == HEAD)
     {
-        printf("It is %"PRId64"\n",current_edge->type);
-        printf("No edges found in signal, exiting\n");
-        fprintf(io->logfile, "No edges found in signal, exiting\n");
+        printf("No signals found, exiting\n");
+        fprintf(io->logfile, "No signals found, exiting\n");
         pause_and_exit(8);
     }
 
