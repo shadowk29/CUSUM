@@ -52,7 +52,7 @@ int64_t fit_events(configuration *config, io_struct *io, double *rawsignal, even
         identify_step_events(current_event, config->stepfit_samples, config->subevent_minpoints, config->attempt_recovery);
         filter_long_events(current_event, config->event_maxpoints);
         filter_short_events(current_event, config->event_minpoints);
-        generate_trace(io->input, current_event, config->datatype, rawsignal, io->logfile, lpfilter, config->eventfilter, config->daqsetup, current_edge, last_end, config->start, config->subevent_minpoints, config->savegain);
+        generate_trace(io->input, current_event, config->datatype, rawsignal, io->logfile, lpfilter, config->eventfilter, config->daqsetup, current_edge, last_end, config->start, config->subevent_minpoints, config->savegain, config->padding_wait);
         last_end = current_event->finish;
         cusum(current_event, config->cusum_delta, config->cusum_min_threshold, config->cusum_max_threshold, config->subevent_minpoints);
         typeswitch += average_cusum_levels(current_event, config->subevent_minpoints, config->cusum_minstep, config->attempt_recovery);
@@ -664,7 +664,7 @@ void event_baseline(event *current_event, double baseline_min, double baseline_m
 
 
 
-void generate_trace(FILE *input, event *current, int datatype, void *rawsignal, FILE *logfile, bessel *lpfilter, int eventfilter, chimera *daqsetup, edge *current_edge, int64_t last_end, int64_t start, int64_t subevent_minpoints, double savegain)
+void generate_trace(FILE *input, event *current, int datatype, void *rawsignal, FILE *logfile, bessel *lpfilter, int eventfilter, chimera *daqsetup, edge *current_edge, int64_t last_end, int64_t start, int64_t subevent_minpoints, double savegain, int64_t padding_wait)
 {
 #ifdef DEBUG
     printf("Generate Trace\n");
@@ -686,7 +686,7 @@ void generate_trace(FILE *input, event *current, int datatype, void *rawsignal, 
         int64_t read;
         int64_t next_start = get_next_event_start(current_edge);
         current->padding_before = padding;
-        current->padding_after = padding;
+        current->padding_after = padding + padding_wait;
         if (current->start - start < current->padding_before)
         {
             current->padding_before = current->start - start;
@@ -858,7 +858,7 @@ void fit_gaussian(baseline_struct *baseline)
     {
         while (i >= 0)
         {
-            if (y[i] < my_max(1,exp(-4.5)*maxval) && y[i] > 0)
+            if ((y[i] < my_max(1,exp(-4.5)*maxval) && y[i] > 0))
             {
                 minbin = i;
                 break;

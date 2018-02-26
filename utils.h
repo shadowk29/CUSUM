@@ -171,6 +171,7 @@ struct Configuration
     //detection parameters
     double threshold;
     double hysteresis;
+    int64_t padding_wait;
     int64_t event_minpoints;
     int64_t event_maxpoints;
 

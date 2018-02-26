@@ -473,6 +473,7 @@ void configure_defaults(configuration *config)
     config->maxiters = 2000;
     config->stepfit_samples = 0;
     config->attempt_recovery = 0;
+    config->padding_wait = 0;
 }
 
 void config_sanity_check(configuration *config, FILE *logfile)
@@ -619,6 +620,10 @@ FILE * read_config(configuration *config, const char *version)
         else if (strcmp(name,"hysteresis") == 0)
         {
             config->hysteresis = strtod(value,NULL);
+        }
+        else if (strcmp(name,"padding_wait") == 0)
+        {
+            config->padding_wait = strtod(value,NULL);
         }
         else if (strcmp(name,"baseline_min") == 0)
         {
