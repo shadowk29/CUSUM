@@ -294,7 +294,7 @@ int64_t average_cusum_levels(event *current, int64_t subevent_minpoints, double 
             }
             else
             {
-                average = signal_average(&current->signal[anchor + padding_wait], current_edge->location - anchor - padding_wait);
+                average = signal_average(&current->signal[anchor + padding_wait + subevent_minpoints], current_edge->location - anchor - padding_wait - subevent_minpoints);
             }
             if (d_abs(average - lastlevel) < cusum_minstep && passflag == 0)
             {
