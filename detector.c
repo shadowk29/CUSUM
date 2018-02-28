@@ -55,7 +55,7 @@ int64_t fit_events(configuration *config, io_struct *io, double *rawsignal, even
         generate_trace(io->input, current_event, config->datatype, rawsignal, io->logfile, lpfilter, config->eventfilter, config->daqsetup, current_edge, last_end, config->start, config->subevent_minpoints, config->savegain, config->padding_wait);
         last_end = current_event->finish;
         cusum(current_event, config->cusum_delta, config->cusum_min_threshold, config->cusum_max_threshold, config->subevent_minpoints);
-        typeswitch += average_cusum_levels(current_event, config->subevent_minpoints, config->cusum_minstep, config->attempt_recovery);
+        typeswitch += average_cusum_levels(current_event, config->subevent_minpoints, config->cusum_minstep, config->attempt_recovery, config->padding_wait);
         step_response(current_event, config->usefilter || config->eventfilter ? 2.0/config->cutoff : 5, config->maxiters, config->cusum_minstep);
         populate_event_levels(current_event);
         calculate_level_noise(current_event, config->subevent_minpoints);
@@ -258,7 +258,7 @@ void filter_short_events(event *current, int64_t minpoints)
 }
 
 
-int64_t average_cusum_levels(event *current, int64_t subevent_minpoints, double cusum_minstep, int attempt_recovery)
+int64_t average_cusum_levels(event *current, int64_t subevent_minpoints, double cusum_minstep, int attempt_recovery, int64_t padding_wait)
 {
 #ifdef DEBUG
     printf("Average CUSUM levels\n");
@@ -279,9 +279,23 @@ int64_t average_cusum_levels(event *current, int64_t subevent_minpoints, double 
         double average;
         double residual = 0;
         int64_t totallength = current->length + current->padding_before + current->padding_after;
+        int64_t levels = 0;
         while (current_edge)
         {
-            average = signal_average(&current->signal[anchor + subevent_minpoints], current_edge->location - anchor - subevent_minpoints);
+            levels++;
+            current_edge = current_edge->next;
+        }
+        current_edge = first_edge;
+        while (current_edge)
+        {
+            if (nStates <= levels - 1)
+            {
+                average = signal_average(&current->signal[anchor + subevent_minpoints], current_edge->location - anchor - subevent_minpoints);
+            }
+            else
+            {
+                average = signal_average(&current->signal[anchor + padding_wait], current_edge->location - anchor - padding_wait);
+            }
             if (d_abs(average - lastlevel) < cusum_minstep && passflag == 0)
             {
                 anchor = prev_anchor;
