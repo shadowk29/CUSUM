@@ -54,7 +54,7 @@ int64_t fit_events(configuration *config, io_struct *io, double *rawsignal, even
         filter_short_events(current_event, config->event_minpoints);
         generate_trace(io->input, current_event, config->datatype, rawsignal, io->logfile, lpfilter, config->eventfilter, config->daqsetup, current_edge, last_end, config->start, config->subevent_minpoints, config->savegain, config->padding_wait);
         last_end = current_event->finish;
-        cusum(current_event, config->cusum_delta, config->cusum_min_threshold, config->cusum_max_threshold, config->subevent_minpoints);
+        cusum(current_event, config->cusum_delta, config->cusum_min_threshold, config->cusum_max_threshold, config->subevent_minpoints, config->padding_wait);
         typeswitch += average_cusum_levels(current_event, config->subevent_minpoints, config->cusum_minstep, config->attempt_recovery);
         step_response(current_event, config->usefilter || config->eventfilter ? 2.0/config->cutoff : 5, config->maxiters, config->cusum_minstep);
         populate_event_levels(current_event);
@@ -182,7 +182,7 @@ int64_t get_next_event(event *current_event, edge *current_edge, int64_t index)
     finish = current_edge->location;
     if (finish > start)
     {
-        current_event = add_event(current_event, start, finish, index, current_edge->local_stdev);
+        current_event = add_event(current_event, start, finish, index, current_edge->local_stdev, current_edge->local_baseline);
     }
     return edges;
 }
@@ -480,7 +480,7 @@ double get_cusum_threshold(int64_t length, double minthreshold, double maxthresh
 }
 
 
-void cusum(event *current_event, double delta, double minthreshold, double maxthreshold, int64_t subevent_minpoints)
+void cusum(event *current_event, double delta, double minthreshold, double maxthreshold, int64_t subevent_minpoints, int64_t padding_wait)
 {
 #ifdef DEBUG
     printf("cusum\n");
@@ -489,6 +489,7 @@ void cusum(event *current_event, double delta, double minthreshold, double maxth
     if (current_event->type == CUSUM)
     {
         delta *= current_event->local_stdev;
+        double baseline = current_event->local_baseline;
         double *signal = current_event->signal;
         int64_t length = current_event->length + current_event->padding_before + current_event->padding_after;
         current_event->first_edge = initialize_edges();
@@ -530,10 +531,14 @@ void cusum(event *current_event, double delta, double minthreshold, double maxth
 
 
 
-
+        int64_t detected = 0;
         while (k<length-1)
         {
             k++;
+            if (detected >= 2 && signal[k]*signum(signal[k]) > baseline*signum(baseline))
+            {
+                subevent_minpoints += padding_wait;
+            }
             mean = ((k-anchor) * mean + signal[k])/(double) (k+1-anchor);  //mean = signal_average(&signal[anchor], k+1-anchor);
             oldVarM = varM;
             varM = varM + (signal[k] - varM) / (double) (k+1-anchor); //variance = signal_variance(&signal[anchor], k+1-anchor);
@@ -552,7 +557,7 @@ void cusum(event *current_event, double delta, double minthreshold, double maxth
                     jumppos = anchor + locate_min(&cpos[anchor], k+1-anchor);
                     if (jumppos - current_edge->location > subevent_minpoints && length - jumppos > subevent_minpoints)
                     {
-                        current_edge = add_edge(current_edge, jumppos, 1, 0);
+                        current_edge = add_edge(current_edge, jumppos, 1, 0, 0);
                         numjumps++;
                     }
                 }
@@ -561,7 +566,7 @@ void cusum(event *current_event, double delta, double minthreshold, double maxth
                     jumpneg = anchor + locate_min(&cneg[anchor], k+1-anchor);
                     if (jumpneg - current_edge->location > subevent_minpoints && length - jumpneg > subevent_minpoints)
                     {
-                        current_edge = add_edge(current_edge, jumpneg, -1, 0);
+                        current_edge = add_edge(current_edge, jumpneg, -1, 0, 0);
                         numjumps++;
                     }
                 }
@@ -577,7 +582,8 @@ void cusum(event *current_event, double delta, double minthreshold, double maxth
                 varS = 0;
             }
         }
-        current_edge = add_edge(current_edge, length, 1, 0);
+        current_edge = add_edge(current_edge, length, 1, 0, 0);
+        detected++;
         free(cpos);
         free(cneg);
         free(gpos);
@@ -771,12 +777,12 @@ edge *detect_edges(double *signal, double baseline, int64_t length, edge *curren
         {
             if (signal[i]*sign < down_threshold && state == 0) //if we are open pore state and detect a downspike
             {
-                current = add_edge(current, i+position, state, stdev);
+                current = add_edge(current, i+position, state, stdev, baseline);
                 state = 1;
             }
             else if (signal[i]*sign > up_threshold && state == 1) //blocked state and detect an upspike
             {
-                current = add_edge(current, i+position, state, stdev);
+                current = add_edge(current, i+position, state, stdev, baseline);
                 state = 0;
             }
         }
@@ -790,12 +796,12 @@ edge *detect_edges(double *signal, double baseline, int64_t length, edge *curren
         {
             if (signal[i]*sign > up_threshold && state == 0) //if we are open pore state and detect a downspike
             {
-                current = add_edge(current, i+position, state, stdev);
+                current = add_edge(current, i+position, state, stdev, baseline);
                 state = 1;
             }
             else if (signal[i]*sign < down_threshold && state == 1) //blocked state and detect an upspike
             {
-                current = add_edge(current, i+position, state, stdev);
+                current = add_edge(current, i+position, state, stdev, baseline);
                 state = 0;
             }
         }

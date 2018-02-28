@@ -317,13 +317,14 @@ edge *initialize_edges(void)
 }
 
 
-edge *add_edge(edge *current, int64_t location, int type, double stdev)
+edge *add_edge(edge *current, int64_t location, int type, double stdev, double baseline)
 {
     if (current->type == HEAD) //if we are adding a new node to the head node that hasn't been filled yet
     {
         current->location = location;
         current->type = type;
         current->local_stdev = stdev;
+        current->local_baseline = baseline;
     }
     else
     {//if the current node is filled with useful information and we actually need more memory
@@ -331,6 +332,7 @@ edge *add_edge(edge *current, int64_t location, int type, double stdev)
         current->next->location = location;
         current->next->type = type;
         current->next->local_stdev = stdev;
+        current->next->local_baseline = baseline;
         current->next->next = NULL;
         current = current->next;
     }
@@ -376,7 +378,7 @@ event *initialize_events(void)
     return head;
 }
 
-event *add_event(event *current, int64_t start, int64_t finish, int64_t index, double local_stdev)
+event *add_event(event *current, int64_t start, int64_t finish, int64_t index, double local_stdev, double local_baseline)
 {
     current->type = 0;
     current->index = index;
@@ -387,6 +389,7 @@ event *add_event(event *current, int64_t start, int64_t finish, int64_t index, d
     current->rc1 = 0;
     current->rc2 = 0;
     current->local_stdev = local_stdev;
+    current->local_baseline = local_baseline;
     current->first_edge = NULL;
     current->first_level = NULL;
     current->signal = NULL;

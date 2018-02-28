@@ -51,7 +51,7 @@ void filter_long_events(event *current, int64_t event_maxpoints);
 
 
 int64_t average_cusum_levels(event *current, int64_t subevent_minpoints, double cusum_minstep, int attempt_recovery);
-void cusum(event *current_event, double delta, double minthreshold, double maxthreshold, int64_t subevent_minpoints);
+void cusum(event *current_event, double delta, double minthreshold, double maxthreshold, int64_t subevent_minpoints, int64_t padding_wait);
 double get_cusum_threshold(int64_t length, double minthreshold, double maxthreshold, double sigma, double mun);
 
 void refine_event_estimates(event *current);
