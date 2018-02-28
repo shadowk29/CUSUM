@@ -54,7 +54,7 @@ int64_t fit_events(configuration *config, io_struct *io, double *rawsignal, even
         filter_short_events(current_event, config->event_minpoints);
         generate_trace(io->input, current_event, config->datatype, rawsignal, io->logfile, lpfilter, config->eventfilter, config->daqsetup, current_edge, last_end, config->start, config->subevent_minpoints, config->savegain, config->padding_wait);
         last_end = current_event->finish;
-        cusum(current_event, config->cusum_delta, config->cusum_min_threshold, config->cusum_max_threshold, config->subevent_minpoints, config->padding_wait);
+        cusum(current_event, config->cusum_delta, config->cusum_min_threshold, config->cusum_max_threshold, config->subevent_minpoints);
         typeswitch += average_cusum_levels(current_event, config->subevent_minpoints, config->cusum_minstep, config->attempt_recovery);
         step_response(current_event, config->usefilter || config->eventfilter ? 2.0/config->cutoff : 5, config->maxiters, config->cusum_minstep);
         populate_event_levels(current_event);
@@ -480,7 +480,7 @@ double get_cusum_threshold(int64_t length, double minthreshold, double maxthresh
 }
 
 
-void cusum(event *current_event, double delta, double minthreshold, double maxthreshold, int64_t subevent_minpoints, int64_t padding_wait)
+void cusum(event *current_event, double delta, double minthreshold, double maxthreshold, int64_t subevent_minpoints)
 {
 #ifdef DEBUG
     printf("cusum\n");
@@ -537,7 +537,7 @@ void cusum(event *current_event, double delta, double minthreshold, double maxth
             k++;
             if (detected >= 2 && signal[k]*signum(signal[k]) > baseline*signum(baseline))
             {
-                subevent_minpoints += padding_wait;
+                break;
             }
             mean = ((k-anchor) * mean + signal[k])/(double) (k+1-anchor);  //mean = signal_average(&signal[anchor], k+1-anchor);
             oldVarM = varM;
