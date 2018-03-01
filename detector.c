@@ -545,12 +545,13 @@ void cusum(event *current_event, double delta, double minthreshold, double maxth
 
 
 
-        int64_t detected = 0;
         while (k<length-1)
         {
             k++;
-            if (k-anchor < subevent_minpoints && signal[k]*signum(signal[k]) > baseline*signum(baseline))
+            if (k-anchor < subevent_minpoints && signal[k]*signum(signal[k]) > baseline*signum(baseline) && numjumps > 1)
             {
+                //printf("\n\nEvent ends at %"PRId64", breaking at %"PRId64"\n\n", current_event->length + current_event->padding_before, k);
+                //fflush(stdout);
                 break;
             }
             mean = ((k-anchor) * mean + signal[k])/(double) (k+1-anchor);  //mean = signal_average(&signal[anchor], k+1-anchor);
@@ -597,7 +598,6 @@ void cusum(event *current_event, double delta, double minthreshold, double maxth
             }
         }
         current_edge = add_edge(current_edge, length, 1, 0, 0);
-        detected++;
         free(cpos);
         free(cneg);
         free(gpos);
