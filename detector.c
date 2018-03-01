@@ -549,7 +549,7 @@ void cusum(event *current_event, double delta, double minthreshold, double maxth
         while (k<length-1)
         {
             k++;
-            if (detected >= 2 && signal[k]*signum(signal[k]) > baseline*signum(baseline))
+            if (k-anchor < subevent_minpoints && signal[k]*signum(signal[k]) > baseline*signum(baseline))
             {
                 break;
             }
