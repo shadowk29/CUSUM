@@ -56,7 +56,7 @@ int64_t fit_events(configuration *config, io_struct *io, double *rawsignal, even
         last_end = current_event->finish;
         cusum(current_event, config->cusum_delta, config->cusum_min_threshold, config->cusum_max_threshold, config->subevent_minpoints, config->padding_wait);
         typeswitch += average_cusum_levels(current_event, config->subevent_minpoints, config->cusum_minstep, config->attempt_recovery, config->padding_wait);
-        step_response(current_event, config->usefilter || config->eventfilter ? 2.0/config->cutoff : 5, config->maxiters, config->cusum_minstep);
+        step_response(current_event, config->usefilter || config->eventfilter ? 0.4/config->cutoff : 5, config->maxiters, config->cusum_minstep);
         populate_event_levels(current_event);
         calculate_level_noise(current_event, config->subevent_minpoints);
         refine_event_estimates(current_event);

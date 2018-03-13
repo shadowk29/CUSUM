@@ -100,12 +100,17 @@ void step_response(event *current, long double risetime, int64_t maxiters, long 
 
         data_struct data = {time, current->signal, maxlength, maxstep, maxbaseline, risetime, sign, stepfunc};
 
+        if (start < risetime)
+        {
+            current->type = 18;
+            return;
+        }
         par[0] = atanh(2.0*sign*baseline/maxbaseline-1.0);
         par[1] = atanh(2.0*stepguess/maxstep-1.0);
-        par[2] = atanh(2.0*(start - (int64_t) risetime)/maxlength - 1.0);
+        par[2] = atanh(2.0*(start - risetime)/maxlength - 1.0);
         par[3] = 0;
         par[4] = atanh(2.0*stepguess/maxstep-1.0);
-        par[5] = atanh(2.0*(end - (int64_t) risetime)/maxlength - 1.0);
+        par[5] = atanh(2.0*(end - risetime)/maxlength - 1.0);
         par[6] = 0;
 
         int64_t i;
@@ -116,13 +121,6 @@ void step_response(event *current, long double risetime, int64_t maxiters, long 
 
         lmmin_int64(n, par, length, (const void*) &data, evaluate, &control, &status );
 
-
-        /*if (status.outcome < 1 || status.outcome > 3)
-        {
-            current->type = status.outcome + 10;
-            free(time);
-            return;
-        }*/
         if (status.outcome == 0)
         {
             current->type = 9;
@@ -158,13 +156,13 @@ void step_response(event *current, long double risetime, int64_t maxiters, long 
             current->filtered_signal[i] = i0;
             residual += (current->signal[i]-i0)*(current->signal[i]-i0);
         }
-        for (i=(int64_t) u1; i<u2; i++)
+        for (i= u1; i<u2; i++)
         {
             t = i;
             current->filtered_signal[i] = i0-a;
             residual += (current->signal[i]-(i0+a*(exp(-(t-u1)/rc1)-1.0)))*(current->signal[i]-(i0+a*(exp(-(t-u1)/rc1)-1.0)));
         }
-        for (i=(int64_t) u2; i<length; i++)
+        for (i=u2; i<length; i++)
         {
             t = i;
             current->filtered_signal[i] = i0-a+b;
