@@ -92,11 +92,10 @@ void step_response(event *current, long double risetime, int64_t maxiters, long 
         int sign = signum(baseline);
         int64_t start = current->padding_before;
         int64_t end = current->length + current->padding_before;
-        long double stepguess = 0.66 * sign * (minsignal - maxsignal);
+        long double stepguess = 0.66 * d_abs(minsignal - maxsignal);
         long double maxlength = (long double) length;
         long double maxstep = d_abs(maxsignal - minsignal);
         long double maxbaseline = my_max(d_abs(maxsignal),d_abs(minsignal));
-
 
         data_struct data = {time, current->signal, maxlength, maxstep, maxbaseline, risetime, sign, stepfunc};
 
@@ -105,6 +104,7 @@ void step_response(event *current, long double risetime, int64_t maxiters, long 
             current->type = 18;
             return;
         }
+
         par[0] = atanh(2.0*sign*baseline/maxbaseline-1.0);
         par[1] = atanh(2.0*stepguess/maxstep-1.0);
         par[2] = atanh(2.0*(start - risetime)/maxlength - 1.0);
@@ -133,6 +133,7 @@ void step_response(event *current, long double risetime, int64_t maxiters, long 
             free(time);
             return;
         }
+
 
         long double i0 = sign*maxbaseline/2.0 * (1.0 + tanh(par[0]));
         long double a = sign*maxstep/2.0 * (1.0 + tanh(par[1]));
