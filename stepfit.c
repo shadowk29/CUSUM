@@ -134,6 +134,16 @@ void step_response(event *current, long double risetime, int64_t maxiters, long 
             return;
         }
 
+        for(i=0; i<n; i++)
+        {
+            if (isnan(par[i]))
+            {
+                current->type = 18;
+                free(time);
+                return;
+            }
+        }
+
 
         long double i0 = sign*maxbaseline/2.0 * (1.0 + tanh(par[0]));
         long double a = sign*maxstep/2.0 * (1.0 + tanh(par[1]));
