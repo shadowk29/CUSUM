@@ -51,7 +51,7 @@ Temporary Items
 *.xml
 *.out
 *.layout
-obj
+*obj*
 output
 Test Data
 *cscope*
