@@ -1,4 +1,11 @@
-CC=x86_64-w64-mingw32-gcc
+ifeq ($(os),win)
+	CC=x86_64-w64-mingw32-gcc
+	OUT=cusum.exe
+else
+	CC=gcc
+	OUT=cusum
+endif
+	
 CFLAGS=-D_GNU_SOURCE -O3 -Wall -Wextra -lm --static
 DEPS=bessel.h detector.h io.h stepfit.h lmmin_int64.h utils.h
 ODIR=obj
@@ -10,10 +17,10 @@ LIBS=-lm
 $(ODIR)/%.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 	
-cusum.exe: $(OBJ)
+$(OUT): $(OBJ)
 	$(CC) -o $@ $^ $(CFLAGS)
 
 .PHONY: clean
 
 clean:
-	rm -f $(ODIR)/*.o *~ core $(INCDIR)/*~ 
+	rm -f $(OUT) $(ODIR)/*.o *~ core $(INCDIR)/*~ 

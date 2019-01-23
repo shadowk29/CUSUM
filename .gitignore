@@ -26,7 +26,8 @@ $RECYCLE.BIN/
 .LSOverride
 
 # Icon must end with two \r
-Icon
+Icon
+
 
 # Thumbnails
 ._*
@@ -50,6 +51,7 @@ Temporary Items
 *.xml
 *.out
 *.layout
+obj
 output
 Test Data
 *cscope*
