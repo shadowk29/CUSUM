@@ -98,8 +98,8 @@ void count_crossing(event *current, double intra_threshold, double intra_hystere
         intra_threshold *= current->local_stdev;
         intra_hysteresis *= current->local_stdev;
 
-        sign = signum(baseline); //get the sign of the average so that we can properly invert the signal
-        baseline *= sign;
+
+        sign = signum(signal[0]); //get the sign of the average so that we can properly invert the signal
 
         if (length <=0 )
         {
@@ -115,11 +115,13 @@ void count_crossing(event *current, double intra_threshold, double intra_hystere
         {
             if (signal[i]*sign < down_threshold && state == 0) //if we are open pore state and detect a downspike
             {
+                printf("Down detected\n");
                 state = 1;
                 num_crossings++;
             }
             else if (signal[i]*sign > up_threshold && state == 1) //blocked state and detect an upspike
             {
+                printf("Up detected\n");
                 state = 0;
                 num_crossings++;
             }
