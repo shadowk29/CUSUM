@@ -336,7 +336,7 @@ void print_event_line(FILE *events, FILE *rate, event *current, double timestep,
             %.16g,\
             %.16g,\
             %.16g,\
-            %"PRId64"",
+            %"PRId64",",
             current->index, \
             current->type, \
             current->start * timestep, \
