@@ -132,6 +132,7 @@ struct Event
     double maxdeviation;
     double local_baseline;
     double local_stdev;
+    int64_t intracrossings;
     struct Edge *first_edge;
     struct Cusumlevel *first_level;
 };
@@ -187,6 +188,9 @@ struct Configuration
     double cusum_delta;
     double cusum_minstep;
     int64_t subevent_minpoints;
+
+    double intra_threshold;
+    double intra_hysteresis;
 
     int64_t stepfit_samples;
     int64_t maxiters;

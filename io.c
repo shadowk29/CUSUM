@@ -279,6 +279,7 @@ max_deviation_pA,\
 min_blockage_pA,\
 relative_min_blockage,\
 min_blockage_duration_us,\
+intracrossings,\
 level_current_pA,\
 level_duration_us,\
 blockages_pA,\
@@ -334,7 +335,8 @@ void print_event_line(FILE *events, FILE *rate, event *current, double timestep,
             %.16g,\
             %.16g,\
             %.16g,\
-            %.16g,",\
+            %.16g,\
+            %"PRId64"",
             current->index, \
             current->type, \
             current->start * timestep, \
@@ -357,7 +359,8 @@ void print_event_line(FILE *events, FILE *rate, event *current, double timestep,
             current->maxdeviation, \
             current->min_blockage, \
             d_abs(current->min_blockage / (0.5 * (current->baseline_before + current->baseline_after))), \
-            current->min_length * timestep * SECONDS_TO_MICROSECONDS);
+            current->min_length * timestep * SECONDS_TO_MICROSECONDS,\
+            current->intracrossings);
         while (level)
         {
             fprintf(events,"%.16g",level->current);
@@ -648,6 +651,14 @@ FILE * read_config(configuration *config, const char *version)
         else if (strcmp(name,"cusum_minstep") == 0)
         {
             config->cusum_minstep = strtod(value,NULL);
+        }
+        else if (strcmp(name,"intra_threshold") == 0)
+        {
+            config->intra_threshold = strtod(value,NULL);
+        }
+        else if (strcmp(name,"intra_hysteresis") == 0)
+        {
+            config->intra_hysteresis = strtod(value,NULL);
         }
         else if (strcmp(name,"event_minpoints") == 0)
         {
