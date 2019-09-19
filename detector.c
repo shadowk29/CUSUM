@@ -115,13 +115,11 @@ void count_crossing(event *current, double intra_threshold, double intra_hystere
         {
             if (signal[i]*sign < down_threshold && state == 0) //if we are open pore state and detect a downspike
             {
-                printf("Down detected\n");
                 state = 1;
                 num_crossings++;
             }
             else if (signal[i]*sign > up_threshold && state == 1) //blocked state and detect an upspike
             {
-                printf("Up detected\n");
                 state = 0;
                 num_crossings++;
             }
