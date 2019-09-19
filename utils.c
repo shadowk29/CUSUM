@@ -395,6 +395,7 @@ event *add_event(event *current, int64_t start, int64_t finish, int64_t index, d
     current->signal = NULL;
     current->filtered_signal = NULL;
     current->paddedsignal = NULL;
+    current->intracrossings = 0;
     return current;
 }
 

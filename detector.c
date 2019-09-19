@@ -54,10 +54,10 @@ int64_t fit_events(configuration *config, io_struct *io, double *rawsignal, even
         filter_short_events(current_event, config->event_minpoints);
         generate_trace(io->input, current_event, config->datatype, rawsignal, io->logfile, lpfilter, config->eventfilter, config->daqsetup, current_edge, last_end, config->start, config->subevent_minpoints, config->savegain, config->padding_wait);
         last_end = current_event->finish;
-        count_crossing(current_event, config->intra_threshold, config->intra_hysteresis);
         cusum(current_event, config->cusum_delta, config->cusum_min_threshold, config->cusum_max_threshold, config->subevent_minpoints, config->padding_wait);
         typeswitch += average_cusum_levels(current_event, config->subevent_minpoints, config->cusum_minstep, config->attempt_recovery, config->padding_wait);
         step_response(current_event, config->usefilter || config->eventfilter ? 0.4/config->cutoff : 5, config->maxiters, config->cusum_minstep);
+        count_crossing(current_event, config->intra_threshold, config->intra_hysteresis);
         populate_event_levels(current_event);
         calculate_level_noise(current_event, config->subevent_minpoints);
         refine_event_estimates(current_event);
@@ -85,7 +85,7 @@ int64_t fit_events(configuration *config, io_struct *io, double *rawsignal, even
 void count_crossing(event *current, double intra_threshold, double intra_hysteresis)
 {
     int64_t i = 0;
-    int64_t length = current->length;
+    int64_t length = current->length + current->padding_after + current->padding_before;
     double sign;
     double down_threshold;
     double up_threshold;
