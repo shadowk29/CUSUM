@@ -84,45 +84,48 @@ int64_t fit_events(configuration *config, io_struct *io, double *rawsignal, even
 
 void count_crossing(event *current, double intra_threshold, double intra_hysteresis)
 {
-    int64_t i = 0;
-    int64_t length = current->length + current->padding_after + current->padding_before;
-    double sign;
-    double down_threshold;
-    double up_threshold;
-    int state = 0;
-    int64_t num_crossings = 0;
-    double *signal = current->signal;
-    double baseline = current->local_baseline;
-    intra_threshold *= current->local_stdev;
-    intra_hysteresis *= current->local_stdev;
-
-    sign = signum(baseline); //get the sign of the average so that we can properly invert the signal
-    baseline *= sign;
-
-    if (length <=0 )
+    if (current->type == CUSUM || current->type == STEPRESPONSE)
     {
-        printf("read length is zero or less, cannot process\n");
-        current->intracrossings = 0;
-        return;
-    }
+        int64_t i = 0;
+        int64_t length = current->length + current->padding_after + current->padding_before;
+        double sign;
+        double down_threshold;
+        double up_threshold;
+        int state = 0;
+        int64_t num_crossings = 0;
+        double *signal = current->signal;
+        double baseline = current->local_baseline;
+        intra_threshold *= current->local_stdev;
+        intra_hysteresis *= current->local_stdev;
 
-    down_threshold = baseline - intra_threshold;//current thresholds for detection of downspikes and upspikes can be different
-    up_threshold = baseline - intra_threshold + intra_hysteresis;
+        sign = signum(baseline); //get the sign of the average so that we can properly invert the signal
+        baseline *= sign;
 
-    for (i=0; i<length; i++)
-    {
-        if (signal[i]*sign < down_threshold && state == 0) //if we are open pore state and detect a downspike
+        if (length <=0 )
         {
-            state = 1;
-            num_crossings++;
+            printf("read length is zero or less, cannot process\n");
+            current->intracrossings = 0;
+            return;
         }
-        else if (signal[i]*sign > up_threshold && state == 1) //blocked state and detect an upspike
+
+        down_threshold = baseline - intra_threshold;//current thresholds for detection of downspikes and upspikes can be different
+        up_threshold = baseline - intra_threshold + intra_hysteresis;
+
+        for (i=0; i<length; i++)
         {
-            state = 0;
-            num_crossings++;
+            if (signal[i]*sign < down_threshold && state == 0) //if we are open pore state and detect a downspike
+            {
+                state = 1;
+                num_crossings++;
+            }
+            else if (signal[i]*sign > up_threshold && state == 1) //blocked state and detect an upspike
+            {
+                state = 0;
+                num_crossings++;
+            }
         }
+        current->intracrossings = num_crossings;
     }
-    current->intracrossings = num_crossings;
 }
 edge *find_edges(configuration *config, io_struct *io, signal_struct *sig, baseline_struct *baseline_stats, bessel *lpfilter, edge *current_edge, edge *head_edge)
 {
