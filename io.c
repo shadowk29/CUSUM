@@ -279,7 +279,7 @@ max_deviation_pA,\
 min_blockage_pA,\
 relative_min_blockage,\
 min_blockage_duration_us,\
-intracrossings,\
+intra_crossings,\
 level_current_pA,\
 level_duration_us,\
 blockages_pA,\
