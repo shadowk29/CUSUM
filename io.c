@@ -448,13 +448,22 @@ void print_signal(event *current, int64_t length, char *filename, double timeste
     fclose(output);
 }
 
-void print_event_signal(int64_t index, event *current, double timestep, char *eventsfolder)
+void print_event_signal(int64_t index, event *current, double timestep, char *eventsfolder, int print_bad)
 {
 #ifdef DEBUG
     printf("Print Signal\n");
     fflush(stdout);
 #endif // DEBUG
-    if (current->type == CUSUM || current->type == STEPRESPONSE)
+    if(!print_bad)
+    {
+        if (current->type == CUSUM || current->type == STEPRESPONSE)
+        {
+            char eventname[1024];
+            sprintf(eventname,"%s/event_%08"PRId64".csv",eventsfolder,index);
+            print_signal(current, current->length + current->padding_before + current->padding_after, eventname, timestep);
+        }
+    }
+    else
     {
         char eventname[1024];
         sprintf(eventname,"%s/event_%08"PRId64".csv",eventsfolder,index);
@@ -595,6 +604,10 @@ FILE * read_config(configuration *config, const char *version)
         if (strcmp(name,"readlength") == 0)
         {
             config->readlength = strtoull(value,NULL,10);
+        }
+        if (strcmp(name,"print_bad_events") == 0)
+        {
+            config->print_bad = strtoull(value,NULL,10);
         }
         else if (strcmp(name,"start") == 0)
         {

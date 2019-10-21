@@ -133,6 +133,7 @@ struct Event
     double local_baseline;
     double local_stdev;
     int64_t intracrossings;
+    struct Edge *intra_edges;
     struct Edge *first_edge;
     struct Cusumlevel *first_level;
 };
@@ -158,6 +159,7 @@ struct Configuration
     char ratefile[STRLENGTH];
     char logfile[STRLENGTH];
     char baselinefile[STRLENGTH];
+    int print_bad;
 
     //file reading parameters
     int64_t start;

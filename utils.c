@@ -375,6 +375,7 @@ event *initialize_events(void)
     head->filtered_signal = NULL;
     head->first_edge = NULL;
     head->first_level = NULL;
+    head->intra_edges = NULL;
     return head;
 }
 
@@ -392,6 +393,7 @@ event *add_event(event *current, int64_t start, int64_t finish, int64_t index, d
     current->local_baseline = local_baseline;
     current->first_edge = NULL;
     current->first_level = NULL;
+    current->intra_edges = NULL;
     current->signal = NULL;
     current->filtered_signal = NULL;
     current->paddedsignal = NULL;
@@ -420,6 +422,11 @@ void free_single_event(event *current)
     {
         free_edges(current->first_edge);
         current->first_edge = NULL;
+    }
+    if (current->intra_edges)
+    {
+        free_edges(current->intra_edges);
+        current->intra_edges = NULL;
     }
     if (current->first_level)
     {

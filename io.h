@@ -60,6 +60,6 @@ int64_t read_current_chimera(FILE *input, double *current, uint16_t *rawsignal, 
 int64_t read_current_double(FILE *input, double *current, uint64_t *rawsignal, int64_t position, int64_t length);
 int64_t read_current_int16(FILE *input, double *current, uint16_t *rawsignal, int64_t position, int64_t length, double savegain);
 int64_t read_current(FILE *input, double *signal, void *rawsignal, int64_t position, int64_t length, int datatype, chimera *daqsetup, double savegain);
-void print_event_signal(int64_t index, event *current, double timestep, char *eventsfolder);
+void print_event_signal(int64_t index, event *current, double timestep, char *eventsfolder, int print_bad);
 void print_signal(event *current, int64_t length, char *filename, double timestep);
 #endif // IO_H_INCLUDED
