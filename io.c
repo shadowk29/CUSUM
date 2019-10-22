@@ -290,6 +290,7 @@ fprintf(rate,"id,\
 type,\
 start_time_s,\
 end_time_s,\
+intra_crossings,\
 intra_crossing_times_us\n");
 
 fprintf(baselinefile, "time_s,\
