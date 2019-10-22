@@ -290,6 +290,8 @@ fprintf(rate,"id,\
 type,\
 start_time_s,\
 end_time_s,\
+local_stdev,\
+local_baseline,\
 intra_crossings,\
 intra_crossing_times_us\n");
 
@@ -309,11 +311,15 @@ void print_event_line(FILE *events, FILE *rate, event *current, double timestep,
             %d,\
             %g,\
             %g,\
+            %g,\
+            %g,\
             %"PRId64",",
             current->index, \
             current->type, \
             current->start * timestep, \
             current->finish * timestep, \
+            current->local_stdev, \
+            current->local_baseline, \
             current->intracrossings);
     while (intraedge)
     {
