@@ -283,12 +283,14 @@ intra_crossings,\
 level_current_pA,\
 level_duration_us,\
 blockages_pA,\
-stdev_pA\n");
+stdev_pA,\
+intra_crossing_times_us\n");
 
 fprintf(rate,"id,\
 type,\
 start_time_s,\
-end_time_s\n");
+end_time_s,\
+intra_crossing_times_us\n");
 
 fprintf(baselinefile, "time_s,\
 baseline_pA,\
@@ -301,41 +303,56 @@ void print_event_line(FILE *events, FILE *rate, event *current, double timestep,
     printf("Print Line\n");
     fflush(stdout);
 #endif // DEBUG
+    edge *intraedge = current->intra_edges;
     fprintf(rate,"%"PRId64",\
             %d,\
-            %.16g,\
-            %.16g\n",\
+            %g,\
+            %g,\
+            %"PRId64",",
             current->index, \
             current->type, \
             current->start * timestep, \
-            current->finish * timestep);
+            current->finish * timestep, \
+            current->intracrossings);
+    while (intraedge)
+    {
+        fprintf(rate,"%g",intraedge->location * timestep * SECONDS_TO_MICROSECONDS);
+        if (intraedge->next)
+        {
+            fprintf(rate,";");
+        }
+        intraedge = intraedge->next;
+    }
+    fprintf(rate,"\n");
+
 
     if (current->type == CUSUM || current->type == STEPRESPONSE)
     {
+        intraedge = current->intra_edges;
         cusumlevel *level = current->first_level;
         fprintf(events,"%"PRId64",\
             %d,\
-            %.16g,\
-            %.16g,\
-            %.16g,\
-            %.16g,\
-            %.16g,\
-            %.16g,\
-            %.16g,\
-            %.16g,\
-            %.16g,\
-            %.16g,\
-            %.16g,\
-            %.16g,\
-            %.16g,\
+            %g,\
+            %g,\
+            %g,\
+            %g,\
+            %g,\
+            %g,\
+            %g,\
+            %g,\
+            %g,\
+            %g,\
+            %g,\
+            %g,\
+            %g,\
             %d,\
-            %.16g,\
-            %.16g,\
-            %.16g,\
-            %.16g,\
-            %.16g,\
-            %.16g,\
-            %.16g,\
+            %g,\
+            %g,\
+            %g,\
+            %g,\
+            %g,\
+            %g,\
+            %g,\
             %"PRId64",",
             current->index, \
             current->type, \
@@ -363,7 +380,7 @@ void print_event_line(FILE *events, FILE *rate, event *current, double timestep,
             current->intracrossings);
         while (level)
         {
-            fprintf(events,"%.16g",level->current);
+            fprintf(events,"%g",level->current);
             if (level->next)
             {
                 fprintf(events,";");
@@ -374,7 +391,7 @@ void print_event_line(FILE *events, FILE *rate, event *current, double timestep,
         level = current->first_level;
         while (level)
         {
-            fprintf(events,"%.16g",level->length * timestep * SECONDS_TO_MICROSECONDS);
+            fprintf(events,"%g",level->length * timestep * SECONDS_TO_MICROSECONDS);
             if (level->next)
             {
                 fprintf(events,";");
@@ -385,7 +402,7 @@ void print_event_line(FILE *events, FILE *rate, event *current, double timestep,
         level = current->first_level;
         while (level)
         {
-            fprintf(events,"%.16g",-1.0*signum(current->baseline_before)*(level->current-0.5*(current->baseline_after+current->baseline_before)));
+            fprintf(events,"%g",-1.0*signum(current->baseline_before)*(level->current-0.5*(current->baseline_after+current->baseline_before)));
             if (level->next)
             {
                 fprintf(events,";");
@@ -396,12 +413,22 @@ void print_event_line(FILE *events, FILE *rate, event *current, double timestep,
         level = current->first_level;
         while (level)
         {
-            fprintf(events,"%.16g",level->stdev);
+            fprintf(events,"%g",level->stdev);
             if (level->next)
             {
                 fprintf(events,";");
             }
             level = level->next;
+        }
+        fprintf(events,",");
+        while (intraedge)
+        {
+            fprintf(events,"%g",intraedge->location * timestep * SECONDS_TO_MICROSECONDS);
+            if (intraedge->next)
+            {
+                fprintf(events,";");
+            }
+            intraedge = intraedge->next;
         }
         fprintf(events,"\n");
         fflush(events);
