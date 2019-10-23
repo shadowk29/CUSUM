@@ -499,9 +499,13 @@ void print_event_signal(int64_t index, event *current, double timestep, char *ev
     }
     else
     {
-        char eventname[1024];
-        sprintf(eventname,"%s/event_%08"PRId64".csv",eventsfolder,index);
-        print_signal(current, current->length + current->padding_before + current->padding_after, eventname, timestep);
+        if (current->signal)
+        {
+            char eventname[1024];
+            sprintf(eventname,"%s/event_%08"PRId64".csv",eventsfolder,index);
+            print_signal(current, current->length + current->padding_before + current->padding_after, eventname, timestep);
+        }
+
     }
 }
 

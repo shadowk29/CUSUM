@@ -19,7 +19,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include"detector.h"
-
 int64_t fit_events(configuration *config, io_struct *io, double *rawsignal, event *current_event, bessel *lpfilter, edge *current_edge, int64_t *error_summary, int64_t edgecount)
 {
     int64_t lasttime = config->start;
@@ -84,7 +83,15 @@ int64_t fit_events(configuration *config, io_struct *io, double *rawsignal, even
 
 void count_crossing(event *current, double intra_threshold, double intra_hysteresis)
 {
+#ifdef DEBUG
+    printf("Count Crossings\n");
+    fflush(stdout);
+#endif // DEBUG
     current->intra_edges = initialize_edges();
+    if (!current->signal)
+    {
+        return;
+    }
     int64_t i = 0;
     int64_t length = current->length + current->padding_after + current->padding_before;
     double sign;
@@ -98,8 +105,8 @@ void count_crossing(event *current, double intra_threshold, double intra_hystere
     intra_hysteresis *= current->local_stdev;
     edge *current_edge = current->intra_edges;
 
-
     sign = signum(signal[0]); //get the sign of the average so that we can properly invert the signal
+
 
     if (length <=0 )
     {
@@ -130,6 +137,10 @@ void count_crossing(event *current, double intra_threshold, double intra_hystere
 }
 edge *find_edges(configuration *config, io_struct *io, signal_struct *sig, baseline_struct *baseline_stats, bessel *lpfilter, edge *current_edge, edge *head_edge)
 {
+#ifdef DEBUG
+    printf("Find edges\n");
+    fflush(stdout);
+#endif // DEBUG
     fprintf(io->logfile, "<----RUN LOG BEGINS---->\n\n");
     printf("Locating events... \n");
     fprintf(io->logfile, "Locating events...\n ");
@@ -213,6 +224,10 @@ int64_t get_next_event_start(edge *current_edge)
 
 int64_t get_next_event(event *current_event, edge *current_edge, int64_t index)
 {
+#ifdef DEBUG
+printf("Next Event\n");
+fflush(stdout);
+#endif // DEBUG
     int64_t edges = 0;
     int64_t start;
     int64_t finish;
@@ -511,6 +526,10 @@ void refine_event_estimates(event *current)
 
 double get_cusum_threshold(int64_t length, double minthreshold, double maxthreshold, double sigma, double mun)
 {
+#ifdef DEBUG
+    printf("Get Threshold\n");
+    fflush(stdout);
+#endif // DEBUG
     length *= 2;
     double arlmin;
     double mindif;
@@ -809,7 +828,10 @@ void generate_trace(FILE *input, event *current, int datatype, void *rawsignal, 
 
 edge *detect_edges(double *signal, double baseline, int64_t length, edge *current, double threshold, double stdev, double hysteresis, int64_t position, int event_direction)
 {
-
+#ifdef DEBUG
+    printf("Detect Edges\n");
+    fflush(stdout);
+#endif // DEBUG
     int64_t i = 0;
     double sign;
     double down_threshold;
@@ -872,6 +894,10 @@ edge *detect_edges(double *signal, double baseline, int64_t length, edge *curren
 
 void gauss_histogram(double *signal, baseline_struct *baseline, int64_t length)
 {
+#ifdef DEBUG
+    printf("Gauss Histogram\n");
+    fflush(stdout);
+#endif // DEBUG
     double *histogram = baseline->histogram;
     double baseline_min = baseline->baseline_min;
     double baseline_max = baseline->baseline_max;
@@ -895,6 +921,10 @@ void gauss_histogram(double *signal, baseline_struct *baseline, int64_t length)
 
 void fit_gaussian(baseline_struct *baseline)
 {
+#ifdef DEBUG
+    printf("Fit Gaussian\n");
+    fflush(stdout);
+#endif // DEBUG
     double *x = baseline->current;
     double *y = baseline->histogram;
     int64_t numbins = baseline->numbins;
