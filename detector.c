@@ -151,7 +151,7 @@ fflush(stdout);
         finish = current_edge->location;
         if (finish > start)
         {
-            current_duration = add_duration(current_duration, finish-start);
+            current_duration = add_duration(current_duration, log10(finish-start));
             N++;
         }
     }
@@ -645,7 +645,7 @@ void cusum(event *current_event, double delta, double minthreshold, double maxth
 #endif // DEBUG
     if (current_event->type == CUSUM)
     {
-        delta += 0.5 * elasticity * (1 + tanh((current_event->length - timestats->t50)/timestats->tsig));
+        delta += 0.5 * elasticity * (1 + tanh((log10(current_event->length) - timestats->t50)/timestats->tsig));
         current_event->delta = delta;
         delta *= current_event->local_stdev;
         double baseline = current_event->local_baseline;
