@@ -13,7 +13,7 @@
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU General Public License timestruct *timestatsfor more details.
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -379,6 +379,7 @@ event *initialize_events(void)
     return head;
 }
 
+
 event *add_event(event *current, int64_t start, int64_t finish, int64_t index, double local_stdev, double local_baseline)
 {
     current->type = 0;
@@ -401,6 +402,42 @@ event *add_event(event *current, int64_t start, int64_t finish, int64_t index, d
     return current;
 }
 
+duration_struct *initialize_durations(void)
+{
+    duration_struct *head;
+    head = calloc_and_check(1,sizeof(duration_struct),"Cannot allocate head duration");
+    head->duration = 0;
+    head->next = NULL;
+    return head;
+}
+
+duration_struct *add_duration(duration_struct *current, int64_t duration)
+{
+    if (current->duration == 0)
+    {
+        current->duration = duration;
+        return current;
+    }
+    else
+    {
+        current->next = calloc_and_check(1,sizeof(duration_struct),"Cannot allocate head duration");
+        current = current->next;
+        current->duration = duration;
+        current->next = NULL;
+    }
+    return current;
+}
+
+void free_durations(duration_struct *current)
+{
+    duration_struct *temp;
+    while(current)
+    {
+        temp = current->next;
+        free(current);
+        current = temp;
+    }
+}
 
 void free_single_event(event *current)
 {

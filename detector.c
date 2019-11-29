@@ -19,7 +19,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include"detector.h"
-int64_t fit_events(configuration *config, io_struct *io, double *rawsignal, event *current_event, bessel *lpfilter, edge *current_edge, int64_t *error_summary, int64_t edgecount)
+int64_t fit_events(configuration *config, io_struct *io, double *rawsignal, event *current_event, bessel *lpfilter, edge *current_edge, int64_t *error_summary, int64_t edgecount, timestruct *timestats)
 {
     int64_t lasttime = config->start;
     int64_t last_end = config->start;
@@ -54,7 +54,7 @@ int64_t fit_events(configuration *config, io_struct *io, double *rawsignal, even
         generate_trace(io->input, current_event, config->datatype, rawsignal, io->logfile, lpfilter, config->eventfilter, config->daqsetup, current_edge, last_end, config->start, config->subevent_minpoints, config->savegain, config->padding_wait);
         last_end = current_event->finish;
         count_crossing(current_event, config->intra_threshold, config->intra_hysteresis);
-        cusum(current_event, config->cusum_delta, config->cusum_min_threshold, config->cusum_max_threshold, config->subevent_minpoints, config->padding_wait);
+        cusum(current_event, config->cusum_delta, config->cusum_min_threshold, config->cusum_max_threshold, config->subevent_minpoints, config->padding_wait, timestats, config->cusum_elasticity);
         typeswitch += average_cusum_levels(current_event, config->subevent_minpoints, config->cusum_minstep, config->attempt_recovery, config->padding_wait);
         step_response(current_event, config->usefilter || config->eventfilter ? 0.4/config->cutoff : 5, config->maxiters, config->cusum_minstep);
         populate_event_levels(current_event);
@@ -79,6 +79,83 @@ int64_t fit_events(configuration *config, io_struct *io, double *rawsignal, even
     snprintf(progressmsg,STRLENGTH*sizeof(char)," %"PRId64" events processed",numevents);
     progressbar(edgenum, edgecount, progressmsg,difftime(time(&curr_time),start_time));
     return numevents;
+}
+
+void estimate_time_statistics(duration_struct *current_duration, timestruct *timestats, edge *current_edge)
+{
+    duration_struct *head_duration = current_duration;
+    int64_t N = get_durations(current_duration, current_edge);
+    current_duration = head_duration;
+    int64_t tempdur;
+    int swapped = 1;
+    duration_struct *lptr = NULL;
+    while (swapped)
+    {
+        swapped = 0;
+        current_duration = head_duration;
+        while (current_duration->next != lptr)
+        {
+            if (current_duration->duration > current_duration->next->duration)
+            {
+                tempdur = current_duration->duration;
+                current_duration->duration = current_duration->next->duration;
+                current_duration->next->duration = tempdur;
+                swapped = 1;
+            }
+            current_duration = current_duration->next;
+        }
+        lptr = current_duration;
+    }
+
+    current_duration = head_duration;
+    int64_t i25 = N/4;
+    int64_t i75 = 3*N/4;
+    double alpha = 1.09861; //10th/90th percentile for tanh sigmoid
+    int64_t i = 0;
+    while (i < i25)
+    {
+        current_duration = current_duration->next;
+        i++;
+    }
+    timestats->t25 = (double) current_duration->duration;
+    while (i < i75)
+    {
+        current_duration = current_duration->next;
+        i++;
+    }
+    timestats->t75 = (double) current_duration->duration;
+    timestats->t50 = 0.5*(timestats->t25 + timestats->t75);
+    timestats->tsig = (timestats->t75 - timestats->t25)/(2.0*alpha);
+}
+
+int64_t get_durations(duration_struct *current_duration, edge *current_edge)
+{
+#ifdef DEBUG
+printf("Next Duration\n");
+fflush(stdout);
+#endif // DEBUG
+    int64_t N = 0;
+    int64_t start;
+    int64_t finish;
+    while (current_edge->next)
+    {
+        while (current_edge->type != 0) //if for some reason there are multiple of the same type in a row, skip them.
+        {
+            current_edge = current_edge->next;
+        }
+        start = current_edge->location;
+        while (current_edge->type != 1) //if for some reason there are multiple of the same type in a row, skip them.
+        {
+            current_edge = current_edge->next;
+        }
+        finish = current_edge->location;
+        if (finish > start)
+        {
+            current_duration = add_duration(current_duration, finish-start);
+            N++;
+        }
+    }
+    return N;
 }
 
 void count_crossing(event *current, double intra_threshold, double intra_hysteresis)
@@ -560,8 +637,7 @@ double get_cusum_threshold(int64_t length, double minthreshold, double maxthresh
     return threshold;
 }
 
-
-void cusum(event *current_event, double delta, double minthreshold, double maxthreshold, int64_t subevent_minpoints, int64_t padding_wait)
+void cusum(event *current_event, double delta, double minthreshold, double maxthreshold, int64_t subevent_minpoints, int64_t padding_wait, timestruct *timestats, double elasticity)
 {
 #ifdef DEBUG
     printf("cusum\n");
@@ -569,6 +645,8 @@ void cusum(event *current_event, double delta, double minthreshold, double maxth
 #endif // DEBUG
     if (current_event->type == CUSUM)
     {
+        delta += 0.5 * elasticity * (1 + tanh((current_event->length - timestats->t50)/timestats->tsig));
+        current_event->delta = delta;
         delta *= current_event->local_stdev;
         double baseline = current_event->local_baseline;
         double *signal = current_event->signal;

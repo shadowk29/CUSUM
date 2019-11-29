@@ -23,7 +23,7 @@
 #include"detector.h"
 #include"bessel.h"
 #include"stepfit.h"
-#define _VERSION_ "3.2.3"
+#define _VERSION_ "3.3.0"
 
 
 int main()
@@ -68,8 +68,15 @@ int main()
     event *current_event;
     current_event = initialize_events();
 
+    //estimate time statistics for variable cusum parameters
+    duration_struct *current_duration = initialize_durations();
+    duration_struct *head_duration = current_duration;
+    timestruct *timestats = calloc_and_check(1, sizeof(timestruct),"Cannot allocate timestruct");
+    estimate_time_statistics(current_duration, timestats, current_edge);
+    free_durations(head_duration);
+
     //main loop over edges, actual fitting and event output happens here
-    int64_t numevents = fit_events(config, io, sig->rawsignal, current_event, lpfilter, current_edge, error_summary, edgecount);
+    int64_t numevents = fit_events(config, io, sig->rawsignal, current_event, lpfilter, current_edge, error_summary, edgecount, timestats);
 
     print_error_summary(io->logfile, error_summary, numevents);
 
@@ -78,7 +85,7 @@ int main()
     free(current_event);
     free_edges(head_edge);
     free(config->daqsetup);
-
+    free(timestats);
     free(error_summary);
     free(sig->rawsignal);
     free(sig);

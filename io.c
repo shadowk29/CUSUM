@@ -262,6 +262,7 @@ start_time_s,\
 event_delay_s,\
 duration_us,\
 threshold,\
+delta,\
 baseline_before_pA,\
 baseline_after_pA,\
 effective_baseline_pA,\
@@ -352,6 +353,7 @@ void print_event_line(FILE *events, FILE *rate, event *current, double timestep,
             %g,\
             %g,\
             %g,\
+            %g,\
             %d,\
             %g,\
             %g,\
@@ -367,6 +369,7 @@ void print_event_line(FILE *events, FILE *rate, event *current, double timestep,
             (current->start - lasttime) * timestep, \
             current->length * timestep * SECONDS_TO_MICROSECONDS, \
             current->threshold, \
+            current->delta, \
             current->baseline_before, \
             current->baseline_after, \
             0.5 * (current->baseline_after + current->baseline_before),\
@@ -634,6 +637,7 @@ FILE * read_config(configuration *config, const char *version)
     config->usefilter = 0;
     config->eventfilter = 0;
     config->savegain = 1;
+    config->cusum_elasticity = 0;
 
     while ((fgets(configline, STRLENGTH, configfile)) != NULL)
     {
@@ -698,6 +702,10 @@ FILE * read_config(configuration *config, const char *version)
         else if (strcmp(name,"cusum_delta") == 0)
         {
             config->cusum_delta = strtod(value,NULL);
+        }
+        else if (strcmp(name,"cusum_elasticity") == 0)
+        {
+            config->cusum_elasticity = strtod(value,NULL);
         }
         else if (strcmp(name,"cusum_minstep") == 0)
         {

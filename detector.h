@@ -35,7 +35,7 @@
 #define HISTOGRAM 0
 #define FIRST_DERIV 1
 #define SCND_DERIV 2
-int64_t fit_events(configuration *config, io_struct *io, double *rawsignal, event *current_event, bessel *lpfilter, edge *current_edge, int64_t *error_summary, int64_t edgecount);
+int64_t fit_events(configuration *config, io_struct *io, double *rawsignal, event *current_event, bessel *lpfilter, edge *current_edge, int64_t *error_summary, int64_t edgecount, timestruct *timestats);
 edge *find_edges(configuration *config, io_struct *io, signal_struct *sig, baseline_struct *baseline_stats, bessel *lpfilter, edge *current_edge, edge *head_edge);
 int64_t get_next_event(event *current_event, edge *current_edge, int64_t index);
 int64_t get_next_event_start(edge *current_edge);
@@ -51,7 +51,7 @@ void filter_long_events(event *current, int64_t event_maxpoints);
 
 
 int64_t average_cusum_levels(event *current, int64_t subevent_minpoints, double cusum_minstep, int attempt_recovery, int64_t padding_wait);
-void cusum(event *current_event, double delta, double minthreshold, double maxthreshold, int64_t subevent_minpoints, int64_t padding_wait);
+void cusum(event *current_event, double delta, double minthreshold, double maxthreshold, int64_t subevent_minpoints, int64_t padding_wait, timestruct *timestats, double elasticity);
 double get_cusum_threshold(int64_t length, double minthreshold, double maxthreshold, double sigma, double mun);
 
 void refine_event_estimates(event *current);
@@ -69,7 +69,8 @@ void generate_trace(FILE *input, event *current, int datatype, void *rawsignal, 
 void event_baseline(event *current_event, double baseline_min, double baseline_max);
 void event_area(event *current_event, double timestep);
 
-
+void estimate_time_statistics(duration_struct *current_duration, timestruct *timestats, edge *current_edge);
+int64_t get_durations(duration_struct *current_duration, edge *current_edge);
 void gauss_histogram(double *signal, baseline_struct *baseline, int64_t length);
 void fit_gaussian(baseline_struct *baseline);
 #endif // DETECTOR_H_INCLUDED

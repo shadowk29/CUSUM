@@ -49,6 +49,23 @@
 #define FITSTEP 8
 
 //#define DEBUG
+struct Duration_Struct
+{
+    int64_t duration;
+    struct Duration_Struct *next;
+};
+typedef struct Duration_Struct duration_struct;
+
+
+struct Time_Struct
+{
+     double t75;
+     double t25;
+     double t50;
+     double tsig;
+};
+typedef struct Time_Struct timestruct;
+
 struct Signal_Struct
 {
     double *paddedsignal;
@@ -126,6 +143,7 @@ struct Event
     int64_t padding_after;
     int numlevels;
     double threshold;
+    double delta;
     double rc1;
     double rc2;
     double residual;
@@ -188,6 +206,7 @@ struct Configuration
     double cusum_min_threshold;
     double cusum_max_threshold;
     double cusum_delta;
+    double cusum_elasticity;
     double cusum_minstep;
     int64_t subevent_minpoints;
 
@@ -249,4 +268,9 @@ void free_baseline(baseline_struct *baseline);
 
 int64_t locate_min(double *signal, int64_t length);
 int64_t locate_max(double *signal, int64_t length);
+
+
+duration_struct *initialize_durations(void);
+duration_struct *add_duration(duration_struct *current, int64_t duration);
+void free_durations(duration_struct *current);
 #endif // UTILS_H_INCLUDED
