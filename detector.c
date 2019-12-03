@@ -219,7 +219,7 @@ edge *find_edges(configuration *config, io_struct *io, signal_struct *sig, basel
     fflush(stdout);
 #endif // DEBUG
     fprintf(io->logfile, "<----RUN LOG BEGINS---->\n\n");
-    printf("Locating events... \n");
+    printf("Locating events in file with %"PRId64" samples:... \n",config->finish);
     fprintf(io->logfile, "Locating events...\n ");
     fflush(stdout);
 
@@ -833,8 +833,8 @@ void generate_trace(FILE *input, event *current, int datatype, void *rawsignal, 
     printf("Generate Trace\n");
     fflush(stdout);
 #endif // DEBUG
-    //if (current->type == CUSUM || current->type == STEPRESPONSE)
-    //{
+    if (current->type != TOOLONG)
+    {
         int64_t filter_order = 0;
         int64_t filter_padding = 0;
         int64_t padding = intmin(500, current->length);
@@ -898,7 +898,7 @@ void generate_trace(FILE *input, event *current, int datatype, void *rawsignal, 
         {
             filter_signal(current->signal, current->paddedsignal, lpfilter, read);
         }
-    //}
+    }
 }
 
 

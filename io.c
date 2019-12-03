@@ -170,7 +170,7 @@ int64_t read_current_chimera(FILE *input, double *current, uint16_t *rawsignal, 
     read = test;
     if (test != length)
     {
-        printf("Tried to read %"PRId64" samples: \n", length);
+        printf("Tried to read %"PRId64" samples at position %"PRId64": \n", length, (off64_t) position*sizeof(uint16_t));
         perror("End of file reached\n");
     }
 
@@ -212,7 +212,7 @@ int64_t read_current_double(FILE *input, double *current, uint64_t *rawsignal, i
     read = test/2;
     if (test != 2*length)
     {
-        printf("Tried to read %"PRId64" samples: \n", length);
+        printf("Tried to read %"PRId64" samples at position %"PRId64": \n", length, (off64_t) position*2*sizeof(double));
         perror("End of file reached\n");
     }
     swapByteOrder(current, rawsignal, length);
@@ -250,7 +250,7 @@ int64_t read_current_int16(FILE *input, double *current, uint16_t *rawsignal, in
     read = test/2;
     if (test != 2*length)
     {
-        printf("Tried to read %"PRId64" samples: \n", length);
+        printf("Tried to read %"PRId64" samples at position %"PRId64": \n", length, (off64_t) position*2*sizeof(uint16_t));
         perror("End of file reached\n");
     }
     swapByteOrder_int16(current, rawsignal, length, savegain);
@@ -505,7 +505,7 @@ void print_event_signal(int64_t index, event *current, double timestep, char *ev
     }
     else
     {
-        if (current->signal)
+        if (current->signal && current->type != TOOLONG)
         {
             char eventname[1024];
             sprintf(eventname,"%s/event_%08"PRId64".csv",eventsfolder,index);
