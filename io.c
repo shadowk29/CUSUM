@@ -170,7 +170,8 @@ int64_t read_current_chimera(FILE *input, double *current, uint16_t *rawsignal, 
     read = test;
     if (test != length)
     {
-        perror("End of file reached");
+        printf("Tried to read %"PRId64" samples: \n", length);
+        perror("End of file reached\n");
     }
 
     chimera_gain(current, rawsignal, read, daqsetup);
@@ -211,7 +212,8 @@ int64_t read_current_double(FILE *input, double *current, uint64_t *rawsignal, i
     read = test/2;
     if (test != 2*length)
     {
-        perror("End of file reached");
+        printf("Tried to read %"PRId64" samples: \n", length);
+        perror("End of file reached\n");
     }
     swapByteOrder(current, rawsignal, length);
     return read;
@@ -248,7 +250,8 @@ int64_t read_current_int16(FILE *input, double *current, uint16_t *rawsignal, in
     read = test/2;
     if (test != 2*length)
     {
-        perror("End of file reached");
+        printf("Tried to read %"PRId64" samples: \n", length);
+        perror("End of file reached\n");
     }
     swapByteOrder_int16(current, rawsignal, length, savegain);
     return read;
