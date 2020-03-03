@@ -15,10 +15,12 @@ $(ODIR)/%.$O: %.c $(DEPS)
 $(OUT): $(OBJ)
 	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
 
-.PHONY: clean win
+.PHONY: clean win cleanwin
 
 clean:
-	rm -f $(OUT) $(ODIR)/*.$O *~ core $(INCDIR)/*~ 
+	rm -f $(OUT) $(ODIR)/*.$O *~ core $(INCDIR)/*~
+	rm -f $(OUT).exe w$(ODIR)/*.$O *~ core $(INCDIR)/*~
 
 win:
 	$(MAKE) CC=x86_64-w64-mingw32-gcc E=.exe O=obj ODIR=wobj
+	
