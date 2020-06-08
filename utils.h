@@ -51,7 +51,7 @@
 //#define DEBUG
 struct Duration_Struct
 {
-    int64_t duration;
+    double duration;
     struct Duration_Struct *next;
 };
 typedef struct Duration_Struct duration_struct;
@@ -271,6 +271,6 @@ int64_t locate_max(double *signal, int64_t length);
 
 
 duration_struct *initialize_durations(void);
-duration_struct *add_duration(duration_struct *current, int64_t duration);
+duration_struct *add_duration(duration_struct *current, double duration);
 void free_durations(duration_struct *current);
 #endif // UTILS_H_INCLUDED

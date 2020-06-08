@@ -411,9 +411,9 @@ duration_struct *initialize_durations(void)
     return head;
 }
 
-duration_struct *add_duration(duration_struct *current, int64_t duration)
+duration_struct *add_duration(duration_struct *current, double duration)
 {
-    if (current->duration == 0)
+    if (current->duration <= 0)
     {
         current->duration = duration;
         return current;

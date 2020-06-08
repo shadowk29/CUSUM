@@ -86,7 +86,7 @@ void estimate_time_statistics(duration_struct *current_duration, timestruct *tim
     duration_struct *head_duration = current_duration;
     int64_t N = get_durations(current_duration, current_edge);
     current_duration = head_duration;
-    int64_t tempdur;
+    double tempdur;
     int swapped = 1;
     duration_struct *lptr = NULL;
     while (swapped)
@@ -107,11 +107,13 @@ void estimate_time_statistics(duration_struct *current_duration, timestruct *tim
         lptr = current_duration;
     }
 
+
     current_duration = head_duration;
     int64_t i25 = N/4;
     int64_t i75 = 3*N/4;
     double alpha = 1.09861; //10th/90th percentile for tanh sigmoid
     int64_t i = 0;
+
     while (i < i25)
     {
         current_duration = current_duration->next;
@@ -139,19 +141,19 @@ fflush(stdout);
     int64_t finish;
     while (current_edge->next)
     {
-        while (current_edge->type != 0) //if for some reason there are multiple of the same type in a row, skip them.
+        while (current_edge->type != 0 && current_edge->next) //if for some reason there are multiple of the same type in a row, skip them.
         {
             current_edge = current_edge->next;
         }
         start = current_edge->location;
-        while (current_edge->type != 1) //if for some reason there are multiple of the same type in a row, skip them.
+        while (current_edge->type != 1 && current_edge->next) //if for some reason there are multiple of the same type in a row, skip them.
         {
             current_edge = current_edge->next;
         }
         finish = current_edge->location;
         if (finish > start)
         {
-            current_duration = add_duration(current_duration, log10(finish-start));
+            current_duration = add_duration(current_duration, log10((double) (finish-start)));
             N++;
         }
     }
