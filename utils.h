@@ -167,6 +167,15 @@ struct Edge
 };
 typedef struct Edge edge;
 
+struct Chimera_File
+{
+    FILE *data_file;
+    double timestamp;
+    int64_t length;
+    chimera *daqsetup;
+    struct Chimera_File *next;
+};
+typedef struct Chimera_File chimera_file;
 
 struct Configuration
 {
@@ -219,6 +228,8 @@ struct Configuration
     int datatype;
     double savegain;
     chimera *daqsetup;
+
+    chimera_file *chimera_input;
 };
 typedef struct Configuration configuration;
 
@@ -273,4 +284,8 @@ int64_t locate_max(double *signal, int64_t length);
 duration_struct *initialize_durations(void);
 duration_struct *add_duration(duration_struct *current, double duration);
 void free_durations(duration_struct *current);
+
+chimera_file *initialize_chimera_files(void);
+chimera_file *add_chimera_file(chimera_file *current, const char *filename, const char *settingsname);
+void free_chimera_files(chimera_file *current);
 #endif // UTILS_H_INCLUDED

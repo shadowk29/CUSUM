@@ -848,6 +848,11 @@ FILE * read_config(configuration *config, const char *version)
         pause_and_exit(1);
     }
 
+    if (config->datatype == 0)
+    {
+        index_chimera_files(config->filepath, config->chimera_input);
+    }
+
     FILE *logfile;
     logfile = fopen64_and_check(config->logfile,"w", 4);
     printf("Using CUSUM version %s\n",version);
@@ -863,4 +868,66 @@ FILE * read_config(configuration *config, const char *version)
     fclose(configfile);
     return logfile;
 }
+
+void index_chimera_files(char *filepath, chimera_file *chimera_input)
+{
+    char basedir[STRLENGTH];
+    char basename[STRLENGTH];
+    char *pch;
+    char *prev = NULL;
+    int forwardflag = 0;
+    pch = strchr(filepath, '\\');
+    if (pch == NULL)
+    {
+        pch = strchr(filepath, '/');
+        forwardflag = 1;
+    }
+    while (pch != NULL)
+    {
+        prev = pch + 1;
+        if (forwardflag == 1)
+        {
+            pch = strchr(pch+1, '/');
+        }
+        else
+        {
+            pch = strchr(pch+1, '\\');
+        }
+    }
+    strncpy(basedir, filepath, (size_t) (prev - filepath));
+    basedir[prev-filepath] = '\0';
+
+    DIR *directory;
+    struct dirent *dir;
+    directory = opendir(basedir);
+    if (directory == NULL)
+    {
+        printf("Could not open data directory %s\n", basedir);
+        pause_and_exit(-1);
+    }
+    int64_t count = 0;
+    while ((dir = readdir(directory)) != NULL)
+    {
+        if ((pch = strstr(dir->d_name, ".log")) != NULL)
+        {
+            count++;
+        }
+    }
+
+    rewinddir(directory);
+    while ((dir = readdir(directory)) != NULL)
+    {
+        if ((pch = strstr(dir->d_name, ".log")) != NULL)
+        {
+            strncpy(basename, dir->d_name, (size_t) (pch - dir->d_name));
+            basename[pch - dir->d_name] = '\0';
+            printf("%s\n",basename);
+        }
+    }
+
+
+
+    closedir(directory);
+}
+
 
