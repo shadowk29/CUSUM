@@ -924,9 +924,6 @@ void index_chimera_files(char *filepath, chimera_file *chimera_input)
             printf("%s\n",basename);
         }
     }
-
-
-
     closedir(directory);
 }
 

@@ -70,11 +70,15 @@ int main()
     current_event = initialize_events();
 
     //estimate time statistics for variable cusum parameters
-    duration_struct *current_duration = initialize_durations();
-    duration_struct *head_duration = current_duration;
     timestruct *timestats = calloc_and_check(1, sizeof(timestruct),"Cannot allocate timestruct");
-    estimate_time_statistics(current_duration, timestats, current_edge);
-    free_durations(head_duration);
+    if (config->cusum_elasticity > 0)
+    {
+        duration_struct *current_duration = initialize_durations();
+        duration_struct *head_duration = current_duration;
+        estimate_time_statistics(current_duration, timestats, current_edge);
+        free_durations(head_duration);
+    }
+
 
     //main loop over edges, actual fitting and event output happens here
     int64_t numevents = fit_events(config, io, sig->rawsignal, current_event, lpfilter, current_edge, error_summary, edgecount, timestats);
