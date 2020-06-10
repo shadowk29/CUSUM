@@ -70,9 +70,10 @@ int main()
     current_event = initialize_events();
 
     //estimate time statistics for variable cusum parameters
-    timestruct *timestats = calloc_and_check(1, sizeof(timestruct),"Cannot allocate timestruct");
+    timestruct *timestats = NULL;
     if (config->cusum_elasticity > 0)
     {
+        timestats = calloc_and_check(1, sizeof(timestruct),"Cannot allocate timestruct");
         duration_struct *current_duration = initialize_durations();
         duration_struct *head_duration = current_duration;
         estimate_time_statistics(current_duration, timestats, current_edge);
