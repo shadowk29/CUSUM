@@ -51,7 +51,7 @@ int64_t fit_events(configuration *config, io_struct *io, double *rawsignal, even
         identify_step_events(current_event, config->stepfit_samples, config->subevent_minpoints, config->attempt_recovery);
         filter_long_events(current_event, config->event_maxpoints);
         filter_short_events(current_event, config->event_minpoints);
-        generate_trace(io->input, current_event, config->datatype, rawsignal, io->logfile, lpfilter, config->eventfilter, config->daqsetup, current_edge, last_end, config->start, config->subevent_minpoints, config->savegain, config->padding_wait);
+        generate_trace(io->input, current_event, config->datatype, rawsignal, io->logfile, lpfilter, config->eventfilter, config->daqsetup, current_edge, last_end, config->start, config->subevent_minpoints, config->savegain, config->padding_wait, config->chimera_input);
         last_end = current_event->finish;
         count_crossing(current_event, config->intra_threshold, config->intra_hysteresis);
         cusum(current_event, config->cusum_delta, config->cusum_min_threshold, config->cusum_max_threshold, config->subevent_minpoints, config->padding_wait, timestats, config->cusum_elasticity);
@@ -242,7 +242,7 @@ edge *find_edges(configuration *config, io_struct *io, signal_struct *sig, basel
     {
         snprintf(progressmsg,STRLENGTH*sizeof(char)," %.2f seconds processed (%d%% good)",(pos-config->start)/(double) config->samplingfreq, pos > config->start ? (int) (100.0 * (pos-config->start - badbaseline)/(double) (pos-config->start)) : 0);
         progressbar(pos-config->start,config->finish-config->start,progressmsg,difftime(time(&curr_time),start_time));
-        read = read_current(io->input, sig->signal, sig->rawsignal, pos, intmin(config->readlength,config->finish - pos), config->datatype, config->daqsetup, config->savegain);
+        read = read_current(io->input, sig->signal, sig->rawsignal, pos, intmin(config->readlength,config->finish - pos), config->datatype, config->daqsetup, config->savegain, config->chimera_input);
         if (read < config->readlength || feof(io->input))
         {
             endflag = 1;
@@ -832,7 +832,7 @@ void event_baseline(event *current_event, double baseline_min, double baseline_m
 
 
 
-void generate_trace(FILE *input, event *current, int datatype, void *rawsignal, FILE *logfile, bessel *lpfilter, int eventfilter, chimera *daqsetup, edge *current_edge, int64_t last_end, int64_t start, int64_t subevent_minpoints, double savegain, int64_t padding_wait)
+void generate_trace(FILE *input, event *current, int datatype, void *rawsignal, FILE *logfile, bessel *lpfilter, int eventfilter, chimera *daqsetup, edge *current_edge, int64_t last_end, int64_t start, int64_t subevent_minpoints, double savegain, int64_t padding_wait, chimera_file *chimera_input)
 {
 #ifdef DEBUG
     printf("Generate Trace\n");
@@ -889,7 +889,7 @@ void generate_trace(FILE *input, event *current, int datatype, void *rawsignal, 
             pause_and_exit(17);
         }
 
-        read = read_current(input, current->signal, rawsignal, position, current->length + current->padding_before + current->padding_after, datatype, daqsetup, savegain);
+        read = read_current(input, current->signal, rawsignal, position, current->length + current->padding_before + current->padding_after, datatype, daqsetup, savegain, chimera_input);
 
 
         if (read != current->length + current->padding_before + current->padding_after)

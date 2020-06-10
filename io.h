@@ -42,7 +42,7 @@ union int16bits
     int16_t currentval;
 };
 void print_license(FILE *logfile);
-void check_filesize(configuration *config, FILE *input);
+void check_filesize(configuration *config, FILE *input, chimera_file *chimera_input);
 void initialize_files(io_struct *io, configuration *config);
 void free_io(io_struct *io);
 void configure_defaults(configuration *config);
@@ -60,9 +60,10 @@ void chimera_gain(double *current, uint16_t *rawsignal, int64_t length, chimera 
 int64_t read_current_chimera(FILE *input, double *current, uint16_t *rawsignal, int64_t position, int64_t length, chimera *daqsetup);
 int64_t read_current_double(FILE *input, double *current, uint64_t *rawsignal, int64_t position, int64_t length);
 int64_t read_current_int16(FILE *input, double *current, uint16_t *rawsignal, int64_t position, int64_t length, double savegain);
-int64_t read_current(FILE *input, double *signal, void *rawsignal, int64_t position, int64_t length, int datatype, chimera *daqsetup, double savegain);
+int64_t read_current(FILE *input, double *signal, void *rawsignal, int64_t position, int64_t length, int datatype, chimera *daqsetup, double savegain, chimera_file *start);
 void print_event_signal(int64_t index, event *current, double timestep, char *eventsfolder, int print_bad);
 void print_signal(event *current, int64_t length, char *filename, double timestep);
 chimera_file *index_chimera_files(char *filepath);
 chimera_file *chimera_file_by_index(chimera_file *current, int64_t position);
+int64_t read_current_chimera_native(chimera_file *start, double *current, uint16_t *rawsignal, int64_t position, int64_t length);
 #endif // IO_H_INCLUDED

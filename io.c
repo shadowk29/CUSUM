@@ -36,9 +36,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.";
 
     fprintf(logfile,"%s\n\n",license);
 }
-void check_filesize(configuration *config, FILE *input)
+void check_filesize(configuration *config, FILE *input, chimera_file *chimera_input)
 {
-    int64_t filesize = get_filesize(input, config->datatype);
+    int64_t filesize = get_filesize(input, config->datatype, chimera_input);
     if (config->finish == 0)
     {
         config->finish = filesize;
@@ -47,7 +47,6 @@ void check_filesize(configuration *config, FILE *input)
     {
         config->finish = filesize < config->finish ? filesize : config->finish;
     }
-
 }
 void initialize_files(io_struct *io, configuration *config)
 {
@@ -123,7 +122,7 @@ void print_error_summary(FILE *logfile, int64_t *error_summary, int64_t numevent
     fprintf(logfile,"--------------------------------------------------------\n");
 }
 
-int64_t read_current(FILE *input, double *signal, void *rawsignal, int64_t position, int64_t length, int datatype, chimera *daqsetup, double savegain)
+int64_t read_current(FILE *input, double *signal, void *rawsignal, int64_t position, int64_t length, int datatype, chimera *daqsetup, double savegain, chimera_file *start)
 {
     int64_t read = 0;
     if (datatype == 64)
@@ -137,6 +136,10 @@ int64_t read_current(FILE *input, double *signal, void *rawsignal, int64_t posit
     else if (datatype == 0)
     {
         read = read_current_chimera(input, signal, (uint16_t *) rawsignal, position, length, daqsetup);
+    }
+    else if (datatype == -1)
+    {
+        read = read_current_chimera_native(start, signal, (uint16_t *) rawsignal, position, length);
     }
     return read;
 }
@@ -157,22 +160,7 @@ void chimera_gain(double *current, uint16_t *rawsignal, int64_t length, chimera 
     }
 }
 
-chimera_file *chimera_file_by_index(chimera_file *current, int64_t position)
-{
-    int64_t i = 0;
-    while (current && i + current->length < position)
-    {
-        i += current->length;
-        current = current->next;
-    }
-    if (current == NULL)
-    {
-        printf("Attempting to read past end up indexed data\n");
-        pause_and_exit(-1);
-    }
-    current->offset = position - i;
-    return current;
-}
+
 
 int64_t read_current_chimera(FILE *input, double *current, uint16_t *rawsignal, int64_t position, int64_t length, chimera *daqsetup)
 {
@@ -194,6 +182,51 @@ int64_t read_current_chimera(FILE *input, double *current, uint16_t *rawsignal, 
     chimera_gain(current, rawsignal, read, daqsetup);
     return read;
 }
+
+
+chimera_file *chimera_file_by_index(chimera_file *current, int64_t position)
+{
+    int64_t i = 0;
+    while (current && i + current->length < position)
+    {
+        i += current->length;
+        current = current->next;
+    }
+    if (current == NULL)
+    {
+        printf("Attempting to read past end up indexed data\n");
+        pause_and_exit(-1);
+    }
+    current->offset = position - i;
+    return current;
+}
+
+int64_t read_current_chimera_native(chimera_file *start, double *current, uint16_t *rawsignal, int64_t position, int64_t length)
+{
+    int64_t test;
+    int64_t read = 0;
+    chimera_file *current_file = start;
+    current_file = chimera_file_by_index(start, position);
+    if (fseeko64(current_file->data_file,(off64_t) current_file->offset*sizeof(uint16_t),SEEK_SET))
+    {
+        return 0;
+    }
+    test = fread(rawsignal, sizeof(uint16_t), intmin(length - read, current_file->length - current_file->offset), current_file->data_file);
+    chimera_gain(current, rawsignal, test, current_file->daqsetup);
+    read += test;
+
+    while (read < length)
+    {
+        current_file = current_file->next;
+        current_file->offset = 0;
+        test = fread(&rawsignal[read], sizeof(uint16_t), intmin(length - read, current_file->length), current_file->data_file);
+        chimera_gain(&current[read], &rawsignal[read], test, current_file->daqsetup);
+        read += test;
+    }
+    return read;
+}
+
+
 
 void swapByteOrder(double *current, uint64_t *rawsignal, int64_t length)
 {
@@ -551,7 +584,7 @@ void configure_defaults(configuration *config)
 
 void config_sanity_check(configuration *config, FILE *logfile)
 {
-    if (config->datatype != 16 && config->datatype != 64 && config->datatype !=0)
+    if (config->datatype != 16 && config->datatype != 64 && config->datatype !=0 && config->datatype != -1)
     {
         printf("datatype currently can only be 0, 16, or 64\n");
         pause_and_exit(43);
@@ -858,7 +891,8 @@ FILE * read_config(configuration *config, const char *version)
         pause_and_exit(1);
     }
 
-    if (config->datatype == 0)
+    config->chimera_input = NULL;
+    if (config->datatype == -1)
     {
         config->chimera_input = index_chimera_files(config->filepath);
     }
@@ -885,6 +919,8 @@ chimera_file *index_chimera_files(char *filepath)
     char basename[STRLENGTH];
     char settingsfilename[STRLENGTH];
     char datafilename[STRLENGTH];
+    char expname[STRLENGTH];
+    char templatename[STRLENGTH];
     char *pch;
     char *prev = NULL;
     int forwardflag = 0;
@@ -909,6 +945,11 @@ chimera_file *index_chimera_files(char *filepath)
     strncpy(basedir, filepath, (size_t) (prev - filepath));
     basedir[prev-filepath] = '\0';
 
+
+    if ((pch = strstr(filepath, ".log")) != NULL)
+    {
+        snprintf(templatename, strlen(filepath) - strlen(basedir) - 19, "%s", &filepath[strlen(basedir)]);
+    }
     DIR *directory;
     struct dirent *dir;
     directory = opendir(basedir);
@@ -926,13 +967,17 @@ chimera_file *index_chimera_files(char *filepath)
         {
             strncpy(basename, dir->d_name, (size_t) (pch - dir->d_name));
             basename[pch - dir->d_name] = '\0';
-            snprintf(settingsfilename, STRLENGTH, "%s%s.settings", basedir,basename);
-            snprintf(datafilename, STRLENGTH, "%s%s.log", basedir,basename);
-            head = add_chimera_file(head, datafilename, settingsfilename);
+            snprintf(settingsfilename, STRLENGTH, "%s%s.settings", basedir, basename);
+            snprintf(datafilename, STRLENGTH, "%s%s.log", basedir, basename);
+            snprintf(expname, strlen(basename)-15, "%s", basename);
+            if (strcmp(expname, templatename) == 0)
+            {
+                head = add_chimera_file(head, datafilename, settingsfilename);
+            }
         }
     }
     closedir(directory);
-
+    fflush(stdout);
     chimera_file *current;
     current = head;
     double offset = current->daqsetup->currentoffset;

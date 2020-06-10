@@ -37,9 +37,13 @@ int main()
     io_struct *io = calloc_and_check(1, sizeof(io_struct),"Cannot allocate io_struct");
     io->logfile = read_config(config, _VERSION_); //read config.txt for the run setup and open the logfile
     print_license(io->logfile);
+
     initialize_files(io, config); //open all other files used for IO
 
+
+
     bessel *lpfilter = initialize_filter(config->usefilter, config->eventfilter, config->order, config->cutoff, config->readlength); //if turned on, intialize the bessel filter
+
 
     int64_t *error_summary = calloc_and_check(NUMTYPES, sizeof(int64_t), "Cannot allocate error array"); //error summary to keep track of why analysis fails
 
@@ -47,7 +51,12 @@ int main()
 
     baseline_struct *baseline_stats = initialize_baseline(config); //keeps track of local baseline
 
-    check_filesize(config, io->input); //check how big the file is and assign file reading parameters accordingly
+
+
+    check_filesize(config, io->input, config->chimera_input); //check how big the file is and assign file reading parameters accordingly
+
+    printf("============== 1 \n");
+    fflush(stdout);
 
     edge *head_edge, *current_edge; //initialize linked list to store the locations of edges in the input file
     head_edge = initialize_edges();

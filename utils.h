@@ -269,7 +269,7 @@ double signal_extreme(double *signal, int64_t length, double sign);
 double signal_variance(double *signal, int64_t length);
 
 
-int64_t get_filesize(FILE *input, int datatype);
+int64_t get_filesize(FILE *input, int datatype, chimera_file *chimera_input);
 void progressbar(int64_t pos, int64_t finish, const char *msg, double elapsed);
 
 

@@ -245,24 +245,34 @@ void progressbar(int64_t pos, int64_t finish, const char *msg, double elapsed)
     fflush(stdout);
 }
 
-int64_t get_filesize(FILE *input, int datatype)
+int64_t get_filesize(FILE *input, int datatype, chimera_file *chimera_input)
 {
-    int64_t length;
-    if (datatype != 0)
+    int64_t length = 0;
+    if (datatype == 16 || datatype == 64)
     {
         fseeko64(input, 0, SEEK_END);
         length = ftello64(input);
         fseeko64(input, 0, SEEK_SET);
-        return length / (datatype / 8 * 2);
+        length = length / (datatype / 8 * 2);
     }
-    else
+    else if (datatype == 0)
     {
         fseeko64(input, 0, SEEK_END);
         length = ftello64(input);
         fseeko64(input, 0, SEEK_SET);
-        return length / 2;
+        length = length / 2;
     }
-
+    else if (datatype == -1)
+    {
+        chimera_file *current = chimera_input;
+        length = 0;
+        while (current)
+        {
+            length += current->length;
+            current = current->next;
+        }
+    }
+    return length;
 }
 
 
