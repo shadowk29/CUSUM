@@ -924,9 +924,14 @@ void index_chimera_files(char *filepath, chimera_file *chimera_input)
 
     chimera_file *current;
     current = head;
+    double offset = current->daqsetup->currentoffset;
     while (current != NULL)
     {
-        printf("%.16g\n",current->timestamp);
+        if (current->daqsetup->currentoffset != offset)
+        {
+            printf("Current offset changes during recording, limit dataset to a single offset value\n");
+            pause_and_exit(-1);
+        }
         current = current->next;
     }
 
