@@ -172,6 +172,7 @@ struct Chimera_File
     FILE *data_file;
     double timestamp;
     int64_t length;
+    int64_t offset;
     chimera *daqsetup;
     struct Chimera_File *next;
 };

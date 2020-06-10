@@ -434,6 +434,7 @@ chimera_file *add_chimera_file(chimera_file *head, const char *filename, const c
     {
         insert = head;
     }
+    insert->offset = 0;
     FILE *settings;
     settings = fopen64_and_check(settingsname, "r", -2);
 

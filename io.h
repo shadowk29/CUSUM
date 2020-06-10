@@ -64,4 +64,5 @@ int64_t read_current(FILE *input, double *signal, void *rawsignal, int64_t posit
 void print_event_signal(int64_t index, event *current, double timestep, char *eventsfolder, int print_bad);
 void print_signal(event *current, int64_t length, char *filename, double timestep);
 chimera_file *index_chimera_files(char *filepath);
+chimera_file *chimera_file_by_index(chimera_file *current, int64_t position);
 #endif // IO_H_INCLUDED

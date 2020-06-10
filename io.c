@@ -157,6 +157,23 @@ void chimera_gain(double *current, uint16_t *rawsignal, int64_t length, chimera 
     }
 }
 
+chimera_file *chimera_file_by_index(chimera_file *current, int64_t position)
+{
+    int64_t i = 0;
+    while (current && i + current->length < position)
+    {
+        i += current->length;
+        current = current->next;
+    }
+    if (current == NULL)
+    {
+        printf("Attempting to read past end up indexed data\n");
+        pause_and_exit(-1);
+    }
+    current->offset = position - i;
+    return current;
+}
+
 int64_t read_current_chimera(FILE *input, double *current, uint16_t *rawsignal, int64_t position, int64_t length, chimera *daqsetup)
 {
     int64_t test;
