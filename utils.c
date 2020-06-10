@@ -444,23 +444,23 @@ chimera_file *add_chimera_file(chimera_file *head, const char *filename, const c
     {
         name = strtok(settingsline,"=");
         value = strtok(NULL,"=\n");
-        if (strcmp(name,"TIAgain") == 0)
+        if (strcmp(name,"SETUP_TIAgain") == 0)
         {
             insert->daqsetup->TIAgain = strtod(value,NULL);
         }
-        if (strcmp(name,"samplerate") == 0)
+        if (strcmp(name,"ADCSAMPLERATE") == 0)
         {
             insert->daqsetup->samplerate = strtod(value,NULL);
         }
-        if (strcmp(name,"preADCgain") == 0)
+        if (strcmp(name,"SETUP_preADCgain") == 0)
         {
             insert->daqsetup->preADCgain = strtod(value,NULL);
         }
-        if (strcmp(name,"currentoffset") == 0)
+        if (strcmp(name,"SETUP_pAoffset") == 0)
         {
             insert->daqsetup->currentoffset = strtod(value,NULL);
         }
-        if (strcmp(name,"ADCvref") == 0)
+        if (strcmp(name,"SETUP_ADCVREF") == 0)
         {
             insert->daqsetup->ADCvref = strtod(value,NULL);
         }
@@ -468,7 +468,7 @@ chimera_file *add_chimera_file(chimera_file *head, const char *filename, const c
         {
             insert->timestamp = strtod(value,NULL);
         }
-        else if (strcmp(name,"ADCbits") == 0)
+        else if (strcmp(name,"SETUP_ADCBITS") == 0)
         {
             insert->daqsetup->ADCbits = strtol(value,NULL,10);
         }
@@ -476,7 +476,6 @@ chimera_file *add_chimera_file(chimera_file *head, const char *filename, const c
     fclose(settings);
 
     insert->data_file = fopen64_and_check(filename, "rb", -1);
-
     fseeko64(insert->data_file, 0, SEEK_END);
     insert->length = ftello64(insert->data_file) / 2;
     fseeko64(insert->data_file, 0, SEEK_SET);
@@ -492,7 +491,7 @@ chimera_file *add_chimera_file(chimera_file *head, const char *filename, const c
         else
         {
             chimera_file *current = head;
-            chimera_file *temp;
+            chimera_file *temp = NULL;
             while (current != NULL && current->timestamp < insert->timestamp)
             {
                 temp = current;

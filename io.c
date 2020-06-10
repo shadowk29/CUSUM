@@ -873,6 +873,8 @@ void index_chimera_files(char *filepath, chimera_file *chimera_input)
 {
     char basedir[STRLENGTH];
     char basename[STRLENGTH];
+    char settingsfilename[STRLENGTH];
+    char datafilename[STRLENGTH];
     char *pch;
     char *prev = NULL;
     int forwardflag = 0;
@@ -905,25 +907,29 @@ void index_chimera_files(char *filepath, chimera_file *chimera_input)
         printf("Could not open data directory %s\n", basedir);
         pause_and_exit(-1);
     }
-    int64_t count = 0;
-    while ((dir = readdir(directory)) != NULL)
-    {
-        if ((pch = strstr(dir->d_name, ".log")) != NULL)
-        {
-            count++;
-        }
-    }
 
-    rewinddir(directory);
+
+    chimera_file *head = initialize_chimera_files();
     while ((dir = readdir(directory)) != NULL)
     {
         if ((pch = strstr(dir->d_name, ".log")) != NULL)
         {
             strncpy(basename, dir->d_name, (size_t) (pch - dir->d_name));
             basename[pch - dir->d_name] = '\0';
-            printf("%s\n",basename);
+            snprintf(settingsfilename, STRLENGTH, "%s%s.settings", basedir,basename);
+            snprintf(datafilename, STRLENGTH, "%s%s.log", basedir,basename);
+            head = add_chimera_file(head, datafilename, settingsfilename);
         }
     }
+
+    chimera_file *current;
+    current = head;
+    while (current != NULL)
+    {
+        printf("%.16g\n",current->timestamp);
+        current = current->next;
+    }
+
     closedir(directory);
 }
 
