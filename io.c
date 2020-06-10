@@ -566,13 +566,6 @@ void config_sanity_check(configuration *config, FILE *logfile)
         correctionflag = 1;
         pause_and_exit(1);
     }
-    if (config->readlength < 2 * config->event_maxpoints)
-    {
-        printf("Readlength should be at least 2 times event_maxpoints. Correction:\nreadlength=%"PRId64"\n",2 * config->event_maxpoints);
-        fprintf(logfile,"Readlength should be at least 2 times event_maxpoints. Correction:\nreadlength=%"PRId64"\n",2 * config->event_maxpoints);
-        config->readlength = 2 * config->event_maxpoints;
-        correctionflag = 1;
-    }
 
     if (config->order > 10 && (config->usefilter || config->eventfilter))
     {
