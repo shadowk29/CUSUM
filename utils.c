@@ -421,13 +421,18 @@ chimera_file *initialize_chimera_files(void)
     return head;
 }
 
-chimera_file *add_chimera_file(chimera_file *current, const char *filename, const char *settingsname)
+chimera_file *add_chimera_file(chimera_file *head, const char *filename, const char *settingsname)
 {
-    if (current->timestamp > 0)
+    chimera_file *insert = NULL;
+    if (head->timestamp > 0) //if we have not already allocated a node for the new item
     {
-        current->next = calloc_and_check(1, sizeof(chimera_file), "Cannot allocate next file struct");
-        current->daqsetup = calloc_and_check(1, sizeof(chimera), "Cannot allocate daq for next file struct");
-        current = current->next;
+        insert = calloc_and_check(1, sizeof(chimera_file), "Cannot allocate next file struct");
+        insert->daqsetup = calloc_and_check(1, sizeof(chimera), "Cannot allocate daq for next file struct");
+        insert->next = NULL;
+    }
+    else
+    {
+        insert = head;
     }
     FILE *settings;
     settings = fopen64_and_check(settingsname, "r", -2);
@@ -441,42 +446,63 @@ chimera_file *add_chimera_file(chimera_file *current, const char *filename, cons
         value = strtok(NULL,"=\n");
         if (strcmp(name,"TIAgain") == 0)
         {
-            current->daqsetup->TIAgain = strtod(value,NULL);
+            insert->daqsetup->TIAgain = strtod(value,NULL);
         }
         if (strcmp(name,"samplerate") == 0)
         {
-            current->daqsetup->samplerate = strtod(value,NULL);
+            insert->daqsetup->samplerate = strtod(value,NULL);
         }
         if (strcmp(name,"preADCgain") == 0)
         {
-            current->daqsetup->preADCgain = strtod(value,NULL);
+            insert->daqsetup->preADCgain = strtod(value,NULL);
         }
         if (strcmp(name,"currentoffset") == 0)
         {
-            current->daqsetup->currentoffset = strtod(value,NULL);
+            insert->daqsetup->currentoffset = strtod(value,NULL);
         }
         if (strcmp(name,"ADCvref") == 0)
         {
-            current->daqsetup->ADCvref = strtod(value,NULL);
+            insert->daqsetup->ADCvref = strtod(value,NULL);
         }
         if (strcmp(name,"mytimestamp") == 0)
         {
-            current->timestamp = strtod(value,NULL);
+            insert->timestamp = strtod(value,NULL);
         }
         else if (strcmp(name,"ADCbits") == 0)
         {
-            current->daqsetup->ADCbits = strtol(value,NULL,10);
+            insert->daqsetup->ADCbits = strtol(value,NULL,10);
         }
     }
     fclose(settings);
 
-    current->data_file = fopen64_and_check(filename, "rb", -1);
+    insert->data_file = fopen64_and_check(filename, "rb", -1);
 
-    fseeko64(current->data_file, 0, SEEK_END);
-    current->length = ftello64(current->data_file) / 2;
-    fseeko64(current->data_file, 0, SEEK_SET);
-    current->next = NULL;
-    return current;
+    fseeko64(insert->data_file, 0, SEEK_END);
+    insert->length = ftello64(insert->data_file) / 2;
+    fseeko64(insert->data_file, 0, SEEK_SET);
+    insert->next = NULL;
+
+    if (insert != head)
+    {
+        if (insert->timestamp < head->timestamp)
+        {
+            insert->next = head;
+            head = insert;
+        }
+        else
+        {
+            chimera_file *current = head;
+            chimera_file *temp;
+            while (current != NULL && current->timestamp < insert->timestamp)
+            {
+                temp = current;
+                current = current->next;
+            }
+            insert->next = current;
+            temp->next = insert;
+        }
+    }
+    return head;
 }
 
 void free_chimera_files(chimera_file *current)
