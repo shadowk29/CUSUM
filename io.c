@@ -850,7 +850,7 @@ FILE * read_config(configuration *config, const char *version)
 
     if (config->datatype == 0)
     {
-        index_chimera_files(config->filepath, config->chimera_input);
+        config->chimera_input = index_chimera_files(config->filepath);
     }
 
     FILE *logfile;
@@ -869,7 +869,7 @@ FILE * read_config(configuration *config, const char *version)
     return logfile;
 }
 
-void index_chimera_files(char *filepath, chimera_file *chimera_input)
+chimera_file *index_chimera_files(char *filepath)
 {
     char basedir[STRLENGTH];
     char basename[STRLENGTH];
@@ -921,6 +921,7 @@ void index_chimera_files(char *filepath, chimera_file *chimera_input)
             head = add_chimera_file(head, datafilename, settingsfilename);
         }
     }
+    closedir(directory);
 
     chimera_file *current;
     current = head;
@@ -934,8 +935,7 @@ void index_chimera_files(char *filepath, chimera_file *chimera_input)
         }
         current = current->next;
     }
-
-    closedir(directory);
+    return head;
 }
 
 
