@@ -42,6 +42,10 @@ int64_t fit_events(configuration *config, io_struct *io, double *rawsignal, even
         snprintf(progressmsg,STRLENGTH*sizeof(char)," %"PRId64" events processed",numevents);
         progressbar(edgenum, edgecount, progressmsg,difftime(time(&curr_time),start_time));
         edges = get_next_event(current_event, current_edge, index);
+        if (edges == 0)
+        {
+            break;
+        }
         edgenum += edges;
         for (i=0; i<edges; i++)
         {
@@ -183,9 +187,7 @@ void count_crossing(event *current, double intra_threshold, double intra_hystere
     intra_threshold *= current->local_stdev;
     intra_hysteresis *= current->local_stdev;
     edge *current_edge = current->intra_edges;
-
     sign = signum(signal[0]); //get the sign of the average so that we can properly invert the signal
-
 
     if (length <=0 )
     {
@@ -221,7 +223,7 @@ edge *find_edges(configuration *config, io_struct *io, signal_struct *sig, basel
     fflush(stdout);
 #endif // DEBUG
     fprintf(io->logfile, "<----RUN LOG BEGINS---->\n\n");
-    printf("Locating events in file with %"PRId64" samples:... \n",config->finish);
+    printf("Locating events in %"PRId64" samples (%g s):... \n",config->finish - config->start, (double) (config->finish - config->start)/(double) config->samplingfreq);
     fprintf(io->logfile, "Locating events...\n ");
     fflush(stdout);
 

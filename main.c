@@ -55,8 +55,6 @@ int main()
 
     check_filesize(config, io->input, config->chimera_input); //check how big the file is and assign file reading parameters accordingly
 
-    printf("============== 1 \n");
-    fflush(stdout);
 
     edge *head_edge, *current_edge; //initialize linked list to store the locations of edges in the input file
     head_edge = initialize_edges();
@@ -109,9 +107,11 @@ int main()
     {
         free_filter(lpfilter);
     }
+    free_chimera_files(config->chimera_input);
     free(config);
     fprintf(io->logfile, "<----RUN LOG ENDS---->\n\n");
     free_io(io);
+
     printf("\nFinished successfully\nPress any key to continue\n");
     getchar();
     return 0;
