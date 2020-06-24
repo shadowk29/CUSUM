@@ -35,6 +35,9 @@ signal_struct *initialize_signal(configuration *config, int64_t filterpadding)
     sig->rawsignal = NULL;
     switch (config->datatype)
     {
+        case -1:
+            sig->rawsignal = calloc_and_check(config->readlength, sizeof(uint16_t), "Cannot allocate chimera native rawsignal array");
+            break;
         case 0:
             sig->rawsignal = calloc_and_check(config->readlength, sizeof(uint16_t), "Cannot allocate chimera rawsignal array");
             break;

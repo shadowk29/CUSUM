@@ -207,6 +207,7 @@ int64_t read_current_chimera_native(chimera_file *start, double *current, uint16
     int64_t read = 0;
     chimera_file *current_file = start;
     current_file = chimera_file_by_index(start, position);
+
     if (fseeko64(current_file->data_file,(off64_t) current_file->offset*sizeof(uint16_t),SEEK_SET))
     {
         return 0;
@@ -214,6 +215,7 @@ int64_t read_current_chimera_native(chimera_file *start, double *current, uint16
     test = fread(rawsignal, sizeof(uint16_t), intmin(length - read, current_file->length - current_file->offset), current_file->data_file);
     chimera_gain(current, rawsignal, test, current_file->daqsetup);
     read += test;
+
 
     while (read < length)
     {
