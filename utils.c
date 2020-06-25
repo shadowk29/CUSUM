@@ -47,6 +47,9 @@ signal_struct *initialize_signal(configuration *config, int64_t filterpadding)
         case 64:
             sig->rawsignal = calloc_and_check(config->readlength, 2*sizeof(uint64_t), "Cannot allocate f8 rawsignal array");
             break;
+        default:
+            printf("Unsupported datatype: %d\n",config->datatype);
+            pause_and_exit(config->datatype);
     }
     return sig;
 }
